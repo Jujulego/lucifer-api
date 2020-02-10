@@ -4,6 +4,12 @@
   "main": "index.js",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^25.1.2",
+    "jest": "^25.1.0",
+    "ts-jest": "^25.2.0",
     "typescript": "^3.7.5"
+  },
+  "scripts": {
+    "test": "jest"
   }
 }
