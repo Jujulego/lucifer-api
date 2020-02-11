@@ -1,7 +1,8 @@
 {
   "name": "lucifer-api",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/server.ts",
+  "author": "Julien Capellari",
   "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
