@@ -7,5 +7,5 @@ import env from 'env';
 const server = http.createServer(app);
 
 server.listen(env.PORT, () => {
-  console.log(`Server listening at http://${server.address()}:${env.PORT}/`);
+  console.log(`Server listening at http://localhost:${env.PORT}/`);
 });
