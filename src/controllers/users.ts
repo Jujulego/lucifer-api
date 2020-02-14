@@ -7,7 +7,7 @@ import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
 
 // Types
-export type LoginToken = Pick<Token, '_id' | 'token'>
+export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
 export type UserUpdate = Partial<Omit<User, 'tokens'>>
@@ -67,7 +67,7 @@ const Users = {
     const token = await user.generateToken(req);
     await user.save();
 
-    return { _id: token.id, token: token.token };
+    return { _id: token.id, token: token.token, user: user.id };
   },
 
   async authenticate(token?: string): Promise<User> {
