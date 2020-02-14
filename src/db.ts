@@ -17,7 +17,3 @@ export async function connect() {
 
   console.log("Connected to MongoDB");
 }
-
-export default {
-  connect
-}

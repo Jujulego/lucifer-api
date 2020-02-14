@@ -1,7 +1,7 @@
 import http from 'http';
 
 import app from 'app';
-import db from 'db';
+import * as db from 'db';
 import env from 'env';
 
 (async () => {
