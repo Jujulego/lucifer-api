@@ -10,6 +10,16 @@ import { aroute } from 'utils';
 const router = Router();
 
 // Routes
+router.post('/signin',
+  required({ body: { email: validator.isEmail, password: true }}),
+  aroute(async (req, res) => {
+    res.send(await Users.create(req, {
+      email: req.body.email,
+      password: req.body.password
+    }));
+  })
+);
+
 router.post('/login',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
