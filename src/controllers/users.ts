@@ -81,6 +81,12 @@ const Users = {
 
     return user;
   },
+
+  async logout(req: Request) {
+    // Remove token
+    req.token.remove();
+    await req.user.save();
+  },
 };
 
 export default Users;
