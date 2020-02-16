@@ -13,7 +13,7 @@ const TokenSchema = new Schema<Token>({
 // Options
 TokenSchema.set('timestamps', {
   createdAt: true,
-  updatedAt: true
+  updatedAt: false
 });
 
 TokenSchema.set('toJSON', {

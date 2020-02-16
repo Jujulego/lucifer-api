@@ -13,7 +13,6 @@ interface Token extends Document {
 
   from: string;
   readonly createdAt: Date;
-  readonly updatedAt: Date;
 }
 
 // Utils
