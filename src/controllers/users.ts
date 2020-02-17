@@ -10,7 +10,7 @@ import UserModel from 'models/user';
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
-export type UserUpdate = Partial<Omit<User, 'tokens'>>
+export type UserUpdate = Partial<Omit<User, '_id' | 'tokens'>>
 
 // Controller
 const Users = {
