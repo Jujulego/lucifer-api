@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import moment from 'moment';
 
 import { HttpError } from 'middlewares/errors';
 
@@ -10,7 +11,7 @@ import UserModel from 'models/user';
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
-export type UserUpdate = Partial<Omit<User, '_id' | 'tokens'>>
+export type UserUpdate = Partial<Omit<User, '_id' | 'tokens' | 'lastConnexion'>>
 
 // Controller
 const Users = {
@@ -74,6 +75,8 @@ const Users = {
     // Search user by credentials
     const user = await UserModel.findByCredentials(credentials);
     if (!user) throw HttpError.Unauthorized("Login failed");
+
+    user.lastConnexion = moment().utc().toDate();
 
     // Generate token
     const token = await user.generateToken(req);

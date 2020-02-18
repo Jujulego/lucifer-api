@@ -8,6 +8,7 @@ interface User extends Document {
   // Attributes
   email: string;
   password: string;
+  lastConnexion?: Date;
 
   readonly tokens: Types.DocumentArray<Token>;
 
