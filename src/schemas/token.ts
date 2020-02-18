@@ -8,6 +8,7 @@ import Token from 'data/token';
 const TokenSchema = new Schema<Token>({
   token: { type: String, required: true, unique: true, sparse: true },
   from: { type: String, default: '0.0.0.0', validate: validator.isIP },
+  tags: [{ type: String }]
 });
 
 // Options

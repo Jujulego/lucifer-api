@@ -11,7 +11,8 @@ interface Token extends Document {
   // Attributes
   readonly token: string;
 
-  from: string;
+  readonly from: string;
+  readonly tags: string[];
   readonly createdAt: Date;
 }
 

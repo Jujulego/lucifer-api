@@ -37,10 +37,18 @@ UserSchema.pre<User>('save', async function (next) {
 
 // Methods
 UserSchema.methods.generateToken = async function(req: Request) {
+  // Tags
+  const tags: string[] = [];
+  const ua = req.headers['user-agent'];
+
+  if (ua && /PostmanRuntime\/([0-9]+.?)+/.test(ua)) {
+    tags.push("Postman");
+  }
+
   // Generate new token
   const token = this.tokens.create({
     token: generateToken({ _id: this.id, date: moment().toISOString() }),
-    from: req.ip
+    from: req.ip, tags
   });
 
   // Store and return
