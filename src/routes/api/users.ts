@@ -41,6 +41,13 @@ router.put('/user/:id',
   })
 );
 
+// - delete user token
+router.delete('/user/:id/token/:token',
+  aroute(async (req, res) => {
+    res.send(await Users.deleteToken(req, req.params.id, req.params.token));
+  })
+);
+
 // - delete user
 router.delete('/user/:id',
   aroute(async (req, res) => {

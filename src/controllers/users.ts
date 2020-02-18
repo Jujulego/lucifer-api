@@ -45,6 +45,18 @@ const Users = {
     return await user.save();
   },
 
+  async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
+    // Find user
+    const user = await UserModel.findById(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+
+    // Find token
+    const token = user.tokens.id(tokenId);
+    await token.remove();
+
+    return await user.save();
+  },
+
   async delete(req: Request, id: string): Promise<User> {
     // Find user
     const user = await UserModel.findById(id);
