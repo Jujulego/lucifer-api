@@ -27,6 +27,13 @@ router.post('/user/',
   })
 );
 
+// - delete user token
+router.post('/user/:id/token',
+  aroute(async (req, res) => {
+    res.send(await Users.createToken(req, req.params.id, req.body.tags));
+  })
+);
+
 // - get user
 router.get('/user/:id',
   aroute(async (req, res) => {

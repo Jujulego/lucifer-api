@@ -26,6 +26,19 @@ const Users = {
     return user.save();
   },
 
+  async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
+    // Find user
+    const user = await UserModel.findById(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+
+    // Generate token
+    const token = await user.generateToken(req);
+    token.tags.push(...tags);
+
+    await user.save();
+    return token.toObject(); // /!\: returns the token too !
+  },
+
   async get(req: Request, id: string): Promise<User> {
     // Find user
     const user = await UserModel.findById(id);
