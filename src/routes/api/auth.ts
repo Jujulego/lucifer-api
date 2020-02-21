@@ -23,7 +23,7 @@ router.post('/signin',
 router.post('/login',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.login(req, req.body));
+    res.send(await Users.login(req, req.body, req.body.tags));
   })
 );
 

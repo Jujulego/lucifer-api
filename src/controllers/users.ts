@@ -84,7 +84,7 @@ const Users = {
     return UserModel.find(filter);
   },
 
-  async login(req: Request, credentials: Credentials): Promise<LoginToken> {
+  async login(req: Request, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
     // Search user by credentials
     const user = await UserModel.findByCredentials(credentials);
     if (!user) throw HttpError.Unauthorized("Login failed");
@@ -93,6 +93,7 @@ const Users = {
 
     // Generate token
     const token = await user.generateToken(req);
+    token.tags.push(...tags);
     await user.save();
 
     return { _id: token.id, token: token.token, user: user.id };
