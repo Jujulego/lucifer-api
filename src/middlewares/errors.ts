@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 
-// Classe
+// Class
 export class HttpError {
   // Attributes
   readonly message: string;

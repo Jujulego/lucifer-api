@@ -9,6 +9,7 @@ import _ from 'lodash';
 import { generateToken } from 'data/token';
 import User, { Credentials } from 'data/user';
 
+import { PermissionHolderDef } from './permission';
 import TokenSchema from './token';
 
 // Schema
@@ -16,9 +17,10 @@ const UserSchema = new Schema<User>({
   email: { type: String, required: true, unique: true, lowercase: true, validate: validator.isEmail },
   password: { type: String, required: true },
   lastConnexion: { type: Date },
-
-  tokens: [TokenSchema]
+  tokens: [TokenSchema],
 });
+
+UserSchema.add(PermissionHolderDef);
 
 // Options
 UserSchema.set('toJSON', {

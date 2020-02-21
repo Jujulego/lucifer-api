@@ -1,15 +1,15 @@
 import { Request } from 'express';
 import { Document, Types } from 'mongoose';
 
+import { PermissionHolder } from './permission';
 import Token from './token';
 
 // Interface
-interface User extends Document {
+interface User extends Document, PermissionHolder {
   // Attributes
   email: string;
   password: string;
   lastConnexion?: Date;
-
   readonly tokens: Types.DocumentArray<Token>;
 
   // Methods

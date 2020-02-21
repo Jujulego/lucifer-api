@@ -3,9 +3,6 @@ import jwt from 'jsonwebtoken';
 
 import env from 'env';
 
-// Types
-export type TokenContent = string | object;
-
 // Interface
 interface Token extends Document {
   // Attributes
@@ -15,6 +12,9 @@ interface Token extends Document {
   readonly tags: string[];
   readonly createdAt: Date;
 }
+
+// Types
+export type TokenContent = string | object;
 
 // Utils
 export function generateToken(content: TokenContent): string {
