@@ -3,6 +3,7 @@ import moment from 'moment';
 
 import { HttpError } from 'middlewares/errors';
 
+import { isAllowed, PermissionLevel, PermissionName } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
@@ -15,8 +16,18 @@ export type UserUpdate = Partial<Omit<User, '_id' | 'tokens' | 'lastConnexion'>>
 
 // Controller
 const Users = {
+  // Utils
+  isAllowed(req: Request, level: PermissionLevel, id?: string) {
+    if (id && req.user.id === id) return;
+    if (!isAllowed(req.user, PermissionName.USERS, level)) {
+      throw HttpError.Forbidden('Not allowed');
+    }
+  },
+
   // Methods
   async create(req: Request, cred: Credentials): Promise<User> {
+    if (req.user) this.isAllowed(req, PermissionLevel.CREATE);
+
     // Create user
     let user = new UserModel({
       email: cred.email,
@@ -27,6 +38,8 @@ const Users = {
   },
 
   async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
+    this.isAllowed(req, PermissionLevel.UPDATE, id);
+
     // Find user
     const user = await UserModel.findById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
@@ -40,6 +53,8 @@ const Users = {
   },
 
   async get(req: Request, id: string): Promise<User> {
+    this.isAllowed(req, PermissionLevel.READ, id);
+
     // Find user
     const user = await UserModel.findById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
@@ -48,8 +63,11 @@ const Users = {
   },
 
   async update(req: Request, id: string, update: UserUpdate): Promise<User> {
+    this.isAllowed(req, PermissionLevel.UPDATE, id);
+
     // Find user
-    let user = await this.get(req, id);
+    const user = await UserModel.findById(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
 
     // Update user
     const { email, password } = update;
@@ -60,6 +78,8 @@ const Users = {
   },
 
   async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
+    this.isAllowed(req, PermissionLevel.UPDATE, id);
+
     // Find user
     const user = await UserModel.findById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
@@ -72,6 +92,8 @@ const Users = {
   },
 
   async delete(req: Request, id: string): Promise<User> {
+    this.isAllowed(req, PermissionLevel.DELETE, id);
+
     // Find user
     const user = await UserModel.findById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
@@ -80,8 +102,18 @@ const Users = {
   },
 
   async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
-    // Find users
-    return UserModel.find(filter);
+    try {
+      this.isAllowed(req, PermissionLevel.READ);
+
+      // Find users
+      return UserModel.find(filter);
+    } catch (error) {
+      if (error instanceof HttpError && error.code === 403) {
+        return [req.user];
+      }
+
+      throw error;
+    }
   },
 
   async login(req: Request, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
