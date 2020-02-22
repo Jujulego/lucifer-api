@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import { HttpError } from 'middlewares/errors';
 
-import { isAllowed, PermissionLevel } from 'data/permission';
+import { isAllowed, PermissionName, PermissionLevel } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
@@ -12,7 +12,11 @@ import UserModel from 'models/user';
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
-export type UserUpdate = Partial<Omit<User, '_id' | 'tokens' | 'lastConnexion'>>
+export type UserUpdate = Partial<Omit<User, '_id' | 'lastConnexion' | 'permissions' | 'tokens'>>
+
+export interface PermissionGrant {
+  name: PermissionName, level: number
+}
 
 // Controller
 const Users = {
@@ -73,6 +77,25 @@ const Users = {
     const { email, password } = update;
     if (email !== undefined)    user.email    = email;
     if (password !== undefined) user.password = password;
+
+    return await user.save();
+  },
+
+  async grant(req: Request, id: string, grant: PermissionGrant): Promise<User> {
+    this.isAllowed(req, PermissionLevel.UPDATE, id);
+
+    // Find user
+    const user = await UserModel.findById(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+
+    // Update user
+    let permission = user.permissions.find(p => p.name === grant.name);
+    if (permission) {
+      permission.level = permission.level | grant.level;
+    } else {
+      permission = user.permissions.create({ name: grant.name, level: grant.level });
+      user.permissions.push(permission);
+    }
 
     return await user.save();
   },

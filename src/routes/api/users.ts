@@ -2,12 +2,26 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import Users from 'controllers/users';
+import { PermissionLevel } from 'data/permission';
 import auth from 'middlewares/auth';
 import required, { check } from 'middlewares/required';
 import { aroute } from 'utils';
 
 // Router
 const router = Router();
+
+// Utils
+function parseLevel(level: string | number): PermissionLevel {
+  if (typeof level === 'number') return level;
+  if (validator.isNumeric(level)) return parseInt(level);
+
+  // Compute level
+  const parts = level.split(',') as Array<keyof typeof PermissionLevel>;
+  return parts.reduce<PermissionLevel>(
+    (lvl, name) => lvl | PermissionLevel[name],
+    PermissionLevel.NONE
+  );
+}
 
 // Middlewares
 router.use(auth);
@@ -44,7 +58,18 @@ router.get('/user/:id',
 // - update user
 router.put('/user/:id',
   aroute(async (req, res) => {
-    res.send(await Users.update(req, req.params.id, req.body));
+    res.send(await Users.grant(req, req.params.id, req.body));
+  })
+);
+
+// - grant user
+router.put('/user/:id/grant',
+  required({ body: { name: true }}),
+  aroute(async (req, res) => {
+    res.send(await Users.grant(req, req.params.id, {
+      name: req.body.name,
+      level: parseLevel(req.body.level)
+    }));
   })
 );
 
