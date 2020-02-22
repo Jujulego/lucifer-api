@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 
 // Enums
-export type PermissionName = "users";
+export type PermissionName = string;
 export enum PermissionLevel {
   NONE   = 0b0000,
   CREATE = 0b1000,
@@ -18,7 +18,7 @@ interface Permission extends Document {
 }
 
 // Types
-export interface PermissionHolder {
+export interface PermissionHolder extends Document {
   admin: boolean;
   readonly permissions: Types.DocumentArray<Permission>;
 }

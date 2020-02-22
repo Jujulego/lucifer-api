@@ -3,9 +3,11 @@ import moment from 'moment';
 
 import { HttpError } from 'middlewares/errors';
 
-import { isAllowed, PermissionName, PermissionLevel } from 'data/permission';
+import { isAllowed, PermissionLevel as Lvl } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
+
+import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import UserModel from 'models/user';
 
 // Types
@@ -14,14 +16,10 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
 export type UserUpdate = Partial<Omit<User, '_id' | 'lastConnexion' | 'permissions' | 'tokens'>>
 
-export interface PermissionGrant {
-  name: PermissionName, level: number
-}
-
 // Controller
 const Users = {
   // Utils
-  isAllowed(req: Request, level: PermissionLevel, id?: string) {
+  isAllowed(req: Request, level: Lvl, id?: string) {
     if (id && req.user.id === id) return;
     if (!isAllowed(req.user, "users", level)) {
       throw HttpError.Forbidden('Not allowed');
@@ -30,7 +28,7 @@ const Users = {
 
   // Methods
   async create(req: Request, cred: Credentials): Promise<User> {
-    if (req.user) this.isAllowed(req, PermissionLevel.CREATE);
+    if (req.user) this.isAllowed(req, Lvl.CREATE);
 
     // Create user
     let user = new UserModel({
@@ -42,7 +40,7 @@ const Users = {
   },
 
   async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
-    this.isAllowed(req, PermissionLevel.UPDATE, id);
+    this.isAllowed(req, Lvl.UPDATE, id);
 
     // Find user
     const user = await UserModel.findById(id);
@@ -57,7 +55,7 @@ const Users = {
   },
 
   async get(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, PermissionLevel.READ, id);
+    this.isAllowed(req, Lvl.READ, id);
 
     // Find user
     const user = await UserModel.findById(id);
@@ -67,7 +65,7 @@ const Users = {
   },
 
   async update(req: Request, id: string, update: UserUpdate): Promise<User> {
-    this.isAllowed(req, PermissionLevel.UPDATE, id);
+    this.isAllowed(req, Lvl.UPDATE, id);
 
     // Find user
     const user = await UserModel.findById(id);
@@ -81,27 +79,26 @@ const Users = {
     return await user.save();
   },
 
-  async grant(req: Request, id: string, grant: PermissionGrant): Promise<User> {
-    this.isAllowed(req, PermissionLevel.UPDATE, id);
-
+  async grant(req: Request, id: string, grant: PermissionUpdate): Promise<User> {
     // Find user
     const user = await UserModel.findById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
 
-    // Update user
-    let permission = user.permissions.find(p => p.name === grant.name);
-    if (permission) {
-      permission.level = permission.level | grant.level;
-    } else {
-      permission = user.permissions.create({ name: grant.name, level: grant.level });
-      user.permissions.push(permission);
-    }
+    // Grant permission
+    return await Permissions.grant(req, user, grant);
+  },
 
-    return await user.save();
+  async revoke(req: Request, id: string, revoke: PermissionUpdate): Promise<User> {
+    // Find user
+    const user = await UserModel.findById(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+
+    // Revoke permission
+    return await Permissions.revoke(req, user, revoke);
   },
 
   async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
-    this.isAllowed(req, PermissionLevel.UPDATE, id);
+    this.isAllowed(req, Lvl.UPDATE, id);
 
     // Find user
     const user = await UserModel.findById(id);
@@ -115,7 +112,7 @@ const Users = {
   },
 
   async delete(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, PermissionLevel.DELETE, id);
+    this.isAllowed(req, Lvl.DELETE, id);
 
     // Find user
     const user = await UserModel.findById(id);
@@ -126,7 +123,7 @@ const Users = {
 
   async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
     try {
-      this.isAllowed(req, PermissionLevel.READ);
+      this.isAllowed(req, Lvl.READ);
 
       // Find users
       return UserModel.find(filter);

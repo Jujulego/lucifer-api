@@ -58,7 +58,7 @@ router.get('/user/:id',
 // - update user
 router.put('/user/:id',
   aroute(async (req, res) => {
-    res.send(await Users.grant(req, req.params.id, req.body));
+    res.send(await Users.update(req, req.params.id, req.body));
   })
 );
 
@@ -67,6 +67,17 @@ router.put('/user/:id/grant',
   required({ body: { name: true }}),
   aroute(async (req, res) => {
     res.send(await Users.grant(req, req.params.id, {
+      name: req.body.name,
+      level: parseLevel(req.body.level)
+    }));
+  })
+);
+
+// - revoke user
+router.put('/user/:id/revoke',
+  required({ body: { name: true }}),
+  aroute(async (req, res) => {
+    res.send(await Users.revoke(req, req.params.id, {
       name: req.body.name,
       level: parseLevel(req.body.level)
     }));
