@@ -1,25 +1,18 @@
 import { Request } from 'express';
 
-import { HttpError } from 'middlewares/errors';
+import Controller, { Lvl } from 'utils/controller';
 
-import {
-  isAllowed,
-  PermissionHolder, PermissionName, PermissionLevel as Lvl
-} from 'data/permission';
+import { PermissionHolder, PermissionName, PermissionLevel } from 'data/permission';
 
 // Types
 export interface PermissionUpdate {
-  name: PermissionName, level: number
+  name: PermissionName, level: PermissionLevel
 }
 
-// Controller
-const Permissions = {
-  // Utils
-  isAllowed(req: Request, level: Lvl) {
-    if (!isAllowed(req.user, "permissions", level)) {
-      throw HttpError.Forbidden('Not allowed');
-    }
-  },
+// Class
+class PermissionsController extends Controller {
+  // Constructor
+  constructor() { super("permissions"); }
 
   // Methods
   async grant<T extends PermissionHolder>(req: Request, holder: T, grant: PermissionUpdate): Promise<T> {
@@ -41,7 +34,7 @@ const Permissions = {
     }
 
     return await holder.save();
-  },
+  }
 
   async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PermissionUpdate): Promise<T> {
     this.isAllowed(req, Lvl.UPDATE);
@@ -54,11 +47,15 @@ const Permissions = {
       perm.level = perm.level ^ (perm.level & revoke.level);
 
       // Remove object if level is None
-      if (perm.level === Lvl.NONE) perm.remove();
+      if (perm.level === PermissionLevel.NONE) {
+        await perm.remove();
+      }
     }
 
     return await holder.save();
-  },
-};
+  }
+}
 
+// Controller
+const Permissions = new PermissionsController();
 export default Permissions;
