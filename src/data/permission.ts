@@ -1,10 +1,7 @@
 import { Document, Types } from 'mongoose';
 
 // Enums
-export enum PermissionName {
-  USERS = "users",
-}
-
+export type PermissionName = "users";
 export enum PermissionLevel {
   NONE   = 0b0000,
   CREATE = 0b1000,

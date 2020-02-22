@@ -3,7 +3,7 @@ import moment from 'moment';
 
 import { HttpError } from 'middlewares/errors';
 
-import { isAllowed, PermissionLevel, PermissionName } from 'data/permission';
+import { isAllowed, PermissionLevel } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
@@ -19,7 +19,7 @@ const Users = {
   // Utils
   isAllowed(req: Request, level: PermissionLevel, id?: string) {
     if (id && req.user.id === id) return;
-    if (!isAllowed(req.user, PermissionName.USERS, level)) {
+    if (!isAllowed(req.user, "users", level)) {
       throw HttpError.Forbidden('Not allowed');
     }
   },
