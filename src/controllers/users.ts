@@ -91,7 +91,7 @@ class UsersController extends Controller {
     return await Permissions.grant(req, user, grant);
   }
 
-  async revoke(req: Request, id: string, revoke: PermissionUpdate): Promise<User> {
+  async revoke(req: Request, id: string, revoke: PermissionName): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 

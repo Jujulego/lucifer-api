@@ -23,7 +23,7 @@ class PermissionsController extends Controller {
 
     if (perm) {
       // Update level
-      perm.level = perm.level | grant.level;
+      perm.level = grant.level;
     } else {
       // Add permission
       perm = holder.permissions.create({
@@ -36,20 +36,14 @@ class PermissionsController extends Controller {
     return await holder.save();
   }
 
-  async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PermissionUpdate): Promise<T> {
-    this.isAllowed(req, Lvl.UPDATE);
+  async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PermissionName): Promise<T> {
+    this.isAllowed(req, Lvl.DELETE);
 
     // Apply revoke
-    let perm = holder.permissions.find(p => p.name === revoke.name);
+    let perm = holder.permissions.find(p => p.name === revoke);
 
     if (perm) {
-      // Update level
-      perm.level = perm.level ^ (perm.level & revoke.level);
-
-      // Remove object if level is None
-      if (perm.level === PermissionLevel.NONE) {
-        await perm.remove();
-      }
+      await perm.remove();
     }
 
     return await holder.save();

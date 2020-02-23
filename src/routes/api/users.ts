@@ -74,13 +74,10 @@ router.put('/user/:id/grant',
 );
 
 // - revoke user
-router.put('/user/:id/revoke',
+router.delete('/user/:id/revoke',
   required({ body: { name: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.revoke(req, req.params.id, {
-      name: req.body.name,
-      level: parseLevel(req.body.level)
-    }));
+    res.send(await Users.revoke(req, req.params.id, req.body.name));
   })
 );
 
