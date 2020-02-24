@@ -4,12 +4,12 @@ import moment from 'moment';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import { HttpError } from 'middlewares/errors';
 
-import { PermissionName } from 'data/permission';
+import { PName, PLvl } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
 
-import Controller, { Lvl } from 'utils/controller';
+import Controller from 'utils/controller';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
@@ -23,7 +23,7 @@ class UsersController extends Controller {
   constructor() { super("users"); }
 
   // Utils
-  protected isAllowed(req: Request, level: Lvl, id?: string) {
+  protected isAllowed(req: Request, level: PLvl, id?: string) {
     if (id && req.user.id === id) return;
     super.isAllowed(req, level);
   }
@@ -38,7 +38,7 @@ class UsersController extends Controller {
 
   // Methods
   async create(req: Request, cred: Credentials): Promise<User> {
-    if (req.user) this.isAllowed(req, Lvl.CREATE);
+    if (req.user) this.isAllowed(req, PLvl.CREATE);
 
     // Create user
     let user = new UserModel({
@@ -50,7 +50,7 @@ class UsersController extends Controller {
   }
 
   async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
-    this.isAllowed(req, Lvl.UPDATE, id);
+    this.isAllowed(req, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -64,14 +64,14 @@ class UsersController extends Controller {
   }
 
   async get(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, Lvl.READ, id);
+    this.isAllowed(req, PLvl.READ, id);
 
     // Find user
     return await this.getUser(id);
   }
 
   async update(req: Request, id: string, update: UserUpdate): Promise<User> {
-    this.isAllowed(req, Lvl.UPDATE, id);
+    this.isAllowed(req, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -92,7 +92,7 @@ class UsersController extends Controller {
     return await Permissions.grant(req, user, grant);
   }
 
-  async revoke(req: Request, id: string, revoke: PermissionName): Promise<User> {
+  async revoke(req: Request, id: string, revoke: PName): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 
@@ -101,7 +101,7 @@ class UsersController extends Controller {
   }
 
   async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
-    this.isAllowed(req, Lvl.UPDATE, id);
+    this.isAllowed(req, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -114,7 +114,7 @@ class UsersController extends Controller {
   }
 
   async delete(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, Lvl.DELETE, id);
+    this.isAllowed(req, PLvl.DELETE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -123,7 +123,7 @@ class UsersController extends Controller {
 
   async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
     try {
-      this.isAllowed(req, Lvl.READ);
+      this.isAllowed(req, PLvl.READ);
 
       // Find users
       return UserModel.find(filter);

@@ -1,12 +1,11 @@
 import { Request } from 'express';
 
-import Controller, { Lvl } from 'utils/controller';
-
-import { PermissionHolder, PermissionName, PermissionLevel } from 'data/permission';
+import { PermissionHolder, PName, PLvl } from 'data/permission';
+import Controller from 'utils/controller';
 
 // Types
 export interface PermissionUpdate {
-  name: PermissionName, level: PermissionLevel
+  name: PName, level: PLvl
 }
 
 // Class
@@ -16,7 +15,7 @@ class PermissionsController extends Controller {
 
   // Methods
   async grant<T extends PermissionHolder>(req: Request, holder: T, grant: PermissionUpdate): Promise<T> {
-    this.isAllowed(req, Lvl.UPDATE);
+    this.isAllowed(req, PLvl.UPDATE);
 
     // Apply grant
     let perm = holder.permissions.find(p => p.name === grant.name);
@@ -36,8 +35,8 @@ class PermissionsController extends Controller {
     return await holder.save();
   }
 
-  async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PermissionName): Promise<T> {
-    this.isAllowed(req, Lvl.DELETE);
+  async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PName): Promise<T> {
+    this.isAllowed(req, PLvl.DELETE);
 
     // Apply revoke
     let perm = holder.permissions.find(p => p.name === revoke);

@@ -6,21 +6,25 @@ import required, { check } from 'middlewares/required';
 import { aroute } from 'utils';
 
 import Users from 'controllers/users';
-import { PermissionName, PermissionLevel } from 'data/permission';
+import { PName, PLvl, isPName, LEVELS } from 'data/permission';
 
 // Router
 const router = Router();
 
 // Utils
-function parseLevel(level: string | number): PermissionLevel {
-  if (typeof level === 'number') return level;
-  if (validator.isNumeric(level)) return parseInt(level);
+function isPLvl(str: string): str is keyof typeof PLvl {
+  return LEVELS.find(name => name === str) != undefined;
+}
+
+function parseLevel(level: string | number): PLvl {
+  if (typeof level === 'number') return level & PLvl.ALL;
+  if (validator.isNumeric(level)) return parseInt(level) & PLvl.ALL;
 
   // Compute level
-  const parts = level.split(',') as Array<keyof typeof PermissionLevel>;
-  return parts.reduce<PermissionLevel>(
-    (lvl, name) => lvl | PermissionLevel[name],
-    PermissionLevel.NONE
+  const parts = level.split(',').filter(isPLvl);
+  return parts.reduce<PLvl>(
+    (lvl, name) => lvl | PLvl[name],
+    PLvl.NONE
   );
 }
 
@@ -65,7 +69,7 @@ router.put('/user/:id',
 
 // - grant user
 router.put('/user/:id/grant',
-  required({ body: { name: true }}),
+  required({ body: { name: isPName }}),
   aroute(async (req, res) => {
     res.send(await Users.grant(req, req.params.id, {
       name: req.body.name,
@@ -76,9 +80,9 @@ router.put('/user/:id/grant',
 
 // - revoke user
 router.put('/user/:id/revoke',
-  required({ body: { name: true }}),
+  required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Users.revoke(req, req.params.id, req.body.name as PermissionName));
+    res.send(await Users.revoke(req, req.params.id, req.body.name as PName));
   })
 );
 

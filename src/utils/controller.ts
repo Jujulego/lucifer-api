@@ -2,20 +2,20 @@ import { Request } from 'express';
 
 import { HttpError } from 'middlewares/errors';
 
-import { isAllowed, PermissionName, PermissionLevel as Lvl } from 'data/permission';
+import { isAllowed, PName, PLvl } from 'data/permission';
 
 // Class
 class Controller {
   // Attributes
-  private readonly permission: PermissionName;
+  private readonly permission: PName;
 
   // Constructor
-  constructor(permission: PermissionName) {
+  constructor(permission: PName) {
     this.permission = permission;
   }
 
   // Methods
-  protected isAllowed(req: Request, level: Lvl) {
+  protected isAllowed(req: Request, level: PLvl) {
     if (!isAllowed(req.user, this.permission, level)) {
       throw HttpError.Forbidden('Not allowed');
     }
@@ -23,4 +23,3 @@ class Controller {
 }
 
 export default Controller;
-export { Lvl };
