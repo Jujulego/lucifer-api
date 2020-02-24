@@ -1,11 +1,12 @@
 import { Router } from 'express';
 import validator from 'validator';
 
-import Users from 'controllers/users';
-import { PermissionLevel } from 'data/permission';
 import auth from 'middlewares/auth';
 import required, { check } from 'middlewares/required';
 import { aroute } from 'utils';
+
+import Users from 'controllers/users';
+import { PermissionName, PermissionLevel } from 'data/permission';
 
 // Router
 const router = Router();
@@ -74,10 +75,10 @@ router.put('/user/:id/grant',
 );
 
 // - revoke user
-router.delete('/user/:id/revoke',
+router.put('/user/:id/revoke',
   required({ body: { name: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.revoke(req, req.params.id, req.body.name));
+    res.send(await Users.revoke(req, req.params.id, req.body.name as PermissionName));
   })
 );
 

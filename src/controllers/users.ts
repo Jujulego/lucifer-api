@@ -4,6 +4,7 @@ import moment from 'moment';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import { HttpError } from 'middlewares/errors';
 
+import { PermissionName } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
