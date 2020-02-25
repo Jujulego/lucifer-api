@@ -7,7 +7,7 @@ import validator from 'validator';
 import _ from 'lodash';
 
 import { generateToken } from 'data/token';
-import User, { Credentials } from 'data/user';
+import User, { Credentials, UserToken } from 'data/user';
 
 import { PermissionHolderDef } from './permission';
 import TokenSchema from './token';
@@ -49,7 +49,10 @@ UserSchema.methods.generateToken = async function(req: Request) {
 
   // Generate new token
   const token = this.tokens.create({
-    token: generateToken({ _id: this.id, date: moment().toISOString() }),
+    token: generateToken({
+      _id: this.id,
+      limit: moment().add(7, 'days').toISOString()
+    } as UserToken),
     from: req.ip, tags
   });
 

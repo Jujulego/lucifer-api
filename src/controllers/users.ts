@@ -164,6 +164,11 @@ class UsersController extends Controller {
     if (!token) throw HttpError.Unauthorized();
     const data = verifyToken<UserToken>(token);
 
+    // Validity limit
+    if (moment(data.limit).isBefore(moment.now())) {
+      throw HttpError.Unauthorized();
+    }
+
     // Find user
     const user = await UserModel.findOne({ _id: data._id, 'tokens.token': token });
     if (!user) throw HttpError.Unauthorized();
