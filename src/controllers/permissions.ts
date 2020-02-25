@@ -1,5 +1,7 @@
 import { Request } from 'express';
 
+import { HttpError } from 'middlewares/errors';
+
 import { PermissionHolder, PName, PLvl } from 'data/permission';
 import Controller from 'utils/controller';
 
@@ -32,6 +34,15 @@ class PermissionsController extends Controller {
       holder.permissions.push(perm);
     }
 
+    return await holder.save();
+  }
+
+  async elevate<T extends PermissionHolder>(req: Request, holder: T, admin: boolean = true): Promise<T> {
+    if (!req.user.admin) {
+      throw HttpError.Forbidden();
+    }
+
+    holder.admin = admin;
     return await holder.save();
   }
 

@@ -15,7 +15,7 @@ import Controller from 'utils/controller';
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
-export type UserUpdate = Partial<Omit<User, '_id' | 'lastConnexion' | 'permissions' | 'tokens'>>
+export type UserUpdate = Partial<Omit<User, '_id' | 'lastConnexion' | 'admin' | 'permissions' | 'tokens'>>
 
 // Class
 class UsersController extends Controller {
@@ -90,6 +90,14 @@ class UsersController extends Controller {
 
     // Grant permission
     return await Permissions.grant(req, user, grant);
+  }
+
+  async elevate(req: Request, id: string, admin?: boolean): Promise<User> {
+    // Find user
+    const user = await this.getUser(id);
+
+    // Elevate user
+    return await Permissions.elevate(req, user, admin);
   }
 
   async revoke(req: Request, id: string, revoke: PName): Promise<User> {

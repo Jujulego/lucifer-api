@@ -2,11 +2,12 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
+import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
 import { aroute } from 'utils';
 
 import Users from 'controllers/users';
-import { PName, PLvl, isPName, LEVELS } from 'data/permission';
+import { PLvl, isPName, LEVELS } from 'data/permission';
 
 // Router
 const router = Router();
@@ -22,6 +23,8 @@ function parseLevel(level: string | number): PLvl {
 
   // Compute level
   const parts = level.split(',').filter(isPLvl);
+  if (parts.length === 0) throw HttpError.BadRequest("Need at least 1 valid level");
+
   return parts.reduce<PLvl>(
     (lvl, name) => lvl | PLvl[name],
     PLvl.NONE
@@ -78,11 +81,19 @@ router.put('/user/:id/grant',
   })
 );
 
+// - elevate user
+router.put('/user/:id/elevate',
+  required({ body: { admin: { required: false, validator: validator.isBoolean }}}),
+  aroute(async (req, res) => {
+    res.send(await Users.elevate(req, req.params.id, req.body.admin));
+  })
+);
+
 // - revoke user
 router.put('/user/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Users.revoke(req, req.params.id, req.body.name as PName));
+    res.send(await Users.revoke(req, req.params.id, req.body.name));
   })
 );
 
