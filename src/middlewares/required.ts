@@ -66,7 +66,7 @@ function test(obj: RequestObject, opts: Options, error: ErrorGenerator): Respons
 
     if (required && value === undefined) {
       missing.push(name);
-    } else if (value !== undefined && validator && !validator(value)) {
+    } else if (typeof value === "string" && validator && !validator(value)) {
       throw error(`Invalid value for ${name}`);
     }
   }
