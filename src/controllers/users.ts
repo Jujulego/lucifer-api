@@ -70,6 +70,21 @@ class UsersController extends Controller {
     return await this.getUser(id);
   }
 
+  async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
+    try {
+      this.isAllowed(req, PLvl.READ);
+
+      // Find users
+      return UserModel.find(filter);
+    } catch (error) {
+      if (error instanceof HttpError && error.code === 403) {
+        return [req.user];
+      }
+
+      throw error;
+    }
+  }
+
   async update(req: Request, id: string, update: UserUpdate): Promise<User> {
     this.isAllowed(req, PLvl.UPDATE, id);
 
@@ -127,21 +142,6 @@ class UsersController extends Controller {
     // Find user
     const user = await this.getUser(id);
     return await user.remove();
-  }
-
-  async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
-    try {
-      this.isAllowed(req, PLvl.READ);
-
-      // Find users
-      return UserModel.find(filter);
-    } catch (error) {
-      if (error instanceof HttpError && error.code === 403) {
-        return [req.user];
-      }
-
-      throw error;
-    }
   }
 
   async login(req: Request, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
