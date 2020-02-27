@@ -3,7 +3,7 @@ import { Schema } from 'mongoose';
 
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
-import _ from 'lodash';
+import { omit } from 'lodash';
 
 import { generateToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
@@ -23,7 +23,7 @@ UserSchema.add(PermissionHolderDef);
 
 // Options
 UserSchema.set('toJSON', {
-  transform: (doc, ret) => _.omit(ret, ['password'])
+  transform: (doc, ret) => omit(ret, ['password'])
 });
 
 // Events

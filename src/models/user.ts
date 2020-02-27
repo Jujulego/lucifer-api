@@ -3,7 +3,7 @@ import mongoose, { Model } from 'mongoose';
 import User, { Credentials } from 'data/user';
 import UserSchema from 'schemas/user';
 
-// Interface;
+// Interface
 interface UserModel extends Model<User> {
   // Methods
   findByCredentials(credentials: Credentials): Promise<User | null>
