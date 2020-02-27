@@ -162,10 +162,12 @@ class UsersController extends Controller {
   async authenticate(token?: string): Promise<User> {
     // Decode token
     if (!token) throw HttpError.Unauthorized();
-    const data = verifyToken<UserToken>(token);
+    let data: UserToken;
 
-    // Validity limit
-    if (moment(data.limit).isBefore(moment.now())) {
+    try {
+      data = verifyToken<UserToken>(token);
+    } catch (error) {
+      console.error(error);
       throw HttpError.Unauthorized();
     }
 

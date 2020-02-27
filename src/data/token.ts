@@ -17,11 +17,11 @@ interface Token extends Document {
 export type TokenContent = string | object;
 
 // Utils
-export function generateToken(content: TokenContent): string {
-  return jwt.sign(content, env.JWT_KEY);
+export function generateToken(content: TokenContent, expiresIn: string | number): string {
+  return jwt.sign(content, env.JWT_KEY, { expiresIn });
 }
 
-export function verifyToken<T extends TokenContent>(token: string | Token) {
+export function verifyToken<T extends TokenContent>(token: string | Token): T {
   // Get token
   if (typeof token !== 'string') {
     token = token.token;

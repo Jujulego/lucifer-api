@@ -2,7 +2,6 @@ import { Request } from 'express';
 import { Schema } from 'mongoose';
 
 import bcrypt from 'bcryptjs';
-import moment from 'moment';
 import validator from 'validator';
 import _ from 'lodash';
 
@@ -49,10 +48,7 @@ UserSchema.methods.generateToken = async function(req: Request) {
 
   // Generate new token
   const token = this.tokens.create({
-    token: generateToken({
-      _id: this.id,
-      limit: moment().add(7, 'days').toISOString()
-    } as UserToken),
+    token: generateToken({ _id: this.id } as UserToken, '7 days'),
     from: req.ip, tags
   });
 

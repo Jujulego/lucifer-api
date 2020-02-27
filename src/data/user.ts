@@ -18,6 +18,6 @@ interface User extends Document, PermissionHolder {
 
 // Types
 export type Credentials = Pick<User, 'email' | 'password'>
-export type UserToken = { _id: string, limit: string }
+export type UserToken = { _id: string }
 
 export default User;
