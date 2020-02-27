@@ -1,8 +1,9 @@
 import { Request } from 'express';
 import moment from 'moment';
 
-import Permissions, { PermissionUpdate } from 'controllers/permissions';
+import { UserRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
+import Permissions, { PermissionUpdate } from 'controllers/permissions';
 
 import { PName, PLvl } from 'data/permission';
 import Token, { verifyToken } from 'data/token';
@@ -24,7 +25,7 @@ class UsersController extends Controller {
 
   // Utils
   protected isAllowed(req: Request, level: PLvl, id?: string) {
-    if (id && req.user.id === id) return;
+    if (id && req.holder && req.holder.id === id) return;
     super.isAllowed(req, level);
   }
 
@@ -78,7 +79,7 @@ class UsersController extends Controller {
       return UserModel.find(filter);
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
-        return [req.user];
+        return req.user ? [req.user] : [];
       }
 
       throw error;
@@ -178,7 +179,7 @@ class UsersController extends Controller {
     return user;
   }
 
-  async logout(req: Request) {
+  async logout(req: UserRequest) {
     // Remove token
     req.token.remove();
     await req.user.save();

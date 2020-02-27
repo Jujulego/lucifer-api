@@ -10,7 +10,7 @@ const router = Router();
 // Routes
 router.use(auth);
 router.use(users);
-router.use((req) => { throw HttpError.NotFound(`Ressource not found: ${req.url}`)});
+router.use((req) => { throw HttpError.NotFound(`Resource not found: ${req.url}`)});
 
 // Errors
 router.use(errors());

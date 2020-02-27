@@ -16,7 +16,7 @@ class Controller {
 
   // Methods
   protected isAllowed(req: Request, level: PLvl) {
-    if (!isAllowed(req.user, this.permission, level)) {
+    if (!req.holder || !isAllowed(req.holder, this.permission, level)) {
       throw HttpError.Forbidden('Not allowed');
     }
   }

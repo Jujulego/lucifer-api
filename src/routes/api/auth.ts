@@ -2,7 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import Users from 'controllers/users';
-import auth from 'middlewares/auth';
+import auth, { isUserRequest } from 'middlewares/auth';
 import required from 'middlewares/required';
 import { aroute } from 'utils';
 
@@ -29,7 +29,7 @@ router.post('/login',
 
 router.delete('/logout', auth,
   aroute(async (req, res) => {
-    await Users.logout(req);
+    if (isUserRequest(req)) await Users.logout(req);
     res.send();
   })
 );
