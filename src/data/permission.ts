@@ -1,9 +1,9 @@
 import { Document, Types } from 'mongoose';
 
 // Enums
-export type PName = "users" | "permissions";
+export type PName = "daemons" | "permissions" | "users";
 export const PERMISSIONS: PName[] = [
-  "users", "permissions"
+  "daemons", "permissions", "users"
 ];
 
 export enum PLvl {

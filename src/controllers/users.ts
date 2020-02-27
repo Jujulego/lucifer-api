@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import moment from 'moment';
 
-import { UserRequest } from 'middlewares/auth';
+import { isUserRequest, UserRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 
@@ -15,8 +15,8 @@ import Controller from 'utils/controller';
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
-export type UserFilter = Partial<Omit<User, 'password' | 'tokens'>>
-export type UserUpdate = Partial<Omit<User, '_id' | 'lastConnexion' | 'admin' | 'permissions' | 'tokens'>>
+export type UserFilter = Partial<Omit<User, 'password' | 'permissions' | 'tokens'>>
+export type UserUpdate = Partial<Pick<User, 'email' | 'password'>>
 
 // Class
 class UsersController extends Controller {
@@ -25,7 +25,7 @@ class UsersController extends Controller {
 
   // Utils
   protected isAllowed(req: Request, level: PLvl, id?: string) {
-    if (id && req.holder && req.holder.id === id) return;
+    if (id && isUserRequest(req) && req.user.id === id) return;
     super.isAllowed(req, level);
   }
 
@@ -42,12 +42,12 @@ class UsersController extends Controller {
     if (req.user) this.isAllowed(req, PLvl.CREATE);
 
     // Create user
-    let user = new UserModel({
+    const user = new UserModel({
       email: cred.email,
       password: cred.password
     });
 
-    return user.save();
+    return await user.save();
   }
 
   async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {

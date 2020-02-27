@@ -2,9 +2,10 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import Users from 'controllers/users';
-import auth, { isUserRequest } from 'middlewares/auth';
+import auth, { isDaemonRequest, isUserRequest } from 'middlewares/auth';
 import required from 'middlewares/required';
 import { aroute } from 'utils';
+import Daemons from 'controllers/daemon';
 
 // Router
 const router = Router();
@@ -30,6 +31,7 @@ router.post('/login',
 router.delete('/logout', auth,
   aroute(async (req, res) => {
     if (isUserRequest(req)) await Users.logout(req);
+    if (isDaemonRequest(req)) await Daemons.logout(req);
     res.send();
   })
 );
