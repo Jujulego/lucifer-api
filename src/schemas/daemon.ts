@@ -8,17 +8,16 @@ import { generateToken } from 'data/token';
 import Daemon, { Credentials, DaemonToken } from 'data/daemon';
 
 import { PermissionHolderDef } from './permission';
-import TokenSchema from './token';
+import { TokenHolderDef } from './token';
 
 // Schema
 const DaemonSchema = new Schema<Daemon>({
   name: { type: String },
   secret: { type: String, required: true },
-  lastConnexion: { type: Date },
-  tokens: [TokenSchema],
 });
 
 DaemonSchema.add(PermissionHolderDef);
+DaemonSchema.add(TokenHolderDef);
 
 // Options
 DaemonSchema.set('toJSON', {
@@ -37,29 +36,13 @@ DaemonSchema.pre<Daemon>('save', async function (next) {
 
 // Methods
 DaemonSchema.methods.generateToken = async function (req: Request) {
-  // Tags
-  const tags: string[] = [];
-  const ua = req.headers['user-agent'];
-
-  if (ua && /PostmanRuntime\/([0-9]+.?)+/.test(ua)) {
-    tags.push("Postman");
-  }
-
-  // Generate new token
-  const token = this.tokens.create({
-    token: generateToken({ _id: this.id } as DaemonToken, '7 days'),
-    from: req.ip, tags
-  });
-
-  // Store and return
-  this.tokens.push(token);
-  return token;
+  return generateToken(this, req, { _id: this.id } as DaemonToken, '7 days');
 };
 
 // Statics
 DaemonSchema.statics.findByCredentials = async function(cred: Credentials) {
   // Search by name
-  const daemon = await this.findOne({ _id: cred._id });
+  const daemon = await this.findById(cred._id);
   if (!daemon) return null;
 
   // Check secret

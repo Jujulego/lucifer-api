@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import { Schema, SchemaDefinition } from 'mongoose';
 import validator from 'validator';
 import _ from 'lodash';
 
@@ -10,6 +10,12 @@ const TokenSchema = new Schema<Token>({
   from: { type: String, default: '0.0.0.0', validate: validator.isIP },
   tags: [{ type: String }]
 });
+
+// Schema definitions
+export const TokenHolderDef: SchemaDefinition = {
+  lastConnexion: { type: Date },
+  tokens: [TokenSchema],
+};
 
 // Options
 TokenSchema.set('timestamps', {

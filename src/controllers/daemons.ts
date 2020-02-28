@@ -1,21 +1,18 @@
 import { Request } from 'express';
-import moment from 'moment';
 
 import { DaemonRequest, isDaemonRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
+import Tokens, { TokenObj } from 'controllers/tokens';
 
-import Daemon, { Credentials, DaemonToken } from 'data/daemon';
+import Daemon, { DaemonToken } from 'data/daemon';
 import { PLvl, PName } from 'data/permission';
-import Token, { verifyToken } from 'data/token';
 import DaemonModel from 'models/daemon';
 
 import Controller from 'utils/controller';
 import { randomString } from 'utils/string';
 
 // Types
-export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
-
 export type DaemonFilter = Partial<Omit<Daemon, 'secret' | 'permissions' | 'tokens'>>
 export type DaemonUpdate = Partial<Pick<Daemon, 'name'>>
 
@@ -51,18 +48,11 @@ class DaemonsController extends Controller {
     return await daemon.save();
   }
 
-  async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
+  async createToken(req: Request, id: string, tags: string[] = []): Promise<TokenObj> {
     this.isAllowed(req, PLvl.UPDATE, id);
 
-    // Find daemon
-    const daemon = await this.getDaemon(id);
-
     // Generate token
-    const token = await daemon.generateToken(req);
-    token.tags.push(...tags);
-
-    await daemon.save();
-    return token.toObject(); // /!\: returns the token too !
+    return Tokens.createToken(req, await this.getDaemon(id), tags);
   }
 
   async get(req: Request, id: string): Promise<Daemon> {
@@ -121,14 +111,8 @@ class DaemonsController extends Controller {
   async deleteToken(req: Request, id: string, tokenId: string): Promise<Daemon> {
     this.isAllowed(req, PLvl.UPDATE, id);
 
-    // Find daemon
-    const daemon = await this.getDaemon(id);
-
-    // Find token
-    const token = daemon.tokens.id(tokenId);
-    await token.remove();
-
-    return await daemon.save();
+    // Delete token
+    return Tokens.deleteToken(req, await this.getDaemon(id), tokenId);
   }
 
   async delete(req: Request, id: string): Promise<Daemon> {
@@ -139,38 +123,10 @@ class DaemonsController extends Controller {
     return await daemon.remove();
   }
 
-  async login(req: Request, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
-    // Search daemon by credentials
-    const daemon = await DaemonModel.findByCredentials(credentials);
-    if (!daemon) throw HttpError.Unauthorized("Login failed");
-
-    daemon.lastConnexion = moment().utc().toDate();
-
-    // Generate token
-    const token = await daemon.generateToken(req);
-    token.tags.push(...tags);
-    await daemon.save();
-
-    return { _id: token.id, token: token.token, daemon: daemon.id };
-  }
-
   async authenticate(token?: string): Promise<Daemon> {
-    // Decode token
-    if (!token) throw HttpError.Unauthorized();
-    let data: DaemonToken;
-
-    try {
-      data = verifyToken<DaemonToken>(token);
-    } catch (error) {
-      console.error(error);
-      throw HttpError.Unauthorized();
-    }
-
-    // Find user
-    const user = await DaemonModel.findOne({ _id: data._id, 'tokens.token': token });
-    if (!user) throw HttpError.Unauthorized();
-
-    return user;
+    return await Tokens.authenticate(token, async (data: DaemonToken, token: string) => {
+      return DaemonModel.findOne({ _id: data._id, 'tokens.token': token });
+    });
   }
 
   async logout(req: DaemonRequest) {

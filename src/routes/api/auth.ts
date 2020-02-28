@@ -5,7 +5,7 @@ import Users from 'controllers/users';
 import auth, { isDaemonRequest, isUserRequest } from 'middlewares/auth';
 import required from 'middlewares/required';
 import { aroute } from 'utils';
-import Daemons from 'controllers/daemon';
+import Daemons from 'controllers/daemons';
 
 // Router
 const router = Router();

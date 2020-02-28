@@ -6,7 +6,7 @@ import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
 import { aroute } from 'utils';
 
-import Daemons from 'controllers/daemon';
+import Daemons from 'controllers/daemons';
 import { PLvl, isPName, LEVELS } from 'data/permission';
 
 // Router

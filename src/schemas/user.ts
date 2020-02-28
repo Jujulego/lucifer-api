@@ -9,17 +9,16 @@ import { generateToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 
 import { PermissionHolderDef } from './permission';
-import TokenSchema from './token';
+import { TokenHolderDef } from './token';
 
 // Schema
 const UserSchema = new Schema<User>({
   email: { type: String, required: true, unique: true, lowercase: true, validate: validator.isEmail },
   password: { type: String, required: true },
-  lastConnexion: { type: Date },
-  tokens: [TokenSchema],
 });
 
 UserSchema.add(PermissionHolderDef);
+UserSchema.add(TokenHolderDef);
 
 // Options
 UserSchema.set('toJSON', {
@@ -38,23 +37,7 @@ UserSchema.pre<User>('save', async function (next) {
 
 // Methods
 UserSchema.methods.generateToken = async function(req: Request) {
-  // Tags
-  const tags: string[] = [];
-  const ua = req.headers['user-agent'];
-
-  if (ua && /PostmanRuntime\/([0-9]+.?)+/.test(ua)) {
-    tags.push("Postman");
-  }
-
-  // Generate new token
-  const token = this.tokens.create({
-    token: generateToken({ _id: this.id } as UserToken, '7 days'),
-    from: req.ip, tags
-  });
-
-  // Store and return
-  this.tokens.push(token);
-  return token;
+  return generateToken(this, req, { _id: this.id } as UserToken, '7 days');
 };
 
 // Statics

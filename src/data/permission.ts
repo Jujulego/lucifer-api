@@ -28,6 +28,7 @@ interface Permission extends Document {
 
 // Types
 export interface PermissionHolder extends Document {
+  // Attributes
   admin: boolean;
   readonly permissions: Types.DocumentArray<Permission>;
 }

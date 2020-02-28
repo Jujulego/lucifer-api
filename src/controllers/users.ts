@@ -1,12 +1,12 @@
 import { Request } from 'express';
-import moment from 'moment';
 
 import { isUserRequest, UserRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
+import Tokens, { TokenObj } from 'controllers/tokens';
 
 import { PName, PLvl } from 'data/permission';
-import Token, { verifyToken } from 'data/token';
+import Token from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 import UserModel from 'models/user';
 
@@ -50,18 +50,11 @@ class UsersController extends Controller {
     return await user.save();
   }
 
-  async createToken(req: Request, id: string, tags: string[] = []): Promise<Token> {
+  async createToken(req: Request, id: string, tags: string[] = []): Promise<TokenObj> {
     this.isAllowed(req, PLvl.UPDATE, id);
 
-    // Find user
-    const user = await this.getUser(id);
-
     // Generate token
-    const token = await user.generateToken(req);
-    token.tags.push(...tags);
-
-    await user.save();
-    return token.toObject(); // /!\: returns the token too !
+    return Tokens.createToken(req, await this.getUser(id), tags);
   }
 
   async get(req: Request, id: string): Promise<User> {
@@ -127,14 +120,8 @@ class UsersController extends Controller {
   async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
     this.isAllowed(req, PLvl.UPDATE, id);
 
-    // Find user
-    const user = await this.getUser(id);
-
-    // Find token
-    const token = user.tokens.id(tokenId);
-    await token.remove();
-
-    return await user.save();
+    // Delete token
+    return await Tokens.deleteToken(req, await this.getUser(id), tokenId);
   }
 
   async delete(req: Request, id: string): Promise<User> {
@@ -150,33 +137,15 @@ class UsersController extends Controller {
     const user = await UserModel.findByCredentials(credentials);
     if (!user) throw HttpError.Unauthorized("Login failed");
 
-    user.lastConnexion = moment().utc().toDate();
-
     // Generate token
-    const token = await user.generateToken(req);
-    token.tags.push(...tags);
-    await user.save();
-
+    const token = await Tokens.login(req, user, tags);
     return { _id: token.id, token: token.token, user: user.id };
   }
 
   async authenticate(token?: string): Promise<User> {
-    // Decode token
-    if (!token) throw HttpError.Unauthorized();
-    let data: UserToken;
-
-    try {
-      data = verifyToken<UserToken>(token);
-    } catch (error) {
-      console.error(error);
-      throw HttpError.Unauthorized();
-    }
-
-    // Find user
-    const user = await UserModel.findOne({ _id: data._id, 'tokens.token': token });
-    if (!user) throw HttpError.Unauthorized();
-
-    return user;
+    return await Tokens.authenticate(token, async (data: UserToken, token: string) => {
+      return UserModel.findOne({ _id: data._id, 'tokens.token': token })
+    });
   }
 
   async logout(req: UserRequest) {
