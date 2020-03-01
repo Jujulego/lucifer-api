@@ -7,16 +7,13 @@ import Tokens, { TokenObj } from 'controllers/tokens';
 
 import { PName, PLvl } from 'data/permission';
 import Token from 'data/token';
-import User, { Credentials, UserToken } from 'data/user';
+import User, { Credentials, UserToken, UserCreate, UserFilter, UserUpdate, SimpleUser } from 'data/user';
 import UserModel from 'models/user';
 
 import Controller from 'utils/controller';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
-
-export type UserFilter = Partial<Omit<User, 'password' | 'permissions' | 'tokens'>>
-export type UserUpdate = Partial<Pick<User, 'email' | 'password'>>
 
 // Class
 class UsersController extends Controller {
@@ -38,13 +35,13 @@ class UsersController extends Controller {
   }
 
   // Methods
-  async create(req: Request, cred: Credentials): Promise<User> {
+  async create(req: Request, data: UserCreate): Promise<User> {
     if (req.user) this.isAllowed(req, PLvl.CREATE);
 
     // Create user
     const user = new UserModel({
-      email: cred.email,
-      password: cred.password
+      email: data.email,
+      password: data.password
     });
 
     return await user.save();
@@ -64,12 +61,12 @@ class UsersController extends Controller {
     return await this.getUser(id);
   }
 
-  async find(req: Request, filter: UserFilter = {}): Promise<User[]> {
+  async find(req: Request, filter: UserFilter = {}): Promise<SimpleUser[]> {
     try {
       this.isAllowed(req, PLvl.READ);
 
       // Find users
-      return UserModel.find(filter);
+      return UserModel.find(filter, { tokens: false, permissions: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
         return req.user ? [req.user] : [];
