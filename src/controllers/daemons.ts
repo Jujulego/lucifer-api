@@ -13,8 +13,9 @@ import Controller from 'utils/controller';
 import { randomString } from 'utils/string';
 
 // Types
+export type DaemonCreate = Pick<Daemon, 'name' | 'user'>
 export type DaemonFilter = Partial<Omit<Daemon, 'secret' | 'permissions' | 'tokens'>>
-export type DaemonUpdate = Partial<Pick<Daemon, 'name'>>
+export type DaemonUpdate = Partial<Pick<Daemon, 'name' | 'user'>>
 
 // Class
 class DaemonsController extends Controller {
@@ -36,13 +37,14 @@ class DaemonsController extends Controller {
   }
 
   // Methods
-  async create(req: Request, data: DaemonUpdate): Promise<Daemon> {
+  async create(req: Request, data: DaemonCreate): Promise<Daemon> {
     this.isAllowed(req, PLvl.CREATE);
 
     // Create daemon
     const daemon = new DaemonModel({
       name: data.name,
-      secret: randomString(40)
+      secret: randomString(40),
+      user: data.user,
     });
 
     return await daemon.save();
@@ -84,8 +86,9 @@ class DaemonsController extends Controller {
     const daemon = await this.getDaemon(id);
 
     // Update daemon
-    const { name } = update;
+    const { name, user } = update;
     if (name !== undefined) daemon.name = name;
+    if (user !== undefined) daemon.user = user;
 
     return await daemon.save();
   }

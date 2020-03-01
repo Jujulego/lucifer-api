@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 import { PermissionHolder } from './permission';
 import { TokenHolder } from './token';
@@ -8,6 +8,7 @@ interface Daemon extends Document, PermissionHolder, TokenHolder {
   // Attributes
   name?: string;
   secret: string;
+  user: Types.ObjectId;
 }
 
 // Types

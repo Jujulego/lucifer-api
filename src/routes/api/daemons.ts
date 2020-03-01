@@ -40,9 +40,11 @@ router.param('id', check(validator.isMongoId));
 // Routes
 // - create daemon
 router.post('/daemon/',
+  required({ body: { user: validator.isMongoId } }),
   aroute(async (req, res) => {
     res.send(await Daemons.create(req, {
-      name: req.body.name
+      name: req.body.name,
+      user: req.body.user
     }));
   })
 );

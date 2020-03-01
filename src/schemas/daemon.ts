@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Schema } from 'mongoose';
+import { Schema, Types } from 'mongoose';
 
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
@@ -14,6 +14,7 @@ import { TokenHolderDef } from './token';
 const DaemonSchema = new Schema<Daemon>({
   name: { type: String },
   secret: { type: String, required: true },
+  user: { type: Types.ObjectId, required: true },
 });
 
 DaemonSchema.add(PermissionHolderDef);
