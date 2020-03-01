@@ -5,17 +5,12 @@ import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
 
-import Daemon, { DaemonToken } from 'data/daemon';
+import Daemon, { DaemonToken, SimpleDaemon, DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon';
 import { PLvl, PName } from 'data/permission';
 import DaemonModel from 'models/daemon';
 
 import Controller from 'utils/controller';
 import { randomString } from 'utils/string';
-
-// Types
-export type DaemonCreate = Pick<Daemon, 'name' | 'user'>
-export type DaemonFilter = Partial<Omit<Daemon, 'secret' | 'permissions' | 'tokens'>>
-export type DaemonUpdate = Partial<Pick<Daemon, 'name' | 'user'>>
 
 // Class
 class DaemonsController extends Controller {
@@ -64,12 +59,12 @@ class DaemonsController extends Controller {
     return await this.getDaemon(id);
   }
 
-  async find(req: Request, filter: DaemonFilter = {}): Promise<Daemon[]> {
+  async find(req: Request, filter: DaemonFilter = {}): Promise<SimpleDaemon[]> {
     try {
       this.isAllowed(req, PLvl.READ);
 
       // Find users
-      return DaemonModel.find(filter);
+      return DaemonModel.find(filter, { permissions: false, tokens: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
         return req.daemon ? [req.daemon] : [];
