@@ -1,6 +1,6 @@
 import { Request } from 'express';
 
-import { DaemonRequest, isDaemonRequest } from 'middlewares/auth';
+import { DaemonRequest, isDaemonRequest, isUserRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
@@ -18,8 +18,14 @@ class DaemonsController extends Controller {
   constructor() { super("daemons"); }
 
   // Utils
-  protected isAllowed(req: Request, level: PLvl, id?: string) {
-    if (id && isDaemonRequest(req) && req.daemon.id === id) return;
+  protected async isAllowed(req: Request, level: PLvl, id?: string) {
+    if (id) {
+      if (isDaemonRequest(req) && req.daemon.id === id) return;
+      if (isUserRequest(req)) {
+        if (await DaemonModel.findOne({ _id: id, user: req.user.id })) return;
+      }
+    }
+
     super.isAllowed(req, level);
   }
 
@@ -33,7 +39,7 @@ class DaemonsController extends Controller {
 
   // Methods
   async create(req: Request, data: DaemonCreate): Promise<Daemon> {
-    this.isAllowed(req, PLvl.CREATE);
+    await this.isAllowed(req, PLvl.CREATE);
 
     // Create daemon
     const daemon = new DaemonModel({
@@ -46,14 +52,14 @@ class DaemonsController extends Controller {
   }
 
   async createToken(req: Request, id: string, tags: string[] = []): Promise<TokenObj> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+    await this.isAllowed(req, PLvl.UPDATE, id);
 
     // Generate token
     return Tokens.createToken(req, await this.getDaemon(id), tags);
   }
 
   async get(req: Request, id: string): Promise<Daemon> {
-    this.isAllowed(req, PLvl.READ, id);
+    await this.isAllowed(req, PLvl.READ, id);
 
     // Find daemon
     return await this.getDaemon(id);
@@ -61,13 +67,21 @@ class DaemonsController extends Controller {
 
   async find(req: Request, filter: DaemonFilter = {}): Promise<SimpleDaemon[]> {
     try {
-      this.isAllowed(req, PLvl.READ);
+      await this.isAllowed(req, PLvl.READ);
 
       // Find users
       return DaemonModel.find(filter, { permissions: false, tokens: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
-        return req.daemon ? [req.daemon] : [];
+        if (isDaemonRequest(req)) return [req.daemon];
+        if (isUserRequest(req)) {
+          return DaemonModel.find(
+            { ...filter, user: req.user.id },
+            { permissions: false, tokens: false }
+            );
+        }
+
+        return [];
       }
 
       throw error;
@@ -75,7 +89,7 @@ class DaemonsController extends Controller {
   }
 
   async update(req: Request, id: string, update: DaemonUpdate): Promise<Daemon> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+    await this.isAllowed(req, PLvl.UPDATE, id);
 
     // Find daemon
     const daemon = await this.getDaemon(id);
@@ -107,14 +121,14 @@ class DaemonsController extends Controller {
   }
 
   async deleteToken(req: Request, id: string, tokenId: string): Promise<Daemon> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+    await this.isAllowed(req, PLvl.UPDATE, id);
 
     // Delete token
     return Tokens.deleteToken(req, await this.getDaemon(id), tokenId);
   }
 
   async delete(req: Request, id: string): Promise<Daemon> {
-    this.isAllowed(req, PLvl.DELETE, id);
+    await this.isAllowed(req, PLvl.DELETE, id);
 
     // Find daemon
     const daemon = await this.getDaemon(id);
