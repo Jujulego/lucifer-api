@@ -1,10 +1,10 @@
-import { Request } from 'express';
 import { Schema } from 'mongoose';
 
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import { omit } from 'lodash';
 
+import Context from 'bases/context';
 import { generateToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 
@@ -36,8 +36,8 @@ UserSchema.pre<User>('save', async function (next) {
 });
 
 // Methods
-UserSchema.methods.generateToken = async function(req: Request) {
-  return generateToken(this, req, { _id: this.id } as UserToken, '7 days');
+UserSchema.methods.generateToken = async function(ctx: Context) {
+  return generateToken(this, ctx, { _id: this.id } as UserToken, '7 days');
 };
 
 // Statics

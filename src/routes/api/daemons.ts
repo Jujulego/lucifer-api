@@ -4,10 +4,12 @@ import validator from 'validator';
 import auth from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
-import { aroute } from 'utils';
 
-import Daemons from 'controllers/daemons';
 import { PLvl, isPName, LEVELS } from 'data/permission';
+import Daemons from 'controllers/daemons';
+
+import { fromRequest } from 'bases/context';
+import { aroute } from 'utils';
 
 // Router
 const router = Router();
@@ -42,7 +44,7 @@ router.param('id', check(validator.isMongoId));
 router.post('/daemon/',
   required({ body: { user: validator.isMongoId } }),
   aroute(async (req, res) => {
-    res.send(await Daemons.create(req, {
+    res.send(await Daemons.create(fromRequest(req), {
       name: req.body.name,
       user: req.body.user
     }));
@@ -52,28 +54,28 @@ router.post('/daemon/',
 // - create daemon token
 router.post('/daemon/:id/token',
   aroute(async (req, res) => {
-    res.send(await Daemons.createToken(req, req.params.id, req.body.tags));
+    res.send(await Daemons.createToken(fromRequest(req), req.params.id, req.body.tags));
   })
 );
 
 // - get daemon
 router.get('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.get(req, req.params.id));
+    res.send(await Daemons.get(fromRequest(req), req.params.id));
   })
 );
 
 // - find daemons
 router.get('/daemons/',
   aroute(async (req, res) => {
-    res.send(await Daemons.find(req));
+    res.send(await Daemons.find(fromRequest(req)));
   })
 );
 
 // - update daemon
 router.put('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.update(req, req.params.id, req.body));
+    res.send(await Daemons.update(fromRequest(req), req.params.id, req.body));
   })
 );
 
@@ -81,7 +83,7 @@ router.put('/daemon/:id',
 router.put('/daemon/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Daemons.grant(req, req.params.id, {
+    res.send(await Daemons.grant(fromRequest(req), req.params.id, {
       name: req.body.name,
       level: parseLevel(req.body.level)
     }));
@@ -92,21 +94,21 @@ router.put('/daemon/:id/grant',
 router.put('/daemon/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Daemons.revoke(req, req.params.id, req.body.name));
+    res.send(await Daemons.revoke(fromRequest(req), req.params.id, req.body.name));
   })
 );
 
 // - delete daemon token
 router.delete('/daemon/:id/token/:token',
   aroute(async (req, res) => {
-    res.send(await Daemons.deleteToken(req, req.params.id, req.params.token));
+    res.send(await Daemons.deleteToken(fromRequest(req), req.params.id, req.params.token));
   })
 );
 
 // - delete daemon
 router.delete('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.delete(req, req.params.id));
+    res.send(await Daemons.delete(fromRequest(req), req.params.id));
   })
 );
 

@@ -1,8 +1,8 @@
-import { Request } from 'express';
-
 import { HttpError } from 'middlewares/errors';
 
 import { isAllowed, PName, PLvl } from 'data/permission';
+
+import Context from './context';
 
 // Class
 class Controller {
@@ -15,9 +15,9 @@ class Controller {
   }
 
   // Methods
-  protected isAllowed(req: Request, level: PLvl) {
+  protected isAllowed(ctx: Context, level: PLvl) {
     if (!this.permission) return;
-    if (!req.holder || !isAllowed(req.holder, this.permission, level)) {
+    if (!ctx.permissions || !isAllowed(ctx.permissions, this.permission, level)) {
       throw HttpError.Forbidden('Not allowed');
     }
   }

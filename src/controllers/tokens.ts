@@ -1,11 +1,12 @@
-import { Request } from 'express'
 import moment from 'moment';
 import { Document } from 'mongoose';
 
 import { HttpError } from 'middlewares/errors';
 
 import Token, { TokenContent, TokenHolder, verifyToken } from 'data/token';
-import Controller from 'utils/controller';
+
+import Controller from 'bases/controller';
+import Context from 'bases/context'
 
 // Types
 export type TokenObj = Omit<Token, keyof Document>;
@@ -16,16 +17,16 @@ class TokensController extends Controller {
   constructor() { super(); }
 
   // Methods
-  async createToken(req: Request, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
+  async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
     // Generate token
-    const token = await holder.generateToken(req);
+    const token = await holder.generateToken(ctx);
     token.tags.push(...tags);
 
     await holder.save();
     return token.toObject();
   }
 
-  async deleteToken<T extends TokenHolder>(req: Request, holder: T, id: string): Promise<T> {
+  async deleteToken<T extends TokenHolder>(ctx: Context, holder: T, id: string): Promise<T> {
     // Generate token
     const token = holder.tokens.id(id);
     await token.remove();
@@ -33,9 +34,9 @@ class TokensController extends Controller {
     return await holder.save();
   }
 
-  async login(req: Request, holder: TokenHolder, tags: string[] = []): Promise<Token> {
+  async login(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<Token> {
     // Generate token
-    const token = await holder.generateToken(req);
+    const token = await holder.generateToken(ctx);
     token.tags.push(...tags);
 
     // Store date and save
@@ -62,6 +63,13 @@ class TokensController extends Controller {
     if (!holder) throw HttpError.Unauthorized();
 
     return holder;
+  }
+
+  async logout(ctx: Context) {
+    if (ctx.token) {
+      await ctx.token.remove();
+      await ctx.tokens?.save();
+    }
   }
 }
 

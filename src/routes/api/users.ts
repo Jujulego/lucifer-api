@@ -4,10 +4,12 @@ import validator from 'validator';
 import auth from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
-import { aroute } from 'utils';
 
-import Users from 'controllers/users';
 import { PLvl, isPName, LEVELS } from 'data/permission';
+import Users from 'controllers/users';
+
+import { fromRequest } from 'bases/context';
+import { aroute } from 'utils';
 
 // Router
 const router = Router();
@@ -42,7 +44,7 @@ router.param('id', check(validator.isMongoId));
 router.post('/user/',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.create(req, {
+    res.send(await Users.create(fromRequest(req), {
       email: req.body.email,
       password: req.body.password
     }));
@@ -52,28 +54,28 @@ router.post('/user/',
 // - create user token
 router.post('/user/:id/token',
   aroute(async (req, res) => {
-    res.send(await Users.createToken(req, req.params.id, req.body.tags));
+    res.send(await Users.createToken(fromRequest(req), req.params.id, req.body.tags));
   })
 );
 
 // - get user
 router.get('/user/:id',
   aroute(async (req, res) => {
-    res.send(await Users.get(req, req.params.id));
+    res.send(await Users.get(fromRequest(req), req.params.id));
   })
 );
 
 // - find users
 router.get('/users/',
   aroute(async (req, res) => {
-    res.send(await Users.find(req));
+    res.send(await Users.find(fromRequest(req)));
   })
 );
 
 // - update user
 router.put('/user/:id',
   aroute(async (req, res) => {
-    res.send(await Users.update(req, req.params.id, req.body));
+    res.send(await Users.update(fromRequest(req), req.params.id, req.body));
   })
 );
 
@@ -81,7 +83,7 @@ router.put('/user/:id',
 router.put('/user/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Users.grant(req, req.params.id, {
+    res.send(await Users.grant(fromRequest(req), req.params.id, {
       name: req.body.name,
       level: parseLevel(req.body.level)
     }));
@@ -92,7 +94,7 @@ router.put('/user/:id/grant',
 router.put('/user/:id/elevate',
   required({ body: { admin: { required: false, validator: validator.isBoolean }}}),
   aroute(async (req, res) => {
-    res.send(await Users.elevate(req, req.params.id, req.body.admin));
+    res.send(await Users.elevate(fromRequest(req), req.params.id, req.body.admin));
   })
 );
 
@@ -100,21 +102,21 @@ router.put('/user/:id/elevate',
 router.put('/user/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Users.revoke(req, req.params.id, req.body.name));
+    res.send(await Users.revoke(fromRequest(req), req.params.id, req.body.name));
   })
 );
 
 // - delete user token
 router.delete('/user/:id/token/:token',
   aroute(async (req, res) => {
-    res.send(await Users.deleteToken(req, req.params.id, req.params.token));
+    res.send(await Users.deleteToken(fromRequest(req), req.params.id, req.params.token));
   })
 );
 
 // - delete user
 router.delete('/user/:id',
   aroute(async (req, res) => {
-    res.send(await Users.delete(req, req.params.id));
+    res.send(await Users.delete(fromRequest(req), req.params.id));
   })
 );
 

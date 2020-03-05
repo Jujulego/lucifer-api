@@ -1,6 +1,3 @@
-import { Request } from 'express';
-
-import { isUserRequest, UserRequest } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
@@ -10,7 +7,8 @@ import Token from 'data/token';
 import User, { Credentials, UserToken, UserCreate, UserFilter, UserUpdate, SimpleUser } from 'data/user';
 import UserModel from 'models/user';
 
-import Controller from 'utils/controller';
+import Controller from 'bases/controller';
+import Context from 'bases/context';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
@@ -21,9 +19,10 @@ class UsersController extends Controller {
   constructor() { super("users"); }
 
   // Utils
-  protected isAllowed(req: Request, level: PLvl, id?: string) {
-    if (id && isUserRequest(req) && req.user.id === id) return;
-    super.isAllowed(req, level);
+  protected isAllowed(ctx: Context, level: PLvl, id?: string) {
+    if (id && ctx.user && ctx.user.id === id) return;
+
+    super.isAllowed(ctx, level);
   }
 
   protected async getUser(id: string): Promise<User> {
@@ -35,8 +34,8 @@ class UsersController extends Controller {
   }
 
   // Methods
-  async create(req: Request, data: UserCreate): Promise<User> {
-    if (req.user) this.isAllowed(req, PLvl.CREATE);
+  async create(ctx: Context, data: UserCreate): Promise<User> {
+    if (ctx.user) this.isAllowed(ctx, PLvl.CREATE);
 
     // Create user
     const user = new UserModel({
@@ -47,37 +46,37 @@ class UsersController extends Controller {
     return await user.save();
   }
 
-  async createToken(req: Request, id: string, tags: string[] = []): Promise<TokenObj> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+  async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
+    this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Generate token
-    return Tokens.createToken(req, await this.getUser(id), tags);
+    return Tokens.createToken(ctx, await this.getUser(id), tags);
   }
 
-  async get(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, PLvl.READ, id);
+  async get(ctx: Context, id: string): Promise<User> {
+    this.isAllowed(ctx, PLvl.READ, id);
 
     // Find user
     return await this.getUser(id);
   }
 
-  async find(req: Request, filter: UserFilter = {}): Promise<SimpleUser[]> {
+  async find(ctx: Context, filter: UserFilter = {}): Promise<SimpleUser[]> {
     try {
-      this.isAllowed(req, PLvl.READ);
+      this.isAllowed(ctx, PLvl.READ);
 
       // Find users
       return UserModel.find(filter, { tokens: false, permissions: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
-        return req.user ? [req.user] : [];
+        return ctx.user ? [ctx.user] : [];
       }
 
       throw error;
     }
   }
 
-  async update(req: Request, id: string, update: UserUpdate): Promise<User> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+  async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
+    this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -90,52 +89,52 @@ class UsersController extends Controller {
     return await user.save();
   }
 
-  async grant(req: Request, id: string, grant: PermissionUpdate): Promise<User> {
+  async grant(ctx: Context, id: string, grant: PermissionUpdate): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 
     // Grant permission
-    return await Permissions.grant(req, user, grant);
+    return await Permissions.grant(ctx, user, grant);
   }
 
-  async elevate(req: Request, id: string, admin?: boolean): Promise<User> {
+  async elevate(ctx: Context, id: string, admin?: boolean): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 
     // Elevate user
-    return await Permissions.elevate(req, user, admin);
+    return await Permissions.elevate(ctx, user, admin);
   }
 
-  async revoke(req: Request, id: string, revoke: PName): Promise<User> {
+  async revoke(ctx: Context, id: string, revoke: PName): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 
     // Revoke permission
-    return await Permissions.revoke(req, user, revoke);
+    return await Permissions.revoke(ctx, user, revoke);
   }
 
-  async deleteToken(req: Request, id: string, tokenId: string): Promise<User> {
-    this.isAllowed(req, PLvl.UPDATE, id);
+  async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
+    this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return await Tokens.deleteToken(req, await this.getUser(id), tokenId);
+    return await Tokens.deleteToken(ctx, await this.getUser(id), tokenId);
   }
 
-  async delete(req: Request, id: string): Promise<User> {
-    this.isAllowed(req, PLvl.DELETE, id);
+  async delete(ctx: Context, id: string): Promise<User> {
+    this.isAllowed(ctx, PLvl.DELETE, id);
 
     // Find user
     const user = await this.getUser(id);
     return await user.remove();
   }
 
-  async login(req: Request, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
+  async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
     // Search user by credentials
     const user = await UserModel.findByCredentials(credentials);
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await Tokens.login(req, user, tags);
+    const token = await Tokens.login(ctx, user, tags);
     return { _id: token.id, token: token.token, user: user.id };
   }
 
@@ -145,10 +144,8 @@ class UsersController extends Controller {
     });
   }
 
-  async logout(req: UserRequest) {
-    // Remove token
-    req.token.remove();
-    await req.user.save();
+  async logout(ctx: Context) {
+    await Tokens.logout(ctx);
   }
 }
 

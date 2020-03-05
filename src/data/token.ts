@@ -1,7 +1,7 @@
-import { Request } from 'express';
 import { Document, Types } from 'mongoose';
 import jwt from 'jsonwebtoken';
 
+import Context, { RequestContext } from 'bases/context';
 import env from 'env';
 
 // Interface
@@ -22,23 +22,26 @@ export interface TokenHolder extends Document {
   readonly tokens: Types.DocumentArray<Token>;
 
   // Methods
-  generateToken(req: Request): Token | Promise<Token>
+  generateToken(ctx: Context): Token | Promise<Token>
 }
 
 // Utils
-export function generateToken(holder: TokenHolder, req: Request, content: TokenContent, expiresIn: string | number = '7 days'): Token {
+export function generateToken(holder: TokenHolder, ctx: Context, content: TokenContent, expiresIn: string | number = '7 days'): Token {
   // Tags
   const tags: string[] = [];
-  const ua = req.headers['user-agent'];
 
-  if (ua && /PostmanRuntime\/([0-9]+.?)+/.test(ua)) {
-    tags.push("Postman");
+  if (ctx instanceof RequestContext) {
+    const ua = ctx.request.headers['user-agent'];
+
+    if (ua && /PostmanRuntime\/([0-9]+.?)+/.test(ua)) {
+      tags.push("Postman");
+    }
   }
 
   // Generate new token
   const token = holder.tokens.create({
     token: jwt.sign(content, env.JWT_KEY, { expiresIn }),
-    from: req.ip, tags
+    from: ctx.from, tags
   });
 
   // Add and return

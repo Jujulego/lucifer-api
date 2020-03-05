@@ -1,9 +1,9 @@
-import { Request } from 'express';
 import { Schema, Types } from 'mongoose';
 
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 
+import Context from 'bases/context';
 import { generateToken } from 'data/token';
 import Daemon, { Credentials, DaemonToken } from 'data/daemon';
 
@@ -36,8 +36,8 @@ DaemonSchema.pre<Daemon>('save', async function (next) {
 });
 
 // Methods
-DaemonSchema.methods.generateToken = async function (req: Request) {
-  return generateToken(this, req, { _id: this.id } as DaemonToken, '7 days');
+DaemonSchema.methods.generateToken = async function (ctx: Context) {
+  return generateToken(this, ctx, { _id: this.id } as DaemonToken, '7 days');
 };
 
 // Statics

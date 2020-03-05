@@ -1,9 +1,9 @@
-import { Request } from 'express';
-
 import { HttpError } from 'middlewares/errors';
 
 import { PermissionHolder, PName, PLvl } from 'data/permission';
-import Controller from 'utils/controller';
+
+import Controller from 'bases/controller';
+import Context from 'bases/context';
 
 // Types
 export interface PermissionUpdate {
@@ -16,8 +16,8 @@ class PermissionsController extends Controller {
   constructor() { super("permissions"); }
 
   // Methods
-  async grant<T extends PermissionHolder>(req: Request, holder: T, grant: PermissionUpdate): Promise<T> {
-    this.isAllowed(req, PLvl.UPDATE);
+  async grant<T extends PermissionHolder>(ctx: Context, holder: T, grant: PermissionUpdate): Promise<T> {
+    this.isAllowed(ctx, PLvl.UPDATE);
 
     // Apply grant
     let perm = holder.permissions.find(p => p.name === grant.name);
@@ -37,8 +37,8 @@ class PermissionsController extends Controller {
     return await holder.save();
   }
 
-  async elevate<T extends PermissionHolder>(req: Request, holder: T, admin: boolean = true): Promise<T> {
-    if (!req.holder || !req.holder.admin) {
+  async elevate<T extends PermissionHolder>(ctx: Context, holder: T, admin: boolean = true): Promise<T> {
+    if (!ctx.permissions || !ctx.permissions.admin) {
       throw HttpError.Forbidden();
     }
 
@@ -46,8 +46,8 @@ class PermissionsController extends Controller {
     return await holder.save();
   }
 
-  async revoke<T extends PermissionHolder>(req: Request, holder: T, revoke: PName): Promise<T> {
-    this.isAllowed(req, PLvl.DELETE);
+  async revoke<T extends PermissionHolder>(ctx: Context, holder: T, revoke: PName): Promise<T> {
+    this.isAllowed(ctx, PLvl.DELETE);
 
     // Apply revoke
     let perm = holder.permissions.find(p => p.name === revoke);
