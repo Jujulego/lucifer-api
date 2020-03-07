@@ -5,11 +5,12 @@ import auth from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
 
+import { UserFilter } from 'data/user';
 import { PLvl, isPName, LEVELS } from 'data/permission';
 import Users from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
-import { aroute } from 'utils';
+import { aroute, query2filter } from 'utils';
 
 // Router
 const router = Router();
@@ -67,8 +68,11 @@ router.get('/user/:id',
 
 // - find users
 router.get('/users/',
+  required({ query: { email: { required: false, validator: validator.isEmail } } }),
   aroute(async (req, res) => {
-    res.send(await Users.find(fromRequest(req)));
+    const filter = query2filter<keyof UserFilter>(req.query, ['email']);
+
+    res.send(await Users.find(fromRequest(req), filter));
   })
 );
 

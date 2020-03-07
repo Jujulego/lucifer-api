@@ -5,11 +5,12 @@ import auth from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
 
+import { DaemonFilter } from 'data/daemon';
 import { PLvl, isPName, LEVELS } from 'data/permission';
 import Daemons from 'controllers/daemons';
 
 import { fromRequest } from 'bases/context';
-import { aroute } from 'utils';
+import { aroute, query2filter } from 'utils';
 
 // Router
 const router = Router();
@@ -67,8 +68,11 @@ router.get('/daemon/:id',
 
 // - find daemons
 router.get('/daemons/',
+  required({ query: { user: { required: false, validator: validator.isMongoId } } }),
   aroute(async (req, res) => {
-    res.send(await Daemons.find(fromRequest(req)));
+    const filter = query2filter<keyof DaemonFilter>(req.query, ['name', 'user']);
+
+    res.send(await Daemons.find(fromRequest(req), filter));
   })
 );
 
