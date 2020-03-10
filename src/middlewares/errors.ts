@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
 // Class
 export class HttpError {
@@ -29,7 +29,7 @@ export class HttpError {
 }
 
 // Middleware
-const errors = () => (err: any, req: Request, res: Response, next: NextFunction) => {
+const errors = (): ErrorRequestHandler => (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof HttpError) {
     return err.send(res);
   }
