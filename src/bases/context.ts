@@ -77,7 +77,7 @@ export class SocketContext extends Context {
 
   // Getters
   get from(): string {
-    return this.socket.client.id;
+    return this.socket.handshake.address;
   }
 }
 
