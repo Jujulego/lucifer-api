@@ -2,7 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
-import required, { check } from 'middlewares/required';
+import { required, check, checkParam } from 'middlewares/required';
 
 import { isPName } from 'data/permission';
 import Users from 'controllers/users';
@@ -17,7 +17,7 @@ const router = Router();
 router.use(auth);
 
 // Parameters
-router.param('id', check(validator.isMongoId));
+router.param('id', checkParam(validator.isMongoId));
 
 // Routes
 // - create user
@@ -54,6 +54,7 @@ router.get('/users/',
 
 // - update user
 router.put('/user/:id',
+  check({ body: { email: validator.isEmail }}),
   aroute(async (req, res) => {
     res.send(await Users.update(fromRequest(req), req.params.id, req.body));
   })
@@ -72,7 +73,7 @@ router.put('/user/:id/grant',
 
 // - elevate user
 router.put('/user/:id/elevate',
-  required({ body: { admin: { required: false, validator: validator.isBoolean }}}),
+  check({ body: { admin: validator.isBoolean }}),
   aroute(async (req, res) => {
     res.send(await Users.elevate(fromRequest(req), req.params.id, req.body.admin));
   })

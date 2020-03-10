@@ -2,7 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
-import required, { check } from 'middlewares/required';
+import { required, checkParam } from 'middlewares/required';
 
 import { isPName } from 'data/permission';
 import Daemons from 'controllers/daemons';
@@ -17,7 +17,7 @@ const router = Router();
 router.use(auth);
 
 // Parameters
-router.param('id', check(validator.isMongoId));
+router.param('id', checkParam(validator.isMongoId));
 
 // Routes
 // - create daemon

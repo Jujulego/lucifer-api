@@ -14,7 +14,9 @@ type Options = { [name: string]: ParameterOptions };
 
 type RequestObject = Request['params'] | Request['query'] | Request['body'];
 type RequestOptions = { [block in Blocks]?: Options };
-type RequestParameters = { [block in Blocks]?: string[] | Parameters };
+
+type CheckParameters    = { [block in Blocks]?: Parameters };
+type RequiredParameters = { [block in Blocks]?: string[] | Parameters };
 
 type ErrorGenerator = (msg?: string) => HttpError
 
@@ -33,7 +35,20 @@ function toOptions(val: boolean | Validator | ParameterOptions): ParameterOption
   return val;
 }
 
-function buildOptions(params: string[] | Parameters): Options {
+function checkOptions(params: Parameters): Options {
+  return Object.keys(params).reduce<Options>((res, param) => {
+    const opt = toOptions(params[param]);
+    if (opt.required === undefined) {
+      opt.required = false;
+    }
+
+    res[param] = opt;
+
+    return res;
+  }, {});
+}
+
+function requiredOptions(params: string[] | Parameters): Options {
   // String array
   if (isStringArray(params)) {
     return params.reduce<Options>(
@@ -79,7 +94,7 @@ function test(obj: RequestObject, opts: Options, error: ErrorGenerator): Respons
 }
 
 // Parameter checker
-export function check(validator: Validator): RequestParamHandler {
+export function checkParam(validator: Validator): RequestParamHandler {
   const err = error('params');
 
   return (req, res, next, value, name) => {
@@ -91,13 +106,23 @@ export function check(validator: Validator): RequestParamHandler {
   }
 }
 
-// Middleware
-function required(parameters: RequestParameters) {
+// Middlewares
+export function check(parameters: CheckParameters) {
   // Parse options
   const opts: RequestOptions = {};
-  if (parameters.params) opts.params = buildOptions(parameters.params);
-  if (parameters.query)  opts.query  = buildOptions(parameters.query);
-  if (parameters.body)   opts.body   = buildOptions(parameters.body);
+  if (parameters.params) opts.params = checkOptions(parameters.params);
+  if (parameters.query)  opts.query  = checkOptions(parameters.query);
+  if (parameters.body)   opts.body   = checkOptions(parameters.body);
+
+  return required(opts);
+}
+
+export function required(parameters: RequiredParameters) {
+  // Parse options
+  const opts: RequestOptions = {};
+  if (parameters.params) opts.params = requiredOptions(parameters.params);
+  if (parameters.query)  opts.query  = requiredOptions(parameters.query);
+  if (parameters.body)   opts.body   = requiredOptions(parameters.body);
 
   // Middleware
   return function(req: Request, res: Response, next: NextFunction) {
@@ -113,5 +138,3 @@ function required(parameters: RequestParameters) {
     }
   }
 }
-
-export default required;

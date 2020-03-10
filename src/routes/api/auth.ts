@@ -2,7 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
-import required from 'middlewares/required';
+import { required } from 'middlewares/required';
 
 import Users from 'controllers/users';
 import Daemons from 'controllers/daemons';
