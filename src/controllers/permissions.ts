@@ -11,7 +11,7 @@ export interface PermissionUpdate {
 }
 
 // Class
-class PermissionsController extends Controller {
+class PermissionsController extends Controller<PermissionHolder> {
   // Constructor
   constructor() { super("permissions"); }
 

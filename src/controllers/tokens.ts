@@ -12,14 +12,13 @@ import Context from 'bases/context'
 export type TokenObj = Omit<Token, keyof Document>;
 
 // Class
-class TokensController extends Controller {
+class TokensController extends Controller<TokenHolder> {
   // Methods
   async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
     // Generate token
     const token = await holder.generateToken(ctx);
     token.tags.push(...tags);
 
-    await holder.save();
     return token.toObject();
   }
 

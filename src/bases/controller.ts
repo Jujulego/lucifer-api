@@ -1,16 +1,20 @@
+import { Document } from 'mongoose';
+
 import { HttpError } from 'middlewares/errors';
 
 import { isAllowed, PName, PLvl } from 'data/permission';
 
 import Context from './context';
+import { DataEmitter } from './emitter';
 
 // Class
-class Controller {
+abstract class Controller<T extends Document> extends DataEmitter<T> {
   // Attributes
   private readonly permission?: PName;
 
   // Constructor
   constructor(permission?: PName) {
+    super();
     this.permission = permission;
   }
 

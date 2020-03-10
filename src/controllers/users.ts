@@ -14,7 +14,7 @@ import Context from 'bases/context';
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 // Class
-class UsersController extends Controller {
+class UsersController extends Controller<User> {
   // Constructor
   constructor() { super("users"); }
 
@@ -33,6 +33,10 @@ class UsersController extends Controller {
     return user;
   }
 
+  protected getTargets(data: User): string[] {
+    return ['users', data.id];
+  }
+
   // Methods
   async create(ctx: Context, data: UserCreate): Promise<User> {
     if (ctx.user) await this.isAllowed(ctx, PLvl.CREATE);
@@ -43,14 +47,18 @@ class UsersController extends Controller {
       password: data.password
     });
 
-    return await user.save();
+    return this.emitCreate(await user.save());
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Generate token
-    return Tokens.createToken(ctx, await this.getUser(id), tags);
+    const user = await this.getUser(id);
+    const token = Tokens.createToken(ctx, user, tags);
+    this.emitUpdate(user);
+
+    return token;
   }
 
   async get(ctx: Context, id: string): Promise<User> {
@@ -86,7 +94,7 @@ class UsersController extends Controller {
     if (email !== undefined)    user.email    = email;
     if (password !== undefined) user.password = password;
 
-    return await user.save();
+    return this.emitUpdate(await user.save());
   }
 
   async grant(ctx: Context, id: string, grant: PermissionUpdate): Promise<User> {
@@ -94,7 +102,7 @@ class UsersController extends Controller {
     const user = await this.getUser(id);
 
     // Grant permission
-    return await Permissions.grant(ctx, user, grant);
+    return this.emitUpdate(await Permissions.grant(ctx, user, grant));
   }
 
   async elevate(ctx: Context, id: string, admin?: boolean): Promise<User> {
@@ -102,7 +110,7 @@ class UsersController extends Controller {
     const user = await this.getUser(id);
 
     // Elevate user
-    return await Permissions.elevate(ctx, user, admin);
+    return this.emitUpdate(await Permissions.elevate(ctx, user, admin));
   }
 
   async revoke(ctx: Context, id: string, revoke: PName): Promise<User> {
@@ -110,14 +118,14 @@ class UsersController extends Controller {
     const user = await this.getUser(id);
 
     // Revoke permission
-    return await Permissions.revoke(ctx, user, revoke);
+    return this.emitUpdate(await Permissions.revoke(ctx, user, revoke));
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return await Tokens.deleteToken(ctx, await this.getUser(id), tokenId);
+    return this.emitUpdate(await Tokens.deleteToken(ctx, await this.getUser(id), tokenId));
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
@@ -125,7 +133,7 @@ class UsersController extends Controller {
 
     // Find user
     const user = await this.getUser(id);
-    return await user.remove();
+    return this.emitDelete(await user.remove());
   }
 
   async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
@@ -135,6 +143,8 @@ class UsersController extends Controller {
 
     // Generate token
     const token = await Tokens.login(ctx, user, tags);
+    this.emitUpdate(user);
+
     return { _id: token.id, token: token.token, user: user.id };
   }
 

@@ -11,7 +11,7 @@ import Context from 'bases/context';
 import { randomString } from 'utils/string';
 
 // Class
-class DaemonsController extends Controller {
+class DaemonsController extends Controller<Daemon> {
   // Constructor
   constructor() { super("daemons"); }
 
@@ -24,7 +24,7 @@ class DaemonsController extends Controller {
       }
     }
 
-    super.isAllowed(ctx, level);
+    await super.isAllowed(ctx, level);
   }
 
   protected async getDaemon(id: string): Promise<Daemon> {
@@ -33,6 +33,10 @@ class DaemonsController extends Controller {
     if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
 
     return daemon;
+  }
+
+  protected getTargets(data: Daemon): string[] {
+    return ['daemons'];
   }
 
   // Methods
@@ -46,14 +50,18 @@ class DaemonsController extends Controller {
       user: data.user,
     });
 
-    return await daemon.save();
+    return this.emitCreate(await daemon.save());
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Generate token
-    return Tokens.createToken(ctx, await this.getDaemon(id), tags);
+    const daemon = await this.getDaemon(id);
+    const token = Tokens.createToken(ctx, daemon, tags);
+    this.emitUpdate(daemon);
+
+    return token;
   }
 
   async get(ctx: Context, id: string): Promise<Daemon> {
@@ -97,7 +105,7 @@ class DaemonsController extends Controller {
     if (name !== undefined) daemon.name = name;
     if (user !== undefined) daemon.user = user;
 
-    return await daemon.save();
+    return this.emitUpdate(await daemon.save());
   }
 
   async grant(ctx: Context, id: string, grant: PermissionUpdate): Promise<Daemon> {
@@ -107,7 +115,7 @@ class DaemonsController extends Controller {
     const daemon = await this.getDaemon(id);
 
     // Grant permission
-    return await Permissions.grant(ctx, daemon, grant);
+    return this.emitUpdate(await Permissions.grant(ctx, daemon, grant));
   }
 
   async revoke(ctx: Context, id: string, revoke: PName): Promise<Daemon> {
@@ -115,14 +123,14 @@ class DaemonsController extends Controller {
     const daemon = await this.getDaemon(id);
 
     // Revoke permission
-    return await Permissions.revoke(ctx, daemon, revoke);
+    return this.emitUpdate(await Permissions.revoke(ctx, daemon, revoke));
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<Daemon> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return Tokens.deleteToken(ctx, await this.getDaemon(id), tokenId);
+    return this.emitUpdate(await Tokens.deleteToken(ctx, await this.getDaemon(id), tokenId));
   }
 
   async delete(ctx: Context, id: string): Promise<Daemon> {
@@ -130,7 +138,7 @@ class DaemonsController extends Controller {
 
     // Find daemon
     const daemon = await this.getDaemon(id);
-    return await daemon.remove();
+    return this.emitDelete(await daemon.remove());
   }
 
   async authenticate(token?: string): Promise<Daemon> {
