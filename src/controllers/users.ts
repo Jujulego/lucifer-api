@@ -35,7 +35,7 @@ class UsersController extends Controller {
 
   // Methods
   async create(ctx: Context, data: UserCreate): Promise<User> {
-    if (ctx.user) this.isAllowed(ctx, PLvl.CREATE);
+    if (ctx.user) await this.isAllowed(ctx, PLvl.CREATE);
 
     // Create user
     const user = new UserModel({
@@ -47,14 +47,14 @@ class UsersController extends Controller {
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
-    this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Generate token
     return Tokens.createToken(ctx, await this.getUser(id), tags);
   }
 
   async get(ctx: Context, id: string): Promise<User> {
-    this.isAllowed(ctx, PLvl.READ, id);
+    await this.isAllowed(ctx, PLvl.READ, id);
 
     // Find user
     return await this.getUser(id);
@@ -62,7 +62,7 @@ class UsersController extends Controller {
 
   async find(ctx: Context, filter: UserFilter = {}): Promise<SimpleUser[]> {
     try {
-      this.isAllowed(ctx, PLvl.READ);
+      await this.isAllowed(ctx, PLvl.READ);
 
       // Find users
       return UserModel.find(filter, { tokens: false, permissions: false });
@@ -76,7 +76,7 @@ class UsersController extends Controller {
   }
 
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
-    this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -114,14 +114,14 @@ class UsersController extends Controller {
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
-    this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
     return await Tokens.deleteToken(ctx, await this.getUser(id), tokenId);
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
-    this.isAllowed(ctx, PLvl.DELETE, id);
+    await this.isAllowed(ctx, PLvl.DELETE, id);
 
     // Find user
     const user = await this.getUser(id);

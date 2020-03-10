@@ -13,9 +13,6 @@ export type TokenObj = Omit<Token, keyof Document>;
 
 // Class
 class TokensController extends Controller {
-  // Constructor
-  constructor() { super(); }
-
   // Methods
   async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
     // Generate token
