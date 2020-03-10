@@ -2,43 +2,23 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
-import { HttpError } from 'middlewares/errors';
-import required, { check } from 'middlewares/required';
+import { required, check, checkParam } from 'middlewares/required';
 
 import { UserFilter } from 'data/user';
-import { PLvl, isPName, LEVELS } from 'data/permission';
+import { isPName } from 'data/permission';
 import Users from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
-import { aroute, query2filter } from 'utils';
+import { aroute, query2filter, parseLevel } from 'utils';
 
 // Router
 const router = Router();
-
-// Utils
-function isPLvl(str: string): str is keyof typeof PLvl {
-  return LEVELS.find(name => name === str) != undefined;
-}
-
-function parseLevel(level: string | number): PLvl {
-  if (typeof level === 'number') return level & PLvl.ALL;
-  if (validator.isNumeric(level)) return parseInt(level) & PLvl.ALL;
-
-  // Compute level
-  const parts = level.split(',').filter(isPLvl);
-  if (parts.length === 0) throw HttpError.BadRequest("Need at least 1 valid level");
-
-  return parts.reduce<PLvl>(
-    (lvl, name) => lvl | PLvl[name],
-    PLvl.NONE
-  );
-}
 
 // Middlewares
 router.use(auth);
 
 // Parameters
-router.param('id', check(validator.isMongoId));
+router.param('id', checkParam(validator.isMongoId));
 
 // Routes
 // - create user
@@ -68,7 +48,7 @@ router.get('/user/:id',
 
 // - find users
 router.get('/users/',
-  required({ query: { email: { required: false, validator: validator.isEmail } } }),
+  check({ query: { email: validator.isEmail } }),
   aroute(async (req, res) => {
     const filter = query2filter<keyof UserFilter>(req.query, ['email']);
 
@@ -78,6 +58,7 @@ router.get('/users/',
 
 // - update user
 router.put('/user/:id',
+  check({ body: { email: validator.isEmail }}),
   aroute(async (req, res) => {
     res.send(await Users.update(fromRequest(req), req.params.id, req.body));
   })
@@ -96,7 +77,7 @@ router.put('/user/:id/grant',
 
 // - elevate user
 router.put('/user/:id/elevate',
-  required({ body: { admin: { required: false, validator: validator.isBoolean }}}),
+  check({ body: { admin: validator.isBoolean }}),
   aroute(async (req, res) => {
     res.send(await Users.elevate(fromRequest(req), req.params.id, req.body.admin));
   })

@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Socket } from 'socket.io';
 
 import { aroute } from 'utils';
 
@@ -17,9 +18,16 @@ declare global {
       token?: Token;
     }
   }
+
+  namespace SocketIO {
+    interface Socket {
+      user: () => Promise<User>;
+      token: () => Promise<Token>;
+    }
+  }
 }
 
-// Middleware
+// Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
   // Authenticate user
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -27,9 +35,29 @@ const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
 
   // Store in request
   req.user = user;
-  req.token = user.tokens.find(tk => tk.token == token) as Token;
+  req.token = user.tokens.find(tk => tk.token === token) as Token;
 
   next();
 });
+
+export async function wsauth(socket: Socket, next: (err?: any) => void) {
+  try {
+    // Authenticate user
+    const { token } = socket.handshake.query;
+    const user = await Users.authenticate(token);
+
+    // Access to user from socket
+    socket.user = async () => await Users.getByToken(user.id, token);
+    socket.token = async () => {
+      const user = await socket.user();
+      return user.tokens.find(tk => tk.token === token) as Token;
+    };
+
+    return next();
+  } catch (error) {
+    console.log(error);
+    return next(error);
+  }
+}
 
 export default auth;

@@ -12,17 +12,13 @@ import Context from 'bases/context'
 export type TokenObj = Omit<Token, keyof Document>;
 
 // Class
-class TokensController extends Controller {
-  // Constructor
-  constructor() { super(); }
-
+class TokensController extends Controller<TokenHolder> {
   // Methods
   async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
     // Generate token
     const token = await holder.generateToken(ctx);
     token.tags.push(...tags);
 
-    await holder.save();
     return token.toObject();
   }
 
@@ -67,8 +63,8 @@ class TokensController extends Controller {
 
   async logout(ctx: Context) {
     if (ctx.token) {
-      await ctx.token.remove();
-      await ctx.tokens?.save();
+      await (await ctx.token).remove();
+      await (await ctx.tokens)?.save();
     }
   }
 }
