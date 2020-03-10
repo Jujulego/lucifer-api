@@ -2,36 +2,16 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
-import { HttpError } from 'middlewares/errors';
 import required, { check } from 'middlewares/required';
 
-import { PLvl, isPName, LEVELS } from 'data/permission';
+import { isPName } from 'data/permission';
 import Users from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
-import { aroute } from 'utils';
+import { aroute, parseLevel } from 'utils';
 
 // Router
 const router = Router();
-
-// Utils
-function isPLvl(str: string): str is keyof typeof PLvl {
-  return LEVELS.find(name => name === str) != undefined;
-}
-
-function parseLevel(level: string | number): PLvl {
-  if (typeof level === 'number') return level & PLvl.ALL;
-  if (validator.isNumeric(level)) return parseInt(level) & PLvl.ALL;
-
-  // Compute level
-  const parts = level.split(',').filter(isPLvl);
-  if (parts.length === 0) throw HttpError.BadRequest("Need at least 1 valid level");
-
-  return parts.reduce<PLvl>(
-    (lvl, name) => lvl | PLvl[name],
-    PLvl.NONE
-  );
-}
 
 // Middlewares
 router.use(auth);

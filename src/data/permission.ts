@@ -38,6 +38,10 @@ export function isPName(str: string): str is PName {
   return PERMISSIONS.find(name => name === str) != undefined;
 }
 
+export function isPLvl(str: string): str is keyof typeof PLvl {
+  return LEVELS.find(name => name === str) != undefined;
+}
+
 export function isAllowed(holder: PermissionHolder, name: PName, level: PLvl): boolean {
   // Admins always pass
   if (holder.admin) return true;
