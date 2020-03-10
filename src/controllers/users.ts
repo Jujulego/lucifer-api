@@ -144,6 +144,13 @@ class UsersController extends Controller {
     });
   }
 
+  async getByToken(id: string, token: string): Promise<User> {
+    const user = await UserModel.findOne({ _id: id, 'tokens.token': token });
+    if (!user) throw HttpError.Unauthorized();
+
+    return user;
+  }
+
   async logout(ctx: Context) {
     await Tokens.logout(ctx);
   }
