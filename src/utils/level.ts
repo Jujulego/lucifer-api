@@ -1,7 +1,6 @@
 import validator from 'validator';
 
 import { isPLvl, PLvl } from '../data/permission';
-import { HttpError } from '../middlewares/errors';
 
 // Utils
 export function parseLevel(level: string | number): PLvl {
@@ -9,8 +8,9 @@ export function parseLevel(level: string | number): PLvl {
   if (validator.isNumeric(level)) return parseInt(level) & PLvl.ALL;
 
   // Compute level
-  const parts = level.split(',').filter(isPLvl);
-  if (parts.length === 0) throw HttpError.BadRequest("Need at least 1 valid level");
+  const parts = level.split(/[,|]/)
+    .map(lvl => lvl.trim())
+    .filter(isPLvl);
 
   return parts.reduce<PLvl>(
     (lvl, name) => lvl | PLvl[name],
