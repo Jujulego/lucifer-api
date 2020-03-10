@@ -38,7 +38,7 @@ class PermissionsController extends Controller {
   }
 
   async elevate<T extends PermissionHolder>(ctx: Context, holder: T, admin: boolean = true): Promise<T> {
-    if (!ctx.permissions || !ctx.permissions.admin) {
+    if (!ctx.permissions || !(await ctx.permissions).admin) {
       throw HttpError.Forbidden();
     }
 

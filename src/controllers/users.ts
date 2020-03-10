@@ -19,10 +19,10 @@ class UsersController extends Controller {
   constructor() { super("users"); }
 
   // Utils
-  protected isAllowed(ctx: Context, level: PLvl, id?: string) {
-    if (id && ctx.user && ctx.user.id === id) return;
+  protected async isAllowed(ctx: Context, level: PLvl, id?: string) {
+    if (id && ctx.user && (await ctx.user).id === id) return;
 
-    super.isAllowed(ctx, level);
+    await super.isAllowed(ctx, level);
   }
 
   protected async getUser(id: string): Promise<User> {
@@ -68,7 +68,7 @@ class UsersController extends Controller {
       return UserModel.find(filter, { tokens: false, permissions: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
-        return ctx.user ? [ctx.user] : [];
+        return ctx.user ? [await ctx.user] : [];
       }
 
       throw error;

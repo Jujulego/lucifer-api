@@ -18,9 +18,9 @@ class DaemonsController extends Controller {
   // Utils
   protected async isAllowed(ctx: Context, level: PLvl, id?: string) {
     if (id) {
-      if (ctx.daemon && ctx.daemon.id === id) return;
+      if (ctx.daemon && (await ctx.daemon).id === id) return;
       if (ctx.user) {
-        if (await DaemonModel.findOne({ _id: id, user: ctx.user.id })) return;
+        if (await DaemonModel.findOne({ _id: id, user: (await ctx.user).id })) return;
       }
     }
 
@@ -71,10 +71,10 @@ class DaemonsController extends Controller {
       return DaemonModel.find(filter, { permissions: false, tokens: false });
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
-        if (ctx.daemon) return [ctx.daemon];
+        if (ctx.daemon) return [await ctx.daemon];
         if (ctx.user) {
           return DaemonModel.find(
-            { ...filter, user: ctx.user.id },
+            { ...filter, user: (await ctx.user).id },
             { permissions: false, tokens: false }
             );
         }

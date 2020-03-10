@@ -15,9 +15,9 @@ class Controller {
   }
 
   // Methods
-  protected isAllowed(ctx: Context, level: PLvl) {
+  protected async isAllowed(ctx: Context, level: PLvl) {
     if (!this.permission) return;
-    if (!ctx.permissions || !isAllowed(ctx.permissions, this.permission, level)) {
+    if (!ctx.permissions || !isAllowed(await ctx.permissions, this.permission, level)) {
       throw HttpError.Forbidden('Not allowed');
     }
   }

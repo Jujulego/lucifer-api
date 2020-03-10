@@ -1,4 +1,5 @@
 import { Request } from 'express';
+import { Socket } from 'socket.io';
 
 import User from 'data/user';
 import Daemon from 'data/daemon';
@@ -8,17 +9,17 @@ import { PermissionHolder } from 'data/permission';
 // Interface
 interface ContextAttrs {
   // Objects
-  user?: User;
-  daemon?: Daemon;
-  token?: Token;
+  user?:   Promise<User>   | User;
+  daemon?: Promise<Daemon> | Daemon;
+  token?:  Promise<Token>  | Token;
 }
 
 // Class
 abstract class Context {
   // Attributes
-  readonly user?: User;
-  readonly daemon?: Daemon;
-  readonly token?: Token;
+  readonly user?:   Promise<User>   | User;
+  readonly daemon?: Promise<Daemon> | Daemon;
+  readonly token?:  Promise<Token>  | Token;
 
   // Constructor
   protected constructor(attrs: ContextAttrs) {
@@ -30,11 +31,11 @@ abstract class Context {
   // Getters
   abstract get from(): string;
 
-  get permissions(): PermissionHolder | undefined {
+   get permissions(): Promise<PermissionHolder> | PermissionHolder | undefined {
     return this.user || this.daemon;
   }
 
-  get tokens(): TokenHolder | undefined {
+  get tokens(): Promise<TokenHolder> | TokenHolder | undefined {
     return this.user || this.daemon;
   }
 }
@@ -46,9 +47,9 @@ export class RequestContext extends Context {
   // Constructor
   constructor(request: Request) {
     super({
-      user: request.user,
+      user:   request.user,
       daemon: request.daemon,
-      token: request.token
+      token:  request.token
     });
 
     this.request = request;
@@ -60,9 +61,33 @@ export class RequestContext extends Context {
   }
 }
 
+export class SocketContext extends Context {
+  // Attributes
+  readonly socket: Socket;
+
+  // Constructor
+  constructor(socket: Socket) {
+    super({
+      user:  socket.user(),
+      token: socket.token()
+    });
+
+    this.socket = socket;
+  }
+
+  // Getters
+  get from(): string {
+    return this.socket.client.id;
+  }
+}
+
 // Utils
 export function fromRequest(req: Request): Context {
   return new RequestContext(req);
+}
+
+export function fromSocket(sock: Socket): Context {
+  return new SocketContext(sock);
 }
 
 export default Context;

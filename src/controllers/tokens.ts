@@ -67,8 +67,8 @@ class TokensController extends Controller {
 
   async logout(ctx: Context) {
     if (ctx.token) {
-      await ctx.token.remove();
-      await ctx.tokens?.save();
+      await (await ctx.token).remove();
+      await (await ctx.tokens)?.save();
     }
   }
 }
