@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 import env from 'env';
 
@@ -7,13 +7,18 @@ mongoose.Promise = global.Promise;
 
 // Functions
 export async function connect() {
-  // Connect to MongoDB
-  await mongoose.connect(env.MONGODB_URL, {
-    useCreateIndex: true,
-    useFindAndModify: false,
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  });
+  try {
+    // Connect to MongoDB
+    await mongoose.connect(env.MONGODB_URL, {
+      useCreateIndex: true,
+      useFindAndModify: false,
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
 
-  console.log("Connected to MongoDB");
+    console.log('Connected to MongoDB');
+  } catch (error) {
+    console.error(`Failed to connect to MongoDB: ${error.message} (${error.reason})`);
+    process.exit(1);
+  }
 }
