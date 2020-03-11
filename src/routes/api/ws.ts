@@ -1,5 +1,8 @@
 import { Namespace } from 'socket.io';
 
+import { fromSocket } from 'bases/context';
+import { parseLRN } from 'utils/lrn';
+
 import { wsauth } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 
@@ -20,27 +23,28 @@ function wsapi(io: Namespace) {
   // Events
   io.on('connection', (sock) => {
     try {
+      // Create context
+      const ctx = fromSocket(sock);
+
       // Personal room
       sock.user().then(user => sock.join(user.id));
 
       // Events
-      sock.on('register', async (room) => {
+      sock.on('register', async (room: string) => {
         // Get current user
         const user = await sock.user();
 
         // Try to join room
-        switch (room) {
-          case 'users':
-          case 'daemons':
-            if (!isAllowed(user, room, PLvl.READ)) {
-              throw HttpError.Forbidden();
-            }
-            sock.join(room);
+        const lrn = parseLRN(room);
 
-            break;
-
-          default:
-            throw HttpError.NotFound(`Unknown room: ${room}`);
+        if (room === 'users' || lrn?.type === 'user') {
+          await Users.canJoinRoom(ctx, room);
+          sock.join(room);
+        } else if (room === 'daemons') {
+          if (!isAllowed(user, 'daemons', PLvl.READ)) throw HttpError.Forbidden();
+          sock.join(room);
+        } else {
+          throw HttpError.NotFound(`Unknown room: ${room}`);
         }
       });
 

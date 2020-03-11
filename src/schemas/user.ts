@@ -5,6 +5,8 @@ import validator from 'validator';
 import { omit } from 'lodash';
 
 import Context from 'bases/context';
+import { buildLRN } from 'utils/lrn';
+
 import { generateToken } from 'data/token';
 import User, { Credentials, UserToken } from 'data/user';
 
@@ -20,8 +22,14 @@ const UserSchema = new Schema<User>({
 UserSchema.add(PermissionHolderDef);
 UserSchema.add(TokenHolderDef);
 
+// Virtuals
+UserSchema.virtual('lrn').get(function (this: User) {
+  return buildLRN({ type: 'user', id: this.id });
+});
+
 // Options
 UserSchema.set('toJSON', {
+  virtuals: true,
   transform: (doc, ret) => omit(ret, ['password'])
 });
 

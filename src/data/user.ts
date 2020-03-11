@@ -9,6 +9,8 @@ interface User extends Document, PermissionHolder, TokenHolder {
   // Attributes
   email: string;
   password: string;
+
+  readonly lrn: string;
 }
 
 // Types

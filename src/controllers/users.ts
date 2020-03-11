@@ -2,13 +2,14 @@ import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
 
-import { PName, PLvl } from 'data/permission';
+import { PLvl, PName } from 'data/permission';
 import Token from 'data/token';
-import User, { Credentials, UserToken, UserCreate, UserFilter, UserUpdate, SimpleUser, simplifyUser } from 'data/user';
+import User, { Credentials, SimpleUser, simplifyUser, UserCreate, UserFilter, UserToken, UserUpdate } from 'data/user';
 import UserModel from 'models/user';
 
 import Controller from 'bases/controller';
 import Context from 'bases/context';
+import { parseLRN } from '../utils/lrn';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
@@ -19,7 +20,7 @@ class UsersController extends Controller<User> {
   constructor() { super("users"); }
 
   // Utils
-  protected async isAllowed(ctx: Context, level: PLvl, id?: string) {
+  protected async isAllowed(ctx: Context, level: PLvl, id?: string | null) {
     if (id && ctx.user && (await ctx.user).id === id) return;
 
     await super.isAllowed(ctx, level);
@@ -35,7 +36,7 @@ class UsersController extends Controller<User> {
 
   protected getTargets(data: User) {
     return {
-      ...super.getTargets(data),
+      [data.lrn]: (data: User) => data.toJSON(),
       users: simplifyUser
     };
   }
@@ -139,6 +140,7 @@ class UsersController extends Controller<User> {
     return this.emitDelete(await user.remove());
   }
 
+  // - authentication
   async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
     // Search user by credentials
     const user = await UserModel.findByCredentials(credentials);
@@ -166,6 +168,12 @@ class UsersController extends Controller<User> {
 
   async logout(ctx: Context) {
     await Tokens.logout(ctx);
+  }
+
+  // - rooms
+  async canJoinRoom(ctx: Context, room: string) {
+    const id = room === 'users' ? null : parseLRN(room)?.id;
+    await this.isAllowed(ctx, PLvl.READ, id);
   }
 }
 

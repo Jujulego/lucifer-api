@@ -13,9 +13,7 @@ type Targets<T extends Document> = { [target: string]: Format<T> };
 export abstract class DataEmitter<T extends Document> extends Emitter {
   // Protected methods
   protected getTargets(data: T): Targets<T> {
-    return {
-      [data.id]: (data: T) => data.toJSON()
-    };
+    return {};
   }
 
   // Methods
