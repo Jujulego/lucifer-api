@@ -1,4 +1,5 @@
 import { Document, Types } from 'mongoose';
+import { omit } from 'lodash';
 
 import { PermissionHolder } from './permission';
 import { TokenHolder } from './token';
@@ -20,5 +21,10 @@ export type DaemonFilter = Partial<Pick<Daemon, 'name' | 'user'>>;
 
 export type DaemonCreate = Pick<Daemon, 'name' | 'user'>;
 export type DaemonUpdate = Partial<Pick<Daemon, 'name' | 'user'>>;
+
+// Utils
+export function simplifyDaemon(daemon: Daemon): SimpleDaemon {
+  return omit(daemon, ['permissions', 'tokens']);
+}
 
 export default Daemon;

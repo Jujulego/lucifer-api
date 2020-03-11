@@ -5,7 +5,7 @@ import { HttpError } from 'middlewares/errors';
 import { isAllowed, PName, PLvl } from 'data/permission';
 
 import Context from './context';
-import { DataEmitter } from './emitter';
+import { DataEmitter } from './data';
 
 // Class
 abstract class Controller<T extends Document> extends DataEmitter<T> {

@@ -1,4 +1,4 @@
-import { Document } from 'mongoose';
+import { AnyDocument } from './document';
 
 // Types
 export type EventKind = Event['kind'];
@@ -11,7 +11,7 @@ interface BaseEvent<K extends string> {
 
 export interface DataEvent extends BaseEvent<'create' | 'update' | 'delete'> {
   id: string;
-  value: Document;
+  value: AnyDocument;
 }
 
 // Aliases

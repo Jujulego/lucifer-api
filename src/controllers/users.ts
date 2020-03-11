@@ -4,7 +4,7 @@ import Tokens, { TokenObj } from 'controllers/tokens';
 
 import { PName, PLvl } from 'data/permission';
 import Token from 'data/token';
-import User, { Credentials, UserToken, UserCreate, UserFilter, UserUpdate, SimpleUser } from 'data/user';
+import User, { Credentials, UserToken, UserCreate, UserFilter, UserUpdate, SimpleUser, simplifyUser } from 'data/user';
 import UserModel from 'models/user';
 
 import Controller from 'bases/controller';
@@ -33,8 +33,11 @@ class UsersController extends Controller<User> {
     return user;
   }
 
-  protected getTargets(data: User): string[] {
-    return ['users', data.id];
+  protected getTargets(data: User) {
+    return {
+      ...super.getTargets(data),
+      users: simplifyUser
+    };
   }
 
   // Methods

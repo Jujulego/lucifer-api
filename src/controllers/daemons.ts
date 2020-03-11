@@ -2,7 +2,11 @@ import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
 
-import Daemon, { DaemonToken, SimpleDaemon, DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon';
+import Daemon, {
+  DaemonToken, SimpleDaemon,
+  DaemonFilter, DaemonCreate, DaemonUpdate,
+  simplifyDaemon
+} from 'data/daemon';
 import { PLvl, PName } from 'data/permission';
 import DaemonModel from 'models/daemon';
 
@@ -35,8 +39,11 @@ class DaemonsController extends Controller<Daemon> {
     return daemon;
   }
 
-  protected getTargets(data: Daemon): string[] {
-    return ['daemons'];
+  protected getTargets(data: Daemon) {
+    return {
+      ...super.getTargets(data),
+      daemons: simplifyDaemon
+    };
   }
 
   // Methods
