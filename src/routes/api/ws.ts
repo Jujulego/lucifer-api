@@ -50,15 +50,7 @@ function wsapi(io: Namespace) {
 
       sock.on('unregister', (room) => {
         // Leave room
-        switch (room) {
-          case 'users':
-          case 'daemons':
-            sock.leave(room);
-            break;
-
-          default:
-            throw HttpError.NotFound(`Unknown room: ${room}`);
-        }
+        sock.leave(room);
       });
 
     } catch (error) {
