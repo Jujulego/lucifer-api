@@ -6,20 +6,23 @@ import Daemon from 'data/daemon';
 import Token, { TokenHolder } from 'data/token';
 import { PermissionHolder } from 'data/permission';
 
+// Type
+type Awaitable<T> = Promise<T> | T;
+
 // Interface
 interface ContextAttrs {
   // Objects
-  user?:   Promise<User>   | User;
-  daemon?: Promise<Daemon> | Daemon;
-  token?:  Promise<Token>  | Token;
+  user?:   Awaitable<User>;
+  daemon?: Awaitable<Daemon>;
+  token?:  Awaitable<Token>;
 }
 
 // Class
 abstract class Context {
   // Attributes
-  readonly user?:   Promise<User>   | User;
-  readonly daemon?: Promise<Daemon> | Daemon;
-  readonly token?:  Promise<Token>  | Token;
+  readonly user?:   Awaitable<User>;
+  readonly daemon?: Awaitable<Daemon>;
+  readonly token?:  Awaitable<Token>;
 
   // Constructor
   protected constructor(attrs: ContextAttrs) {
@@ -31,11 +34,11 @@ abstract class Context {
   // Getters
   abstract get from(): string;
 
-   get permissions(): Promise<PermissionHolder> | PermissionHolder | undefined {
+   get permissions(): Awaitable<PermissionHolder> | undefined {
     return this.user || this.daemon;
   }
 
-  get tokens(): Promise<TokenHolder> | TokenHolder | undefined {
+  get tokens(): Awaitable<TokenHolder> | undefined {
     return this.user || this.daemon;
   }
 }
