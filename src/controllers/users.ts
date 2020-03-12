@@ -2,14 +2,18 @@ import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
 
-import { PLvl, PName } from 'data/permission';
-import Token from 'data/token';
-import User, { Credentials, SimpleUser, simplifyUser, UserCreate, UserFilter, UserToken, UserUpdate } from 'data/user';
-import UserModel from 'models/user';
-
 import Controller from 'bases/controller';
 import Context from 'bases/context';
-import { parseLRN } from '../utils/lrn';
+import { parseLRN } from 'utils/lrn';
+
+import { PLvl, PName } from 'data/permission';
+import Token from 'data/token';
+import User, {
+  Credentials, SimpleUser, UserToken,
+  UserCreate, UserFilter, UserUpdate,
+  simplifyUser
+} from 'data/user';
+import UserModel from 'models/user';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }

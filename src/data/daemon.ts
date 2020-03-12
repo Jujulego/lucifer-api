@@ -10,6 +10,8 @@ interface Daemon extends Document, PermissionHolder, TokenHolder {
   name?: string;
   secret: string;
   user: Types.ObjectId;
+
+  readonly lrn: string;
 }
 
 // Types

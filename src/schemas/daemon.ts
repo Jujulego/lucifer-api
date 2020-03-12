@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 
 import Context from 'bases/context';
+import { buildLRN } from 'utils/lrn';
+
 import { generateToken } from 'data/token';
 import Daemon, { Credentials, DaemonToken } from 'data/daemon';
 
@@ -20,8 +22,14 @@ const DaemonSchema = new Schema<Daemon>({
 DaemonSchema.add(PermissionHolderDef);
 DaemonSchema.add(TokenHolderDef);
 
+// Virtuals
+DaemonSchema.virtual('lrn').get(function (this: Daemon) {
+  return buildLRN({ type: 'daemon', id: this.id });
+});
+
 // Options
 DaemonSchema.set('toJSON', {
+  virtuals: true,
   transform: (doc, ret) => omit(ret, ['secret'])
 });
 

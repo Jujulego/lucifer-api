@@ -23,25 +23,20 @@ function wsapi(io: Namespace) {
   // Events
   io.on('connection', (sock) => {
     try {
-      // Create context
-      const ctx = fromSocket(sock);
-
       // Personal room
       sock.user().then(user => sock.join(user.id));
 
       // Events
       sock.on('register', async (room: string) => {
-        // Get current user
-        const user = await sock.user();
-
         // Try to join room
+        const ctx = fromSocket(sock);
         const lrn = parseLRN(room);
 
         if (room === 'users' || lrn?.type === 'user') {
           await Users.canJoinRoom(ctx, room);
           sock.join(room);
-        } else if (room === 'daemons') {
-          if (!isAllowed(user, 'daemons', PLvl.READ)) throw HttpError.Forbidden();
+        } else if (room === 'daemons' || lrn?.type === 'daemon') {
+          await Daemons.canJoinRoom(ctx, room);
           sock.join(room);
         } else {
           throw HttpError.NotFound(`Unknown room: ${room}`);

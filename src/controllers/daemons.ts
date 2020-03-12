@@ -2,17 +2,22 @@ import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
 
+import Controller from 'bases/controller';
+import Context from 'bases/context';
+import { randomString } from 'utils/string';
+
 import Daemon, {
-  DaemonToken, SimpleDaemon,
+  DaemonToken, SimpleDaemon, Credentials,
   DaemonFilter, DaemonCreate, DaemonUpdate,
   simplifyDaemon
 } from 'data/daemon';
 import { PLvl, PName } from 'data/permission';
+import Token from 'data/token';
 import DaemonModel from 'models/daemon';
+import { parseLRN } from '../utils/lrn';
 
-import Controller from 'bases/controller';
-import Context from 'bases/context';
-import { randomString } from 'utils/string';
+// Types
+export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
 
 // Class
 class DaemonsController extends Controller<Daemon> {
@@ -20,7 +25,7 @@ class DaemonsController extends Controller<Daemon> {
   constructor() { super("daemons"); }
 
   // Utils
-  protected async isAllowed(ctx: Context, level: PLvl, id?: string) {
+  protected async isAllowed(ctx: Context, level: PLvl, id?: string | null) {
     if (id) {
       if (ctx.daemon && (await ctx.daemon).id === id) return;
       if (ctx.user) {
@@ -41,7 +46,7 @@ class DaemonsController extends Controller<Daemon> {
 
   protected getTargets(data: Daemon) {
     return {
-      ...super.getTargets(data),
+      [data.lrn]: (data: Daemon) => data.toJSON(),
       daemons: simplifyDaemon
     };
   }
@@ -156,6 +161,12 @@ class DaemonsController extends Controller<Daemon> {
 
   async logout(ctx: Context) {
     await Tokens.logout(ctx);
+  }
+
+  // - rooms
+  async canJoinRoom(ctx: Context, room: string) {
+    const id = room === 'daemons' ? null : parseLRN(room)?.id;
+    await this.isAllowed(ctx, PLvl.READ, id);
   }
 }
 
