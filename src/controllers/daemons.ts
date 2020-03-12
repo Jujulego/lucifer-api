@@ -153,6 +153,19 @@ class DaemonsController extends Controller<Daemon> {
     return this.emitDelete(await daemon.remove());
   }
 
+  // - authentication
+  async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
+    // Search daemon by credentials
+    const daemon = await DaemonModel.findByCredentials(credentials);
+    if (!daemon) throw HttpError.Unauthorized("Login failed");
+
+    // Generate token
+    const token = await Tokens.login(ctx, daemon, tags);
+    this.emitUpdate(daemon);
+
+    return { _id: token.id, token: token.token, daemon: daemon.id };
+  }
+
   async authenticate(token?: string): Promise<Daemon> {
     return await Tokens.authenticate(token, async (data: DaemonToken, token: string) => {
       return DaemonModel.findOne({ _id: data._id, 'tokens.token': token });
