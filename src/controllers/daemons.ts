@@ -1,3 +1,5 @@
+import { Document } from 'mongoose';
+
 import { HttpError } from 'middlewares/errors';
 import Permissions, { PermissionUpdate } from 'controllers/permissions';
 import Tokens, { TokenObj } from 'controllers/tokens';
@@ -5,6 +7,7 @@ import Tokens, { TokenObj } from 'controllers/tokens';
 import Controller from 'bases/controller';
 import Context from 'bases/context';
 import { randomString } from 'utils/string';
+import { parseLRN } from 'utils/lrn';
 
 import Daemon, {
   DaemonToken, SimpleDaemon, Credentials,
@@ -14,9 +17,9 @@ import Daemon, {
 import { PLvl, PName } from 'data/permission';
 import Token from 'data/token';
 import DaemonModel from 'models/daemon';
-import { parseLRN } from '../utils/lrn';
 
 // Types
+export type DaemonObject = Omit<Daemon, keyof Document>
 export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
 
 // Class
@@ -52,17 +55,19 @@ class DaemonsController extends Controller<Daemon> {
   }
 
   // Methods
-  async create(ctx: Context, data: DaemonCreate): Promise<Daemon> {
+  async create(ctx: Context, data: DaemonCreate): Promise<DaemonObject> {
     await this.isAllowed(ctx, PLvl.CREATE);
 
     // Create daemon
+    const secret = randomString(40);
     const daemon = new DaemonModel({
       name: data.name,
-      secret: randomString(40),
+      secret,
       user: data.user,
     });
 
-    return this.emitCreate(await daemon.save());
+    this.emitCreate(await daemon.save());
+    return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
