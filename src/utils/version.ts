@@ -7,10 +7,14 @@ const git = gitP();
 
 // Utils
 export async function version() {
-  const commit = await git.revparse(['--short', 'HEAD']);
+  let commit: string | undefined = undefined;
+
+  try {
+    commit = await git.revparse(['--short', 'HEAD']);
+  } catch (error) {}
 
   return ({
     version: pkg.version,
     commit
-  })
+  });
 }
