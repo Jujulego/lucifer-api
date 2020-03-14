@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import gitP from 'simple-git/promise';
 import validator from 'validator';
 
 import auth from 'middlewares/auth';
@@ -9,12 +8,8 @@ import Users from 'controllers/users';
 import Daemons from 'controllers/daemons';
 import Tokens from 'controllers/tokens';
 
-import pkg from '../../../package.json';
 import { fromRequest } from 'bases/context';
 import { aroute } from 'utils';
-
-// Constants
-const git = gitP();
 
 // Router
 const router = Router();
@@ -44,14 +39,5 @@ router.delete('/logout', auth,
     res.send();
   })
 );
-
-router.get('/version', aroute(async (req, res) => {
-  const commit = await git.revparse(['--short', 'HEAD']);
-
-  res.send({
-    version: pkg.version,
-    commit
-  });
-}));
 
 export default router;
