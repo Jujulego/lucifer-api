@@ -6,7 +6,6 @@ import { HttpError } from 'middlewares/errors';
 
 import Token, { TokenContent, TokenHolder, verifyToken } from 'data/token';
 
-import Controller from 'bases/controller';
 import Context from 'bases/context'
 
 // Types
@@ -14,7 +13,7 @@ export type TokenObj = Omit<Token, keyof Document>;
 
 // Controller
 @injectable()
-class TokensController extends Controller<TokenHolder> {
+class TokensController {
   // Methods
   async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
     // Generate token
