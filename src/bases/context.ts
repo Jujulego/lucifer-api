@@ -3,8 +3,9 @@ import { Socket } from 'socket.io';
 
 import User from 'data/user';
 import Daemon from 'data/daemon';
-import Token, { TokenHolder } from 'data/token';
 import { PermissionHolder } from 'data/permission';
+import { Token } from 'data/token/token.types';
+import TokenHolder from 'data/token/token.holder';
 
 // Type
 type Awaitable<T> = Promise<T> | T;

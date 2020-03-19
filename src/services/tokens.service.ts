@@ -6,7 +6,7 @@ import Context from 'bases/context';
 import { HttpError } from 'middlewares/errors';
 
 import { Token, TokenContent } from 'data/token/token.types';
-import { TokenHolder } from 'data/token/token.holder';
+import TokenHolder from 'data/token/token.holder';
 import TokenRepository from 'data/token/token.repository';
 
 import env from 'env';

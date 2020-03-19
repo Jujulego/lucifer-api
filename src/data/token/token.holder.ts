@@ -4,7 +4,7 @@ import { Token } from './token.types';
 import TokenSchema from './token.schema';
 
 // Type
-export interface TokenHolder extends Document {
+interface TokenHolder extends Document {
   // Attributes
   lastConnexion?: Date;
   readonly tokens: Types.DocumentArray<Token>;
@@ -15,3 +15,5 @@ export const TokenHolderDef: SchemaDefinition = {
   lastConnexion: { type: Date },
   tokens: [TokenSchema],
 };
+
+export default TokenHolder;

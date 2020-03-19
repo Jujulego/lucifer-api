@@ -1,7 +1,7 @@
 import { Document, Types } from 'mongoose';
 import { omit } from 'lodash';
 
-import { TokenHolder } from 'data/token/token.holder';
+import TokenHolder from 'data/token/token.holder';
 
 import { PermissionHolder } from './permission';
 

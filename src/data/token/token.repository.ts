@@ -4,8 +4,8 @@ import moment from 'moment';
 import Context, { RequestContext } from 'bases/context';
 import env from 'env';
 
+import TokenHolder from './token.holder';
 import { Token, TokenContent } from './token.types';
-import { TokenHolder } from './token.holder';
 
 // Repository
 class TokenRepository<T extends TokenHolder = TokenHolder> {

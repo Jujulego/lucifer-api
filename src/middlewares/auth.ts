@@ -5,7 +5,7 @@ import DIContainer from 'inversify.config';
 import { aroute } from 'utils';
 
 import Daemon from 'data/daemon';
-import Token from 'data/token';
+import { Token } from 'data/token/token.types';
 import User from 'data/user';
 
 import UsersController from 'controllers/users';
