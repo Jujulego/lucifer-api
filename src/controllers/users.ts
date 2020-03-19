@@ -190,15 +190,6 @@ class UsersController extends Controller<User> {
     return user;
   }
 
-  async logout(ctx: Context) {
-    if (ctx.user) {
-      const user = await ctx.user;
-      const token = await ctx.token!;
-
-      await this.tokenRepo.deleteToken(user, token);
-    }
-  }
-
   // - rooms
   async canJoinRoom(ctx: Context, room: string) {
     const id = room === 'users' ? null : parseLRN(room)?.id;

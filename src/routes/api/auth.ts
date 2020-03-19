@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import validator from 'validator';
 
+import { fromRequest } from 'bases/context';
+
 import auth from 'middlewares/auth';
 import { required } from 'middlewares/required';
 
-import TokensController from 'controllers/tokens';
 import UsersController from 'controllers/users';
 
-import { fromRequest } from 'bases/context';
+import TokensService from 'services/tokens.service';
+
 import DIContainer from 'inversify.config';
 import { aroute } from 'utils';
 
@@ -15,7 +17,7 @@ import { aroute } from 'utils';
 const router = Router();
 
 // Containers
-const Tokens = DIContainer.get(TokensController);
+const Tokens = DIContainer.get(TokensService);
 const Users = DIContainer.get(UsersController);
 
 // Routes

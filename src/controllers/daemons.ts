@@ -196,15 +196,6 @@ class DaemonsController extends Controller<Daemon> {
     });
   }
 
-  async logout(ctx: Context) {
-    if (ctx.daemon) {
-      const daemon = await ctx.daemon;
-      const token = await ctx.token!;
-
-      await this.tokenRepo.deleteToken(daemon, token);
-    }
-  }
-
   // - rooms
   async canJoinRoom(ctx: Context, room: string) {
     const id = room === 'daemons' ? null : parseLRN(room)?.id;
