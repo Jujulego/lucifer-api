@@ -14,7 +14,7 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return holder.tokens.id(id);
   }
 
-  async createToken(holder: T, ctx: Context, content: TokenContent, login: boolean, expiresIn?: string | number, tags?: string[]): Promise<Token> {
+  async createToken(holder: T, ctx: Context, content: TokenContent, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
     // Create token
     const token = holder.tokens.create(
       TokenRepository.generateToken(ctx, content, expiresIn, tags)
@@ -31,16 +31,14 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return token;
   }
 
-  async deleteToken(holder: T, id: string): Promise<T> {
+  async deleteToken(holder: T, token: Token): Promise<T> {
     // Get token
-    const token = this.getToken(holder, id);
     await token.remove();
-
     return await holder.save();
   }
 
   // Utils
-  private static generateToken(ctx: Context, content: TokenContent, expiresIn: string | number = '7 days', tags: string[] = []) {
+  private static generateToken(ctx: Context, content: TokenContent, expiresIn: string | number, tags: string[] = []) {
     // Generate new token
     return {
       token: jwt.sign(content, env.JWT_KEY, { expiresIn }),

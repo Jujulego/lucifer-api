@@ -3,12 +3,17 @@ import { Document } from 'mongoose';
 
 import { HttpError } from 'middlewares/errors';
 import PermissionsController, { PermissionUpdate } from 'controllers/permissions';
-import TokensController, { TokenObj } from 'controllers/tokens';
 
 import Controller from 'bases/controller';
 import Context from 'bases/context';
-import { randomString } from 'utils/string';
+
+import { Token, TokenObj } from 'data/token/token.types';
+import TokenRepository from 'data/token/token.repository';
+
+import TokensService from 'services/tokens.service';
+
 import { parseLRN } from 'utils/lrn';
+import { randomString } from 'utils/string';
 
 import Daemon, {
   DaemonToken, SimpleDaemon, Credentials,
@@ -16,7 +21,6 @@ import Daemon, {
   simplifyDaemon
 } from 'data/daemon';
 import { PLvl, PName } from 'data/permission';
-import Token from 'data/token';
 import DaemonModel from 'models/daemon';
 
 // Types
@@ -29,10 +33,12 @@ class DaemonsController extends Controller<Daemon> {
   // Attributes
   protected readonly permission: "daemons" = "daemons";
 
+  private readonly tokenRepo = new TokenRepository<Daemon>();
+
   // Constructor
   constructor(
     @inject(PermissionsController) private permissions: PermissionsController,
-    @inject(TokensController) private tokens: TokensController
+    @inject(TokensService) private tokens: TokensService
   ) { super(); }
 
   // Utils
@@ -83,10 +89,10 @@ class DaemonsController extends Controller<Daemon> {
 
     // Generate token
     const daemon = await this.getDaemon(id);
-    const token = this.tokens.createToken(ctx, daemon, tags);
+    const token = await this.tokenRepo.createToken(daemon, ctx, { _id: daemon.id }, false, '7 days', tags);
     this.emitUpdate(daemon);
 
-    return token;
+    return token.toObject();
   }
 
   async get(ctx: Context, id: string): Promise<Daemon> {
@@ -155,7 +161,12 @@ class DaemonsController extends Controller<Daemon> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return this.emitUpdate(await this.tokens.deleteToken(ctx, await this.getDaemon(id), tokenId));
+    const daemon = await this.getDaemon(id);
+    const token = await this.tokenRepo.getToken(daemon, tokenId);
+
+    return this.emitUpdate(
+      await this.tokenRepo.deleteToken(daemon, token)
+    );
   }
 
   async delete(ctx: Context, id: string): Promise<Daemon> {
@@ -173,7 +184,7 @@ class DaemonsController extends Controller<Daemon> {
     if (!daemon) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.tokens.login(ctx, daemon, tags);
+    const token = await this.tokenRepo.createToken(daemon, ctx, { _id: daemon.id }, true, '7 days', tags);
     this.emitUpdate(daemon);
 
     return { _id: token.id, token: token.token, daemon: daemon.id };
@@ -186,7 +197,12 @@ class DaemonsController extends Controller<Daemon> {
   }
 
   async logout(ctx: Context) {
-    await this.tokens.logout(ctx);
+    if (ctx.daemon) {
+      const daemon = await ctx.daemon;
+      const token = await ctx.token!;
+
+      await this.tokenRepo.deleteToken(daemon, token);
+    }
   }
 
   // - rooms

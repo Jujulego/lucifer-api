@@ -12,3 +12,4 @@ export interface Token extends Document {
 
 // Types
 export type TokenContent = string | object;
+export type TokenObj = Omit<Token, keyof Document>;
