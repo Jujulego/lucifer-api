@@ -5,6 +5,8 @@ import DaemonsController from 'controllers/daemons';
 import PermissionsController from 'controllers/permissions';
 import UsersController from 'controllers/users';
 
+import AuthorizeService from 'services/authorize.service';
+import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
 // Container
@@ -13,6 +15,8 @@ DIContainer.bind(DaemonsController).toSelf().inSingletonScope();
 DIContainer.bind(PermissionsController).toSelf().inSingletonScope();
 DIContainer.bind(UsersController).toSelf().inSingletonScope();
 
+DIContainer.bind(AuthorizeService).toSelf().inSingletonScope();
+DIContainer.bind(PermissionsService).toSelf().inSingletonScope();
 DIContainer.bind(TokensService).toSelf().inSingletonScope();
 
 export default DIContainer;
