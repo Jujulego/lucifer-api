@@ -2,14 +2,18 @@ import { injectable, inject } from 'inversify';
 
 import { HttpError } from 'middlewares/errors';
 import PermissionsController, { PermissionUpdate } from 'controllers/permissions';
-import TokensController, { TokenObj } from 'controllers/tokens';
 
 import Controller from 'bases/controller';
 import Context from 'bases/context';
+
+import { Token, TokenObj } from 'data/token/token.types';
+import TokenRepository from 'data/token/token.repository';
+
+import TokensService from 'services/tokens.service';
+
 import { parseLRN } from 'utils/lrn';
 
 import { PLvl, PName } from 'data/permission';
-import Token from 'data/token';
 import User, {
   Credentials, SimpleUser, UserToken,
   UserCreate, UserFilter, UserUpdate,
@@ -26,10 +30,12 @@ class UsersController extends Controller<User> {
   // Attributes
   protected readonly permission: "users" = "users";
 
+  private readonly tokenRepo = new TokenRepository<User>();
+
   // Constructor
   constructor(
     @inject(PermissionsController) private permissions: PermissionsController,
-    @inject(TokensController) private tokens: TokensController
+    @inject(TokensService) private tokens: TokensService
   ) { super(); }
 
   // Utils
@@ -72,7 +78,7 @@ class UsersController extends Controller<User> {
 
     // Generate token
     const user = await this.getUser(id);
-    const token = this.tokens.createToken(ctx, user, tags);
+    const token = await this.tokenRepo.createToken(user, ctx, { _id: user.id }, false, '7 days', tags);
     this.emitUpdate(user);
 
     return token;
@@ -142,7 +148,12 @@ class UsersController extends Controller<User> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return this.emitUpdate(await this.tokens.deleteToken(ctx, await this.getUser(id), tokenId));
+    const user = await this.getUser(id);
+    const token = await this.tokenRepo.getToken(user, tokenId);
+
+    return this.emitUpdate(
+      await this.tokenRepo.deleteToken(user, token)
+    );
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
@@ -160,7 +171,7 @@ class UsersController extends Controller<User> {
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.tokens.login(ctx, user, tags);
+    const token = await this.tokenRepo.createToken(user, ctx, { _id: user.id }, true, '7 days', tags);
     this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
@@ -180,7 +191,12 @@ class UsersController extends Controller<User> {
   }
 
   async logout(ctx: Context) {
-    await this.tokens.logout(ctx);
+    if (ctx.user) {
+      const user = await ctx.user;
+      const token = await ctx.token!;
+
+      await this.tokenRepo.deleteToken(user, token);
+    }
   }
 
   // - rooms

@@ -1,8 +1,9 @@
 import { Document } from 'mongoose';
 import { omit } from 'lodash';
 
+import { TokenHolder } from 'data/token/token.holder';
+
 import { PermissionHolder } from './permission';
-import { TokenHolder } from './token';
 
 // Interface
 interface User extends Document, PermissionHolder, TokenHolder {

@@ -4,14 +4,12 @@ import bcrypt from 'bcryptjs';
 import validator from 'validator';
 import { omit } from 'lodash';
 
-import Context from 'bases/context';
 import { buildLRN } from 'utils/lrn';
 
-import { generateToken } from 'data/token';
-import User, { Credentials, UserToken } from 'data/user';
+import User, { Credentials } from 'data/user';
+import { TokenHolderDef } from 'data/token/token.holder';
 
 import { PermissionHolderDef } from './permission';
-import { TokenHolderDef } from './token';
 
 // Schema
 const UserSchema = new Schema<User>({
@@ -42,11 +40,6 @@ UserSchema.pre<User>('save', async function (next) {
 
   next();
 });
-
-// Methods
-UserSchema.methods.generateToken = async function(ctx: Context) {
-  return generateToken(this, ctx, { _id: this.id } as UserToken, '7 days');
-};
 
 // Statics
 UserSchema.statics.findByCredentials = async function(cred: Credentials): Promise<User | null> {
