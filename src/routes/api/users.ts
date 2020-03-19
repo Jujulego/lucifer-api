@@ -5,7 +5,7 @@ import auth from 'middlewares/auth';
 import { required, check, checkParam } from 'middlewares/required';
 
 import { UserFilter } from 'data/user';
-import { isPName } from 'data/permission';
+import { isPName } from 'data/permission/permission.enums';
 import UsersController from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
@@ -72,10 +72,7 @@ router.put('/user/:id',
 router.put('/user/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Users.grant(fromRequest(req), req.params.id, {
-      name: req.body.name,
-      level: parseLevel(req.body.level)
-    }));
+    res.send(await Users.grant(fromRequest(req), req.params.id, req.body.name, parseLevel(req.body.level)));
   })
 );
 

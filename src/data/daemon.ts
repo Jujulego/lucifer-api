@@ -1,9 +1,8 @@
 import { Document, Types } from 'mongoose';
 import { omit } from 'lodash';
 
+import PermissionHolder from 'data/permission/permission.holder';
 import TokenHolder from 'data/token/token.holder';
-
-import { PermissionHolder } from './permission';
 
 // Interface
 interface Daemon extends Document, PermissionHolder, TokenHolder {

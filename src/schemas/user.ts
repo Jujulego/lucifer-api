@@ -6,10 +6,9 @@ import { omit } from 'lodash';
 
 import { buildLRN } from 'utils/lrn';
 
-import User, { Credentials } from 'data/user';
+import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
-
-import { PermissionHolderDef } from './permission';
+import User, { Credentials } from 'data/user';
 
 // Schema
 const UserSchema = new Schema<User>({

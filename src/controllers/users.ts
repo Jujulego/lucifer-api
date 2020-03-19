@@ -1,19 +1,20 @@
 import { injectable, inject } from 'inversify';
 
 import { HttpError } from 'middlewares/errors';
-import PermissionsController, { PermissionUpdate } from 'controllers/permissions';
 
-import Controller from 'bases/controller';
+import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
+import { PName, PLvl } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token.types';
 import TokenRepository from 'data/token/token.repository';
 
+import AuthorizeService from 'services/authorize.service';
+import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
 import { parseLRN } from 'utils/lrn';
 
-import { PLvl, PName } from 'data/permission';
 import User, {
   Credentials, SimpleUser, UserToken,
   UserCreate, UserFilter, UserUpdate,
@@ -26,23 +27,22 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 // Controller
 @injectable()
-class UsersController extends Controller<User> {
+class UsersController extends DataEmitter<User> {
   // Attributes
-  protected readonly permission: "users" = "users";
-
   private readonly tokenRepo = new TokenRepository<User>();
 
   // Constructor
   constructor(
-    @inject(PermissionsController) private permissions: PermissionsController,
+    @inject(AuthorizeService) private authorizer: AuthorizeService,
+    @inject(PermissionsService) private permissions: PermissionsService,
     @inject(TokensService) private tokens: TokensService
   ) { super(); }
 
   // Utils
-  protected async isAllowed(ctx: Context, level: PLvl, id?: string | null) {
+  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
     if (id && ctx.user && (await ctx.user).id === id) return;
 
-    await super.isAllowed(ctx, level);
+    await this.authorizer.allow(ctx, "users", level);
   }
 
   protected async getUser(id: string): Promise<User> {
@@ -62,7 +62,7 @@ class UsersController extends Controller<User> {
 
   // Methods
   async create(ctx: Context, data: UserCreate): Promise<User> {
-    if (ctx.user) await this.isAllowed(ctx, PLvl.CREATE);
+    if (ctx.user) await this.allow(ctx, PLvl.CREATE);
 
     // Create user
     const user = new UserModel({
@@ -74,7 +74,7 @@ class UsersController extends Controller<User> {
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
-    await this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.allow(ctx, PLvl.UPDATE, id);
 
     // Generate token
     const user = await this.getUser(id);
@@ -85,7 +85,7 @@ class UsersController extends Controller<User> {
   }
 
   async get(ctx: Context, id: string): Promise<User> {
-    await this.isAllowed(ctx, PLvl.READ, id);
+    await this.allow(ctx, PLvl.READ, id);
 
     // Find user
     return await this.getUser(id);
@@ -93,7 +93,7 @@ class UsersController extends Controller<User> {
 
   async find(ctx: Context, filter: UserFilter = {}): Promise<SimpleUser[]> {
     try {
-      await this.isAllowed(ctx, PLvl.READ);
+      await this.allow(ctx, PLvl.READ);
 
       // Find users
       return UserModel.find(filter, { tokens: false, permissions: false });
@@ -107,7 +107,7 @@ class UsersController extends Controller<User> {
   }
 
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
-    await this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.allow(ctx, PLvl.UPDATE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -120,12 +120,12 @@ class UsersController extends Controller<User> {
     return this.emitUpdate(await user.save());
   }
 
-  async grant(ctx: Context, id: string, grant: PermissionUpdate): Promise<User> {
+  async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<User> {
     // Find user
     const user = await this.getUser(id);
 
     // Grant permission
-    return this.emitUpdate(await this.permissions.grant(ctx, user, grant));
+    return this.emitUpdate(await this.permissions.grant(ctx, user, grant, level));
   }
 
   async elevate(ctx: Context, id: string, admin?: boolean): Promise<User> {
@@ -145,7 +145,7 @@ class UsersController extends Controller<User> {
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
-    await this.isAllowed(ctx, PLvl.UPDATE, id);
+    await this.allow(ctx, PLvl.UPDATE, id);
 
     // Delete token
     const user = await this.getUser(id);
@@ -157,7 +157,7 @@ class UsersController extends Controller<User> {
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
-    await this.isAllowed(ctx, PLvl.DELETE, id);
+    await this.allow(ctx, PLvl.DELETE, id);
 
     // Find user
     const user = await this.getUser(id);
@@ -193,7 +193,7 @@ class UsersController extends Controller<User> {
   // - rooms
   async canJoinRoom(ctx: Context, room: string) {
     const id = room === 'users' ? null : parseLRN(room)?.id;
-    await this.isAllowed(ctx, PLvl.READ, id);
+    await this.allow(ctx, PLvl.READ, id);
   }
 }
 

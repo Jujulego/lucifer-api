@@ -3,7 +3,7 @@ import { Socket } from 'socket.io';
 
 import User from 'data/user';
 import Daemon from 'data/daemon';
-import { PermissionHolder } from 'data/permission';
+import PermissionHolder from 'data/permission/permission.holder';
 import { Token } from 'data/token/token.types';
 import TokenHolder from 'data/token/token.holder';
 

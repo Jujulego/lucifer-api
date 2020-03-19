@@ -1,4 +1,4 @@
-import { PLvl } from 'data/permission';
+import { PLvl } from 'data/permission/permission.enums';
 
 import { parseLevel } from '../level';
 

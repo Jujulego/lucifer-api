@@ -1,6 +1,7 @@
 import { Document, SchemaDefinition, Types } from "mongoose";
-import Permission from 'data/permission';
-import PermissionSchema from 'schemas/permission';
+
+import { Permission } from 'data/permission/permission.types';
+import PermissionSchema from 'data/permission/permission.schema';
 
 // Interface
 interface PermissionHolder extends Document {

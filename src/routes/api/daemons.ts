@@ -5,7 +5,7 @@ import auth from 'middlewares/auth';
 import { required, checkParam, check } from 'middlewares/required';
 
 import { DaemonFilter } from 'data/daemon';
-import { isPName } from 'data/permission';
+import { isPName } from 'data/permission/permission.enums';
 import DaemonsController from 'controllers/daemons';
 
 import { fromRequest } from 'bases/context';
@@ -71,10 +71,7 @@ router.put('/daemon/:id',
 router.put('/daemon/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Daemons.grant(fromRequest(req), req.params.id, {
-      name: req.body.name,
-      level: parseLevel(req.body.level)
-    }));
+    res.send(await Daemons.grant(fromRequest(req), req.params.id, req.body.name, parseLevel(req.body.level)));
   })
 );
 

@@ -4,9 +4,8 @@ import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 
 import Daemon, { Credentials } from 'data/daemon';
+import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
-
-import { PermissionHolderDef } from './permission';
 
 import { buildLRN } from 'utils/lrn';
 
