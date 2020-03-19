@@ -6,13 +6,17 @@ import { required, checkParam, check } from 'middlewares/required';
 
 import { DaemonFilter } from 'data/daemon';
 import { isPName } from 'data/permission';
-import Daemons from 'controllers/daemons';
+import DaemonsController from 'controllers/daemons';
 
 import { fromRequest } from 'bases/context';
+import DIContainer from 'inversify.config';
 import { aroute, query2filter, parseLevel } from 'utils';
 
 // Router
 const router = Router();
+
+// Containers
+const Daemons = DIContainer.get(DaemonsController);
 
 // Middlewares
 router.use(auth);

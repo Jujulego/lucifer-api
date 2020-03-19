@@ -4,15 +4,19 @@ import validator from 'validator';
 import auth from 'middlewares/auth';
 import { required } from 'middlewares/required';
 
-import Users from 'controllers/users';
-import Daemons from 'controllers/daemons';
-import Tokens from 'controllers/tokens';
+import TokensController from 'controllers/tokens';
+import UsersController from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
+import DIContainer from 'inversify.config';
 import { aroute } from 'utils';
 
 // Router
 const router = Router();
+
+// Containers
+const Tokens = DIContainer.get(TokensController);
+const Users = DIContainer.get(UsersController);
 
 // Routes
 router.post('/signin',

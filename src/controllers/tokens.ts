@@ -1,3 +1,4 @@
+import { injectable } from 'inversify';
 import moment from 'moment';
 import { Document } from 'mongoose';
 
@@ -11,7 +12,8 @@ import Context from 'bases/context'
 // Types
 export type TokenObj = Omit<Token, keyof Document>;
 
-// Class
+// Controller
+@injectable()
 class TokensController extends Controller<TokenHolder> {
   // Methods
   async createToken(ctx: Context, holder: TokenHolder, tags: string[] = []): Promise<TokenObj> {
@@ -69,6 +71,4 @@ class TokensController extends Controller<TokenHolder> {
   }
 }
 
-// Controller
-const Tokens = new TokensController();
-export default Tokens;
+export default TokensController;

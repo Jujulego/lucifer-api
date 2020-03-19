@@ -6,6 +6,8 @@ import morgan from 'morgan';
 
 import api from 'routes/api';
 
+import 'inversify.config';
+
 // Application
 const app = express();
 

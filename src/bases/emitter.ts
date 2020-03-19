@@ -1,8 +1,10 @@
 import { Namespace } from 'socket.io';
 
 import Event from 'data/event';
+import { injectable } from 'inversify';
 
 // Class
+@injectable()
 abstract class Emitter {
   // Attributes
   private io?: Namespace;

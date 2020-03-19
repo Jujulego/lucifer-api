@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { Socket } from 'socket.io';
 
+import DIContainer from 'inversify.config';
 import { aroute } from 'utils';
 
 import Daemon from 'data/daemon';
 import Token from 'data/token';
 import User from 'data/user';
 
-import Users from 'controllers/users';
+import UsersController from 'controllers/users';
 
 // Add properties to Request
 declare global {
@@ -26,6 +27,9 @@ declare global {
     }
   }
 }
+
+// Containers
+const Users = DIContainer.get(UsersController);
 
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {

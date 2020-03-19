@@ -6,13 +6,17 @@ import { required, check, checkParam } from 'middlewares/required';
 
 import { UserFilter } from 'data/user';
 import { isPName } from 'data/permission';
-import Users from 'controllers/users';
+import UsersController from 'controllers/users';
 
 import { fromRequest } from 'bases/context';
+import DIContainer from 'inversify.config';
 import { aroute, query2filter, parseLevel } from 'utils';
 
 // Router
 const router = Router();
+
+// Containers
+const Users = DIContainer.get(UsersController);
 
 // Middlewares
 router.use(auth);

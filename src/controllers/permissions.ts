@@ -1,3 +1,5 @@
+import { injectable } from 'inversify';
+
 import { HttpError } from 'middlewares/errors';
 
 import { PermissionHolder, PName, PLvl } from 'data/permission';
@@ -10,10 +12,11 @@ export interface PermissionUpdate {
   name: PName, level: PLvl
 }
 
-// Class
-class PermissionsController extends Controller<PermissionHolder> {
-  // Constructor
-  constructor() { super("permissions"); }
+// Controller
+@injectable()
+export class PermissionsController extends Controller<PermissionHolder> {
+  // Attributes
+  protected readonly permission: "permissions" = "permissions";
 
   // Methods
   async grant<T extends PermissionHolder>(ctx: Context, holder: T, grant: PermissionUpdate): Promise<T> {
@@ -60,6 +63,4 @@ class PermissionsController extends Controller<PermissionHolder> {
   }
 }
 
-// Controller
-const Permissions = new PermissionsController();
-export default Permissions;
+export default PermissionsController;

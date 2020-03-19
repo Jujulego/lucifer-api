@@ -4,12 +4,14 @@ import { AnyDocument } from 'data/document';
 import { DataEvent } from 'data/event';
 
 import Emitter from './emitter';
+import { injectable } from 'inversify';
 
 // Types
 type Format<T extends Document> = ((doc: T) => AnyDocument);
 type Targets<T extends Document> = { [target: string]: Format<T> };
 
 // Class
+@injectable()
 export abstract class DataEmitter<T extends Document> extends Emitter {
   // Protected methods
   protected getTargets(data: T): Targets<T> {

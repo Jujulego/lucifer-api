@@ -1,6 +1,8 @@
+import { injectable, inject } from 'inversify';
+
 import { HttpError } from 'middlewares/errors';
-import Permissions, { PermissionUpdate } from 'controllers/permissions';
-import Tokens, { TokenObj } from 'controllers/tokens';
+import PermissionsController, { PermissionUpdate } from 'controllers/permissions';
+import TokensController, { TokenObj } from 'controllers/tokens';
 
 import Controller from 'bases/controller';
 import Context from 'bases/context';
@@ -18,10 +20,17 @@ import UserModel from 'models/user';
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
-// Class
+// Controller
+@injectable()
 class UsersController extends Controller<User> {
+  // Attributes
+  protected readonly permission: "users" = "users";
+
   // Constructor
-  constructor() { super("users"); }
+  constructor(
+    @inject(PermissionsController) private permissions: PermissionsController,
+    @inject(TokensController) private tokens: TokensController
+  ) { super(); }
 
   // Utils
   protected async isAllowed(ctx: Context, level: PLvl, id?: string | null) {
@@ -63,7 +72,7 @@ class UsersController extends Controller<User> {
 
     // Generate token
     const user = await this.getUser(id);
-    const token = Tokens.createToken(ctx, user, tags);
+    const token = this.tokens.createToken(ctx, user, tags);
     this.emitUpdate(user);
 
     return token;
@@ -110,7 +119,7 @@ class UsersController extends Controller<User> {
     const user = await this.getUser(id);
 
     // Grant permission
-    return this.emitUpdate(await Permissions.grant(ctx, user, grant));
+    return this.emitUpdate(await this.permissions.grant(ctx, user, grant));
   }
 
   async elevate(ctx: Context, id: string, admin?: boolean): Promise<User> {
@@ -118,7 +127,7 @@ class UsersController extends Controller<User> {
     const user = await this.getUser(id);
 
     // Elevate user
-    return this.emitUpdate(await Permissions.elevate(ctx, user, admin));
+    return this.emitUpdate(await this.permissions.elevate(ctx, user, admin));
   }
 
   async revoke(ctx: Context, id: string, revoke: PName): Promise<User> {
@@ -126,14 +135,14 @@ class UsersController extends Controller<User> {
     const user = await this.getUser(id);
 
     // Revoke permission
-    return this.emitUpdate(await Permissions.revoke(ctx, user, revoke));
+    return this.emitUpdate(await this.permissions.revoke(ctx, user, revoke));
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
     await this.isAllowed(ctx, PLvl.UPDATE, id);
 
     // Delete token
-    return this.emitUpdate(await Tokens.deleteToken(ctx, await this.getUser(id), tokenId));
+    return this.emitUpdate(await this.tokens.deleteToken(ctx, await this.getUser(id), tokenId));
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
@@ -151,14 +160,14 @@ class UsersController extends Controller<User> {
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await Tokens.login(ctx, user, tags);
+    const token = await this.tokens.login(ctx, user, tags);
     this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
   }
 
   async authenticate(token?: string): Promise<User> {
-    return await Tokens.authenticate(token, async (data: UserToken, token: string) => {
+    return await this.tokens.authenticate(token, async (data: UserToken, token: string) => {
       return UserModel.findOne({ _id: data._id, 'tokens.token': token })
     });
   }
@@ -171,7 +180,7 @@ class UsersController extends Controller<User> {
   }
 
   async logout(ctx: Context) {
-    await Tokens.logout(ctx);
+    await this.tokens.logout(ctx);
   }
 
   // - rooms
@@ -181,6 +190,4 @@ class UsersController extends Controller<User> {
   }
 }
 
-// Controller
-const Users = new UsersController();
-export default Users;
+export default UsersController;

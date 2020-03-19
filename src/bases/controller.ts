@@ -6,17 +6,13 @@ import { isAllowed, PName, PLvl } from 'data/permission';
 
 import Context from './context';
 import { DataEmitter } from './data';
+import { injectable } from 'inversify';
 
 // Class
+@injectable()
 abstract class Controller<T extends Document> extends DataEmitter<T> {
   // Attributes
-  private readonly permission?: PName;
-
-  // Constructor
-  constructor(permission?: PName) {
-    super();
-    this.permission = permission;
-  }
+  protected readonly permission?: PName;
 
   // Methods
   protected async isAllowed(ctx: Context, level: PLvl) {
