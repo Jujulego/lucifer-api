@@ -3,14 +3,12 @@ import { Schema, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 
-import Context from 'bases/context';
-import { buildLRN } from 'utils/lrn';
+import { PermissionHolderDef } from 'data/permission/permission.holder';
+import { TokenHolderDef } from 'data/token/token.holder';
 
-import { generateToken } from 'data/token';
-import Daemon, { Credentials, DaemonToken } from 'data/daemon';
+import { Daemon } from './daemon.types';
 
-import { PermissionHolderDef } from './permission';
-import { TokenHolderDef } from './token';
+import { buildLRN } from 'utils';
 
 // Schema
 const DaemonSchema = new Schema<Daemon>({
@@ -42,23 +40,5 @@ DaemonSchema.pre<Daemon>('save', async function (next) {
 
   next();
 });
-
-// Methods
-DaemonSchema.methods.generateToken = async function (ctx: Context) {
-  return generateToken(this, ctx, { _id: this.id } as DaemonToken, '7 days');
-};
-
-// Statics
-DaemonSchema.statics.findByCredentials = async function(cred: Credentials) {
-  // Search by name
-  const daemon = await this.findById(cred._id);
-  if (!daemon) return null;
-
-  // Check secret
-  const match = await bcrypt.compare(cred.secret, daemon.secret);
-  if (!match) return null;
-
-  return daemon;
-};
 
 export default DaemonSchema

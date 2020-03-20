@@ -1,6 +1,6 @@
 import validator from 'validator';
 
-import { isPLvl, PLvl } from '../data/permission';
+import { isPLvl, PLvl } from 'data/permission/permission.enums';
 
 // Utils
 export function parseLevel(level: string | number): PLvl {

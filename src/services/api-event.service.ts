@@ -2,8 +2,11 @@ import { Namespace } from 'socket.io';
 
 import Event from 'data/event';
 
-// Class
-abstract class Emitter {
+import { Service } from 'utils';
+
+// Service
+@Service(ApiEventService)
+class ApiEventService {
   // Attributes
   private io?: Namespace;
 
@@ -12,10 +15,10 @@ abstract class Emitter {
     this.io = io;
   }
 
-  protected emit(event: Event, room?: string) {
-    if (!this.io) return console.warn(`Unregistred emitter (${this.constructor.name}) emits events !`);
+  emit(event: Event, room?: string) {
+    if (!this.io) return;
     this.io.to(room || event.target).emit('event', event);
   }
 }
 
-export default Emitter;
+export default ApiEventService;

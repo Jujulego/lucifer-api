@@ -1,21 +1,26 @@
 import { Namespace } from 'socket.io';
 
 import { fromSocket } from 'bases/context';
-import { parseLRN } from 'utils/lrn';
 
 import { wsauth } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 
-import Daemons from 'controllers/daemons';
-import Users from 'controllers/users';
+import ApiEventService from 'services/api-event.service';
+import DaemonsService from 'services/daemons.service';
+import UsersService from 'services/users.service';
 
-import { isAllowed, PLvl } from 'data/permission';
+import DIContainer from 'inversify.config';
+import { parseLRN } from 'utils';
 
 // Websocket namespace api
 function wsapi(io: Namespace) {
-  // Register controllers
-  Daemons.register(io);
-  Users.register(io);
+  // Containers
+  const APIEvent = DIContainer.get(ApiEventService);
+  const Daemons = DIContainer.get(DaemonsService);
+  const Users = DIContainer.get(UsersService);
+
+  // Register
+  APIEvent.register(io);
 
   // Middlewares
   io.use(wsauth);

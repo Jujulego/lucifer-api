@@ -1,16 +1,23 @@
+import { injectable } from 'inversify';
 import { Document } from 'mongoose';
 
 import { AnyDocument } from 'data/document';
 import { DataEvent } from 'data/event';
 
-import Emitter from './emitter';
+import ApiEventService from '../services/api-event.service';
 
 // Types
 type Format<T extends Document> = ((doc: T) => AnyDocument);
 type Targets<T extends Document> = { [target: string]: Format<T> };
 
 // Class
-export abstract class DataEmitter<T extends Document> extends Emitter {
+@injectable()
+export abstract class DataEmitter<T extends Document> {
+  // Constructor
+  protected constructor(
+    private apievents: ApiEventService
+  ) {}
+
   // Protected methods
   protected getTargets(data: T): Targets<T> {
     return {};
@@ -22,7 +29,7 @@ export abstract class DataEmitter<T extends Document> extends Emitter {
 
     Object.keys(targets).forEach(target => {
       const format = targets[target];
-      this.emit({ target, kind, id: data._id, value: format(data) });
+      this.apievents.emit({ target, kind, id: data._id, value: format(data) });
     });
 
     return data;

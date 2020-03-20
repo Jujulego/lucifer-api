@@ -1,13 +1,15 @@
 import { NextFunction, Request, Response } from 'express';
 import { Socket } from 'socket.io';
 
+import DIContainer from 'inversify.config';
+
+import { Daemon } from 'data/daemon/daemon.types';
+import { Token } from 'data/token/token.types';
+import { User } from 'data/user/user.types';
+
+import UsersService from 'services/users.service';
+
 import { aroute } from 'utils';
-
-import Daemon from 'data/daemon';
-import Token from 'data/token';
-import User from 'data/user';
-
-import Users from 'controllers/users';
 
 // Add properties to Request
 declare global {
@@ -29,6 +31,9 @@ declare global {
 
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
+  // Containers
+  const Users = DIContainer.get(UsersService);
+
   // Authenticate user
   const token = req.header('Authorization')?.replace('Bearer ', '');
   const user = await Users.authenticate(token);
@@ -42,6 +47,9 @@ const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
 
 export async function wsauth(socket: Socket, next: (err?: any) => void) {
   try {
+    // Containers
+    const Users = DIContainer.get(UsersService);
+
     // Authenticate user
     const { token } = socket.handshake.query;
     const user = await Users.authenticate(token);
