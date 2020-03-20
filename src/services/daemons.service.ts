@@ -14,6 +14,7 @@ import { PName, PLvl } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token.types';
 import TokenRepository from 'data/token/token.repository';
 
+import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
@@ -33,10 +34,11 @@ class DaemonsService extends DataEmitter<Daemon> {
 
   // Constructor
   constructor(
+    @inject(ApiEventService) apievents: ApiEventService,
     @inject(AuthorizeService) private authorizer: AuthorizeService,
     @inject(PermissionsService) private permissions: PermissionsService,
     @inject(TokensService) private tokens: TokensService
-  ) { super(); }
+  ) { super(apievents); }
 
   // Utils
   private static simplifyDaemon(daemon: Daemon): SimpleDaemon {

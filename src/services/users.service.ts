@@ -13,6 +13,7 @@ import { User, Credentials, SimpleUser, UserToken } from 'data/user/user.types';
 import { UserCreate, UserFilter, UserUpdate } from 'data/user/user.types';
 import UserRepository from 'data/user/user.repository';
 
+import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
@@ -31,10 +32,11 @@ class UsersService extends DataEmitter<User> {
 
   // Constructor
   constructor(
+    @inject(ApiEventService) apievents: ApiEventService,
     @inject(AuthorizeService) private authorizer: AuthorizeService,
     @inject(PermissionsService) private permissions: PermissionsService,
     @inject(TokensService) private tokens: TokensService
-  ) { super(); }
+  ) { super(apievents); }
 
   // Utils
   private static simplifyUser(user: User): SimpleUser {

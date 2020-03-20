@@ -7,18 +7,19 @@ import { parseLRN } from 'utils/lrn';
 import { wsauth } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 
+import ApiEventService from 'services/api-event.service';
 import DaemonsService from 'services/daemons.service';
 import UsersService from 'services/users.service';
 
 // Containers
+const APIEvent = DIContainer.get(ApiEventService);
 const Daemons = DIContainer.get(DaemonsService);
 const Users = DIContainer.get(UsersService);
 
 // Websocket namespace api
 function wsapi(io: Namespace) {
-  // Register controllers
-  Daemons.register(io);
-  Users.register(io);
+  // Register
+  APIEvent.register(io);
 
   // Middlewares
   io.use(wsauth);
