@@ -6,9 +6,9 @@ import { aroute } from 'utils';
 
 import Daemon from 'data/daemon';
 import { Token } from 'data/token/token.types';
-import User from 'data/user';
+import { User } from 'data/user/user.types';
 
-import UsersController from 'controllers/users';
+import UsersService from 'services/users.service';
 
 // Add properties to Request
 declare global {
@@ -29,7 +29,7 @@ declare global {
 }
 
 // Containers
-const Users = DIContainer.get(UsersController);
+const Users = DIContainer.get(UsersService);
 
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {

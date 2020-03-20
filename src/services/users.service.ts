@@ -1,4 +1,5 @@
 import { injectable, inject } from 'inversify';
+import { omit } from 'lodash';
 
 import { HttpError } from 'middlewares/errors';
 
@@ -8,6 +9,9 @@ import Context from 'bases/context';
 import { PName, PLvl } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token.types';
 import TokenRepository from 'data/token/token.repository';
+import { User, Credentials, SimpleUser, UserToken } from 'data/user/user.types';
+import { UserCreate, UserFilter, UserUpdate } from 'data/user/user.types';
+import UserRepository from 'data/user/user.repository';
 
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
@@ -15,21 +19,15 @@ import TokensService from 'services/tokens.service';
 
 import { parseLRN } from 'utils/lrn';
 
-import User, {
-  Credentials, SimpleUser, UserToken,
-  UserCreate, UserFilter, UserUpdate,
-  simplifyUser
-} from 'data/user';
-import UserModel from 'models/user';
-
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 // Controller
 @injectable()
-class UsersController extends DataEmitter<User> {
+class UsersService extends DataEmitter<User> {
   // Attributes
   private readonly tokenRepo = new TokenRepository<User>();
+  private readonly userRepo = new UserRepository();
 
   // Constructor
   constructor(
@@ -39,6 +37,10 @@ class UsersController extends DataEmitter<User> {
   ) { super(); }
 
   // Utils
+  private static simplifyUser(user: User): SimpleUser {
+    return omit(user, ['permissions', 'tokens']);
+  }
+
   protected async allow(ctx: Context, level: PLvl, id?: string | null) {
     if (id && ctx.user && (await ctx.user).id === id) return;
 
@@ -47,7 +49,7 @@ class UsersController extends DataEmitter<User> {
 
   protected async getUser(id: string): Promise<User> {
     // Find user
-    const user = await UserModel.findById(id);
+    const user = await this.userRepo.getById(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
 
     return user;
@@ -56,7 +58,7 @@ class UsersController extends DataEmitter<User> {
   protected getTargets(data: User) {
     return {
       [data.lrn]: (data: User) => data.toJSON(),
-      users: simplifyUser
+      users: UsersService.simplifyUser
     };
   }
 
@@ -65,12 +67,7 @@ class UsersController extends DataEmitter<User> {
     if (ctx.user) await this.allow(ctx, PLvl.CREATE);
 
     // Create user
-    const user = new UserModel({
-      email: data.email,
-      password: data.password
-    });
-
-    return this.emitCreate(await user.save());
+    return this.emitCreate(await this.userRepo.create(data));
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
@@ -96,7 +93,7 @@ class UsersController extends DataEmitter<User> {
       await this.allow(ctx, PLvl.READ);
 
       // Find users
-      return UserModel.find(filter, { tokens: false, permissions: false });
+      return this.userRepo.find(filter);
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
         return ctx.user ? [await ctx.user] : [];
@@ -109,15 +106,11 @@ class UsersController extends DataEmitter<User> {
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Find user
-    const user = await this.getUser(id);
-
     // Update user
-    const { email, password } = update;
-    if (email !== undefined)    user.email    = email;
-    if (password !== undefined) user.password = password;
+    const user = await this.userRepo.update(id, update);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
 
-    return this.emitUpdate(await user.save());
+    return this.emitUpdate(user);
   }
 
   async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<User> {
@@ -159,15 +152,17 @@ class UsersController extends DataEmitter<User> {
   async delete(ctx: Context, id: string): Promise<User> {
     await this.allow(ctx, PLvl.DELETE, id);
 
-    // Find user
-    const user = await this.getUser(id);
-    return this.emitDelete(await user.remove());
+    // Delete user
+    const user = await this.userRepo.delete(id);
+    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+
+    return this.emitDelete(user);
   }
 
   // - authentication
   async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
     // Search user by credentials
-    const user = await UserModel.findByCredentials(credentials);
+    const user = await this.userRepo.getByCredentials(credentials);
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
@@ -179,12 +174,12 @@ class UsersController extends DataEmitter<User> {
 
   async authenticate(token?: string): Promise<User> {
     return await this.tokens.authenticate(token, async (data: UserToken, token: string) => {
-      return UserModel.findOne({ _id: data._id, 'tokens.token': token })
+      return this.userRepo.getByToken(data._id, token)
     });
   }
 
   async getByToken(id: string, token: string): Promise<User> {
-    const user = await UserModel.findOne({ _id: id, 'tokens.token': token });
+    const user = await this.userRepo.getByToken(id, token);
     if (!user) throw HttpError.Unauthorized();
 
     return user;
@@ -197,4 +192,4 @@ class UsersController extends DataEmitter<User> {
   }
 }
 
-export default UsersController;
+export default UsersService;

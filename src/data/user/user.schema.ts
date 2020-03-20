@@ -1,14 +1,14 @@
-import { Schema } from 'mongoose';
-
 import bcrypt from 'bcryptjs';
-import validator from 'validator';
 import { omit } from 'lodash';
-
-import { buildLRN } from 'utils/lrn';
+import { Schema } from 'mongoose';
+import validator from 'validator';
 
 import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
-import User, { Credentials } from 'data/user';
+
+import { buildLRN } from 'utils/lrn';
+
+import { User } from './user.types';
 
 // Schema
 const UserSchema = new Schema<User>({
@@ -39,18 +39,5 @@ UserSchema.pre<User>('save', async function (next) {
 
   next();
 });
-
-// Statics
-UserSchema.statics.findByCredentials = async function(cred: Credentials): Promise<User | null> {
-  // Search by email
-  const user = await this.findOne({ email: cred.email });
-  if (!user) return null;
-
-  // Check password
-  const match = await bcrypt.compare(cred.password, user.password);
-  if (!match) return null;
-
-  return user;
-};
 
 export default UserSchema;

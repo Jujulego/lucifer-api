@@ -8,11 +8,11 @@ import { wsauth } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 
 import DaemonsController from 'controllers/daemons';
-import UsersController from 'controllers/users';
+import UsersService from 'services/users.service';
 
 // Containers
 const Daemons = DIContainer.get(DaemonsController);
-const Users = DIContainer.get(UsersController);
+const Users = DIContainer.get(UsersService);
 
 // Websocket namespace api
 function wsapi(io: Namespace) {

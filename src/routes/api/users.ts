@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import validator from 'validator';
 
+import { fromRequest } from 'bases/context';
+
 import auth from 'middlewares/auth';
 import { required, check, checkParam } from 'middlewares/required';
 
-import { UserFilter } from 'data/user';
+import { UserFilter } from 'data/user/user.types';
 import { isPName } from 'data/permission/permission.enums';
-import UsersController from 'controllers/users';
 
-import { fromRequest } from 'bases/context';
+import UsersService from 'services/users.service';
+
 import DIContainer from 'inversify.config';
 import { aroute, query2filter, parseLevel } from 'utils';
 
@@ -16,7 +18,7 @@ import { aroute, query2filter, parseLevel } from 'utils';
 const router = Router();
 
 // Containers
-const Users = DIContainer.get(UsersController);
+const Users = DIContainer.get(UsersService);
 
 // Middlewares
 router.use(auth);

@@ -6,7 +6,7 @@ import { fromRequest } from 'bases/context';
 import auth from 'middlewares/auth';
 import { required } from 'middlewares/required';
 
-import UsersController from 'controllers/users';
+import UsersService from 'services/users.service';
 
 import TokensService from 'services/tokens.service';
 
@@ -18,7 +18,7 @@ const router = Router();
 
 // Containers
 const Tokens = DIContainer.get(TokensService);
-const Users = DIContainer.get(UsersController);
+const Users = DIContainer.get(UsersService);
 
 // Routes
 router.post('/signin',
