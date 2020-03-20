@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import validator from 'validator';
 
+import { fromRequest } from 'bases/context';
+
 import auth from 'middlewares/auth';
 import { required, checkParam, check } from 'middlewares/required';
 
-import { DaemonFilter } from 'data/daemon';
+import { DaemonFilter } from 'data/daemon/daemon.types';
 import { isPName } from 'data/permission/permission.enums';
-import DaemonsController from 'controllers/daemons';
 
-import { fromRequest } from 'bases/context';
+import DaemonsService from 'services/daemons.service';
+
 import DIContainer from 'inversify.config';
 import { aroute, query2filter, parseLevel } from 'utils';
 
@@ -16,7 +18,7 @@ import { aroute, query2filter, parseLevel } from 'utils';
 const router = Router();
 
 // Containers
-const Daemons = DIContainer.get(DaemonsController);
+const Daemons = DIContainer.get(DaemonsService);
 
 // Middlewares
 router.use(auth);

@@ -7,11 +7,11 @@ import { parseLRN } from 'utils/lrn';
 import { wsauth } from 'middlewares/auth';
 import { HttpError } from 'middlewares/errors';
 
-import DaemonsController from 'controllers/daemons';
+import DaemonsService from 'services/daemons.service';
 import UsersService from 'services/users.service';
 
 // Containers
-const Daemons = DIContainer.get(DaemonsController);
+const Daemons = DIContainer.get(DaemonsService);
 const Users = DIContainer.get(UsersService);
 
 // Websocket namespace api

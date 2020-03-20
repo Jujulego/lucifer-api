@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import { Socket } from 'socket.io';
 
-import Daemon from 'data/daemon';
+import { Daemon } from 'data/daemon/daemon.types';
 import PermissionHolder from 'data/permission/permission.holder';
 import { Token } from 'data/token/token.types';
 import TokenHolder from 'data/token/token.holder';

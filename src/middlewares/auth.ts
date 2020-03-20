@@ -4,7 +4,7 @@ import { Socket } from 'socket.io';
 import DIContainer from 'inversify.config';
 import { aroute } from 'utils';
 
-import Daemon from 'data/daemon';
+import { Daemon } from 'data/daemon/daemon.types';
 import { Token } from 'data/token/token.types';
 import { User } from 'data/user/user.types';
 

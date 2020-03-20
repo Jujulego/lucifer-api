@@ -1,4 +1,5 @@
 import { injectable, inject } from 'inversify';
+import { omit } from 'lodash';
 import { Document } from 'mongoose';
 
 import { HttpError } from 'middlewares/errors';
@@ -6,6 +7,9 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
+import { Credentials, Daemon, DaemonToken, SimpleDaemon } from 'data/daemon/daemon.types';
+import { DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon/daemon.types';
+import DaemonRepository from 'data/daemon/daemon.repository';
 import { PName, PLvl } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token.types';
 import TokenRepository from 'data/token/token.repository';
@@ -15,14 +19,6 @@ import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
 import { parseLRN } from 'utils/lrn';
-import { randomString } from 'utils/string';
-
-import Daemon, {
-  DaemonToken, SimpleDaemon, Credentials,
-  DaemonFilter, DaemonCreate, DaemonUpdate,
-  simplifyDaemon
-} from 'data/daemon';
-import DaemonModel from 'models/daemon';
 
 // Types
 export type DaemonObject = Omit<Daemon, keyof Document>
@@ -30,8 +26,9 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] 
 
 // Controller
 @injectable()
-class DaemonsController extends DataEmitter<Daemon> {
+class DaemonsService extends DataEmitter<Daemon> {
   // Attributes
+  private readonly daemonRepo = new DaemonRepository();
   private readonly tokenRepo = new TokenRepository<Daemon>();
 
   // Constructor
@@ -42,11 +39,15 @@ class DaemonsController extends DataEmitter<Daemon> {
   ) { super(); }
 
   // Utils
+  private static simplifyDaemon(daemon: Daemon): SimpleDaemon {
+    return omit(daemon, ['permissions', 'tokens']);
+  }
+
   protected async allow(ctx: Context, level: PLvl, id?: string | null) {
     if (id) {
       if (ctx.daemon && (await ctx.daemon).id === id) return;
       if (ctx.user) {
-        if (await DaemonModel.findOne({ _id: id, user: (await ctx.user).id })) return;
+        if (await this.daemonRepo.getByUser(id, (await ctx.user).id)) return;
       }
     }
 
@@ -55,7 +56,7 @@ class DaemonsController extends DataEmitter<Daemon> {
 
   protected async getDaemon(id: string): Promise<Daemon> {
     // Find daemon
-    const daemon = await DaemonModel.findById(id);
+    const daemon = await this.daemonRepo.getById(id);
     if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
 
     return daemon;
@@ -64,7 +65,7 @@ class DaemonsController extends DataEmitter<Daemon> {
   protected getTargets(data: Daemon) {
     return {
       [data.lrn]: (data: Daemon) => data.toJSON(),
-      daemons: simplifyDaemon
+      daemons: DaemonsService.simplifyDaemon
     };
   }
 
@@ -73,14 +74,10 @@ class DaemonsController extends DataEmitter<Daemon> {
     await this.allow(ctx, PLvl.CREATE);
 
     // Create daemon
-    const secret = randomString(40);
-    const daemon = new DaemonModel({
-      name: data.name,
-      secret,
-      user: data.user,
-    });
+    const daemon = await this.daemonRepo.create(data);
+    const secret = daemon.secret;
 
-    this.emitCreate(await daemon.save());
+    this.emitCreate(daemon);
     return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
   }
 
@@ -107,15 +104,12 @@ class DaemonsController extends DataEmitter<Daemon> {
       await this.allow(ctx, PLvl.READ);
 
       // Find users
-      return DaemonModel.find(filter, { permissions: false, tokens: false });
+      return this.daemonRepo.find(filter);
     } catch (error) {
       if (error instanceof HttpError && error.code === 403) {
         if (ctx.daemon) return [await ctx.daemon];
         if (ctx.user) {
-          return DaemonModel.find(
-            { ...filter, user: (await ctx.user).id },
-            { permissions: false, tokens: false }
-            );
+          return this.daemonRepo.find({ ...filter, user: (await ctx.user).id });
         }
 
         return [];
@@ -128,15 +122,11 @@ class DaemonsController extends DataEmitter<Daemon> {
   async update(ctx: Context, id: string, update: DaemonUpdate): Promise<Daemon> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Find daemon
-    const daemon = await this.getDaemon(id);
-
     // Update daemon
-    const { name, user } = update;
-    if (name !== undefined) daemon.name = name;
-    if (user !== undefined) daemon.user = user;
+    const daemon = await this.daemonRepo.update(id, update);
+    if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
 
-    return this.emitUpdate(await daemon.save());
+    return this.emitUpdate(daemon);
   }
 
   async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<Daemon> {
@@ -172,15 +162,17 @@ class DaemonsController extends DataEmitter<Daemon> {
   async delete(ctx: Context, id: string): Promise<Daemon> {
     await this.allow(ctx, PLvl.DELETE, id);
 
-    // Find daemon
-    const daemon = await this.getDaemon(id);
-    return this.emitDelete(await daemon.remove());
+    // Delete daemon
+    const daemon = await this.daemonRepo.delete(id);
+    if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
+
+    return this.emitDelete(daemon);
   }
 
   // - authentication
   async login(ctx: Context, credentials: Credentials, tags: string[] = []): Promise<LoginToken> {
     // Search daemon by credentials
-    const daemon = await DaemonModel.findByCredentials(credentials);
+    const daemon = await this.daemonRepo.getByCredentials(credentials);
     if (!daemon) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
@@ -192,7 +184,7 @@ class DaemonsController extends DataEmitter<Daemon> {
 
   async authenticate(token?: string): Promise<Daemon> {
     return await this.tokens.authenticate(token, async (data: DaemonToken, token: string) => {
-      return DaemonModel.findOne({ _id: data._id, 'tokens.token': token });
+      return await this.daemonRepo.getByToken(data._id, token);
     });
   }
 
@@ -203,4 +195,4 @@ class DaemonsController extends DataEmitter<Daemon> {
   }
 }
 
-export default DaemonsController;
+export default DaemonsService;

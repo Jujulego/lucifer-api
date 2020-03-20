@@ -3,9 +3,10 @@ import { Schema, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { omit } from 'lodash';
 
-import Daemon, { Credentials } from 'data/daemon';
 import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
+
+import { Daemon } from './daemon.types';
 
 import { buildLRN } from 'utils/lrn';
 
@@ -39,18 +40,5 @@ DaemonSchema.pre<Daemon>('save', async function (next) {
 
   next();
 });
-
-// Statics
-DaemonSchema.statics.findByCredentials = async function(cred: Credentials) {
-  // Search by name
-  const daemon = await this.findById(cred._id);
-  if (!daemon) return null;
-
-  // Check secret
-  const match = await bcrypt.compare(cred.secret, daemon.secret);
-  if (!match) return null;
-
-  return daemon;
-};
 
 export default DaemonSchema
