@@ -17,8 +17,7 @@ import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
-import { Service } from 'utils/inversify';
-import { parseLRN } from 'utils/lrn';
+import { Service, parseLRN } from 'utils';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }

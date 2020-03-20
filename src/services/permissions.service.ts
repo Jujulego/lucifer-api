@@ -8,7 +8,7 @@ import PermissionRepository from 'data/permission/permission.repository';
 
 import AuthorizeService from './authorize.service';
 
-import { Service } from 'utils/inversify';
+import { Service } from 'utils';
 
 // Service
 @Service(PermissionsService)

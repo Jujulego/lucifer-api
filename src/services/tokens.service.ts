@@ -9,7 +9,7 @@ import TokenHolder from 'data/token/token.holder';
 import TokenRepository from 'data/token/token.repository';
 
 import env from 'env';
-import { Service } from 'utils/inversify';
+import { Service } from 'utils';
 
 // Service
 @Service(TokensService)

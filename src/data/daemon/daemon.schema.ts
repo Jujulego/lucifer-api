@@ -8,7 +8,7 @@ import { TokenHolderDef } from 'data/token/token.holder';
 
 import { Daemon } from './daemon.types';
 
-import { buildLRN } from 'utils/lrn';
+import { buildLRN } from 'utils';
 
 // Schema
 const DaemonSchema = new Schema<Daemon>({

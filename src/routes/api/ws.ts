@@ -10,7 +10,7 @@ import DaemonsService from 'services/daemons.service';
 import UsersService from 'services/users.service';
 
 import DIContainer from 'inversify.config';
-import { parseLRN } from 'utils/lrn';
+import { parseLRN } from 'utils';
 
 // Websocket namespace api
 function wsapi(io: Namespace) {

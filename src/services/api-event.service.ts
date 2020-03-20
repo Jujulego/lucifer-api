@@ -2,7 +2,7 @@ import { Namespace } from 'socket.io';
 
 import Event from 'data/event';
 
-import { Service } from 'utils/inversify';
+import { Service } from 'utils';
 
 // Service
 @Service(ApiEventService)

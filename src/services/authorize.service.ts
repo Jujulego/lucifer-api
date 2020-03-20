@@ -5,7 +5,7 @@ import { HttpError } from 'middlewares/errors';
 import { PName, PLvl } from 'data/permission/permission.enums';
 import PermissionHolder from 'data/permission/permission.holder';
 
-import { Service } from 'utils/inversify';
+import { Service } from 'utils';
 
 // Service
 @Service(AuthorizeService)

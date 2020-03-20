@@ -6,7 +6,7 @@ import validator from 'validator';
 import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
 
-import { buildLRN } from 'utils/lrn';
+import { buildLRN } from 'utils';
 
 import { User } from './user.types';
 
