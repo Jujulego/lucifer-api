@@ -1,5 +1,3 @@
-import { inject, injectable } from 'inversify';
-
 import Context from 'bases/context';
 
 import { HttpError } from 'middlewares/errors';
@@ -10,16 +8,16 @@ import PermissionRepository from 'data/permission/permission.repository';
 
 import AuthorizeService from './authorize.service';
 
+import { Service } from 'utils/inversify';
+
 // Service
-@injectable()
+@Service(PermissionsService)
 class PermissionsService {
   // Attributes
   private readonly permRepo = new PermissionRepository();
 
   // Constructor
-  constructor(
-    @inject(AuthorizeService) private authorizer: AuthorizeService
-  ) {}
+  constructor(private authorizer: AuthorizeService) {}
 
   // Methods
   private async allow(ctx: Context, level: PLvl) {

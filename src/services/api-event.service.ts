@@ -1,10 +1,11 @@
-import { injectable } from 'inversify';
 import { Namespace } from 'socket.io';
 
 import Event from 'data/event';
 
+import { Service } from 'utils/inversify';
+
 // Service
-@injectable()
+@Service(ApiEventService)
 class ApiEventService {
   // Attributes
   private io?: Namespace;

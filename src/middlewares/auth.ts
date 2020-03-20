@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import { Socket } from 'socket.io';
 
-import DIContainer from 'inversify.config';
-import { aroute } from 'utils';
-
 import { Daemon } from 'data/daemon/daemon.types';
 import { Token } from 'data/token/token.types';
 import { User } from 'data/user/user.types';
 
 import UsersService from 'services/users.service';
+
+import DIContainer from 'inversify.config';
+import { aroute } from 'utils';
 
 // Add properties to Request
 declare global {
@@ -29,13 +29,13 @@ declare global {
 }
 
 // Containers
-const Users = DIContainer.get(UsersService);
+const Users = () => DIContainer.get(UsersService);
 
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
   // Authenticate user
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  const user = await Users.authenticate(token);
+  const user = await Users().authenticate(token);
 
   // Store in request
   req.user = user;
@@ -48,10 +48,10 @@ export async function wsauth(socket: Socket, next: (err?: any) => void) {
   try {
     // Authenticate user
     const { token } = socket.handshake.query;
-    const user = await Users.authenticate(token);
+    const user = await Users().authenticate(token);
 
     // Access to user from socket
-    socket.user = async () => await Users.getByToken(user.id, token);
+    socket.user = async () => await Users().getByToken(user.id, token);
     socket.token = async () => {
       const user = await socket.user();
       return user.tokens.find(tk => tk.token === token) as Token;

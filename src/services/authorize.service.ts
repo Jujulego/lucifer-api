@@ -1,5 +1,3 @@
-import { injectable } from 'inversify';
-
 import Context from 'bases/context';
 
 import { HttpError } from 'middlewares/errors';
@@ -7,8 +5,10 @@ import { HttpError } from 'middlewares/errors';
 import { PName, PLvl } from 'data/permission/permission.enums';
 import PermissionHolder from 'data/permission/permission.holder';
 
+import { Service } from 'utils/inversify';
+
 // Service
-@injectable()
+@Service(AuthorizeService)
 class AuthorizeService {
   // Methods
   has(holder: PermissionHolder, name: PName, level: PLvl): boolean {

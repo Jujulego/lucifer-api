@@ -18,7 +18,7 @@ import { aroute, query2filter, parseLevel } from 'utils';
 const router = Router();
 
 // Containers
-const Daemons = DIContainer.get(DaemonsService);
+const Daemons = () => DIContainer.get(DaemonsService);
 
 // Middlewares
 router.use(auth);
@@ -31,7 +31,7 @@ router.param('id', checkParam(validator.isMongoId));
 router.post('/daemon/',
   required({ body: { user: validator.isMongoId } }),
   aroute(async (req, res) => {
-    res.send(await Daemons.create(fromRequest(req), {
+    res.send(await Daemons().create(fromRequest(req), {
       name: req.body.name,
       user: req.body.user
     }));
@@ -41,14 +41,14 @@ router.post('/daemon/',
 // - create daemon token
 router.post('/daemon/:id/token',
   aroute(async (req, res) => {
-    res.send(await Daemons.createToken(fromRequest(req), req.params.id, req.body.tags));
+    res.send(await Daemons().createToken(fromRequest(req), req.params.id, req.body.tags));
   })
 );
 
 // - get daemon
 router.get('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.get(fromRequest(req), req.params.id));
+    res.send(await Daemons().get(fromRequest(req), req.params.id));
   })
 );
 
@@ -58,14 +58,14 @@ router.get('/daemons/',
   aroute(async (req, res) => {
     const filter = query2filter<keyof DaemonFilter>(req.query, ['name', 'user']);
 
-    res.send(await Daemons.find(fromRequest(req), filter));
+    res.send(await Daemons().find(fromRequest(req), filter));
   })
 );
 
 // - update daemon
 router.put('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.update(fromRequest(req), req.params.id, req.body));
+    res.send(await Daemons().update(fromRequest(req), req.params.id, req.body));
   })
 );
 
@@ -73,7 +73,7 @@ router.put('/daemon/:id',
 router.put('/daemon/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Daemons.grant(fromRequest(req), req.params.id, req.body.name, parseLevel(req.body.level)));
+    res.send(await Daemons().grant(fromRequest(req), req.params.id, req.body.name, parseLevel(req.body.level)));
   })
 );
 
@@ -81,21 +81,21 @@ router.put('/daemon/:id/grant',
 router.put('/daemon/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
-    res.send(await Daemons.revoke(fromRequest(req), req.params.id, req.body.name));
+    res.send(await Daemons().revoke(fromRequest(req), req.params.id, req.body.name));
   })
 );
 
 // - delete daemon token
 router.delete('/daemon/:id/token/:token',
   aroute(async (req, res) => {
-    res.send(await Daemons.deleteToken(fromRequest(req), req.params.id, req.params.token));
+    res.send(await Daemons().deleteToken(fromRequest(req), req.params.id, req.params.token));
   })
 );
 
 // - delete daemon
 router.delete('/daemon/:id',
   aroute(async (req, res) => {
-    res.send(await Daemons.delete(fromRequest(req), req.params.id));
+    res.send(await Daemons().delete(fromRequest(req), req.params.id));
   })
 );
 

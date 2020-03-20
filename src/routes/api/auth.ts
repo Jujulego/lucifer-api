@@ -17,14 +17,14 @@ import { aroute } from 'utils';
 const router = Router();
 
 // Containers
-const Tokens = DIContainer.get(TokensService);
-const Users = DIContainer.get(UsersService);
+const Tokens = () => DIContainer.get(TokensService);
+const Users = () => DIContainer.get(UsersService);
 
 // Routes
 router.post('/signin',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.create(fromRequest(req), {
+    res.send(await Users().create(fromRequest(req), {
       email: req.body.email,
       password: req.body.password
     }));
@@ -34,13 +34,13 @@ router.post('/signin',
 router.post('/login',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
-    res.send(await Users.login(fromRequest(req), req.body, req.body.tags));
+    res.send(await Users().login(fromRequest(req), req.body, req.body.tags));
   })
 );
 
 router.delete('/logout', auth,
   aroute(async (req, res) => {
-    await Tokens.logout(fromRequest(req));
+    await Tokens().logout(fromRequest(req));
 
     res.send();
   })

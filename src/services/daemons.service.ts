@@ -1,4 +1,3 @@
-import { injectable, inject } from 'inversify';
 import { omit } from 'lodash';
 import { Document } from 'mongoose';
 
@@ -19,6 +18,7 @@ import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
+import { Service } from 'utils/inversify';
 import { parseLRN } from 'utils/lrn';
 
 // Types
@@ -26,7 +26,7 @@ export type DaemonObject = Omit<Daemon, keyof Document>
 export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
 
 // Controller
-@injectable()
+@Service(DaemonsService)
 class DaemonsService extends DataEmitter<Daemon> {
   // Attributes
   private readonly daemonRepo = new DaemonRepository();
@@ -34,10 +34,10 @@ class DaemonsService extends DataEmitter<Daemon> {
 
   // Constructor
   constructor(
-    @inject(ApiEventService) apievents: ApiEventService,
-    @inject(AuthorizeService) private authorizer: AuthorizeService,
-    @inject(PermissionsService) private permissions: PermissionsService,
-    @inject(TokensService) private tokens: TokensService
+    apievents: ApiEventService,
+    private authorizer: AuthorizeService,
+    private permissions: PermissionsService,
+    private tokens: TokensService
   ) { super(apievents); }
 
   // Utils

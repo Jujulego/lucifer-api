@@ -1,4 +1,3 @@
-import { injectable } from 'inversify';
 import jwt from 'jsonwebtoken';
 
 import Context from 'bases/context';
@@ -10,9 +9,10 @@ import TokenHolder from 'data/token/token.holder';
 import TokenRepository from 'data/token/token.repository';
 
 import env from 'env';
+import { Service } from 'utils/inversify';
 
 // Service
-@injectable()
+@Service(TokensService)
 class TokensService {
   // Attributes
   private readonly tokenRepo = new TokenRepository();

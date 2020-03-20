@@ -1,4 +1,3 @@
-import { injectable, inject } from 'inversify';
 import { omit } from 'lodash';
 
 import { HttpError } from 'middlewares/errors';
@@ -18,13 +17,14 @@ import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 import TokensService from 'services/tokens.service';
 
+import { Service } from 'utils/inversify';
 import { parseLRN } from 'utils/lrn';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 // Controller
-@injectable()
+@Service(UsersService)
 class UsersService extends DataEmitter<User> {
   // Attributes
   private readonly tokenRepo = new TokenRepository<User>();
@@ -32,10 +32,10 @@ class UsersService extends DataEmitter<User> {
 
   // Constructor
   constructor(
-    @inject(ApiEventService) apievents: ApiEventService,
-    @inject(AuthorizeService) private authorizer: AuthorizeService,
-    @inject(PermissionsService) private permissions: PermissionsService,
-    @inject(TokensService) private tokens: TokensService
+    apievents: ApiEventService,
+    private authorizer: AuthorizeService,
+    private permissions: PermissionsService,
+    private tokens: TokensService
   ) { super(apievents); }
 
   // Utils
