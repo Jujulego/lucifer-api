@@ -17,7 +17,7 @@ import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 
-import { Service, parseLRN } from 'utils';
+import { Service, parseLRN, randomString } from 'utils';
 
 // Types
 export type DaemonObject = Omit<Daemon, keyof Document>
@@ -80,8 +80,8 @@ class DaemonsService extends DataEmitter<Daemon> {
     await this.allow(ctx, PLvl.CREATE);
 
     // Create daemon
-    const daemon = await this.daemonRepo.create(data);
-    const secret = daemon.secret;
+    const secret = randomString(42);
+    const daemon = await this.daemonRepo.create(data, secret);
 
     this.emitCreate(daemon);
     return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
