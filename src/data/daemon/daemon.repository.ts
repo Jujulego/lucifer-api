@@ -1,7 +1,5 @@
 import bcrypt from 'bcryptjs';
 
-import { randomString } from 'utils';
-
 import DaemonModel from './daemon.model';
 import { Credentials, Daemon, SimpleDaemon } from './daemon.types';
 import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon.types';
@@ -9,9 +7,8 @@ import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon.types';
 // Repository
 class DaemonRepository {
   // Methods
-  async create(data: DaemonCreate): Promise<Daemon> {
+  async create(data: DaemonCreate, secret: string): Promise<Daemon> {
     // Create daemon
-    const secret = randomString(40);
     const daemon = new DaemonModel({
       name: data.name,
       secret,
@@ -27,7 +24,7 @@ class DaemonRepository {
 
   async getByCredentials(cred: Credentials): Promise<Daemon | null> {
     // Search by name
-    const daemon = await this.getById(cred._id);
+    const daemon = await this.getById(cred.id);
     if (!daemon) return null;
 
     // Check secret

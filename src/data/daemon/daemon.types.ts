@@ -14,8 +14,7 @@ export interface Daemon extends Document, PermissionHolder, TokenHolder {
 }
 
 // Types
-export type Credentials = Pick<Daemon, '_id' | 'secret'>;
-export type DaemonToken = { _id: string };
+export type Credentials = { id: Daemon['_id'], secret: Daemon['secret'] };
 
 export type SimpleDaemon = Omit<Daemon, 'permissions' | 'tokens'>;
 export type DaemonFilter = Partial<Pick<Daemon, 'name' | 'user'>>;

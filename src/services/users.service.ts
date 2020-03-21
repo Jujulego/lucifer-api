@@ -8,14 +8,13 @@ import Context from 'bases/context';
 import { PName, PLvl } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token.types';
 import TokenRepository from 'data/token/token.repository';
-import { User, Credentials, SimpleUser, UserToken } from 'data/user/user.types';
+import { User, Credentials, SimpleUser } from 'data/user/user.types';
 import { UserCreate, UserFilter, UserUpdate } from 'data/user/user.types';
 import UserRepository from 'data/user/user.repository';
 
 import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
-import TokensService from 'services/tokens.service';
 
 import { Service, parseLRN } from 'utils';
 
@@ -34,7 +33,6 @@ class UsersService extends DataEmitter<User> {
     apievents: ApiEventService,
     private authorizer: AuthorizeService,
     private permissions: PermissionsService,
-    private tokens: TokensService
   ) { super(apievents); }
 
   // Utils
@@ -63,6 +61,13 @@ class UsersService extends DataEmitter<User> {
     };
   }
 
+  protected async generateToken(ctx: Context, user: User, login: boolean, tags: string[]): Promise<Token> {
+    return await this.tokenRepo.createToken(
+      user, ctx, { lrn: user.lrn },
+      login, '7 days', tags
+    );
+  }
+
   // Methods
   async create(ctx: Context, data: UserCreate): Promise<User> {
     if (ctx.user) await this.allow(ctx, PLvl.CREATE);
@@ -76,7 +81,7 @@ class UsersService extends DataEmitter<User> {
 
     // Generate token
     const user = await this.getUser(id);
-    const token = await this.tokenRepo.createToken(user, ctx, { _id: user.id }, false, '7 days', tags);
+    const token = await this.generateToken(ctx, user, false, tags);
     this.emitUpdate(user);
 
     return token;
@@ -167,16 +172,10 @@ class UsersService extends DataEmitter<User> {
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.tokenRepo.createToken(user, ctx, { _id: user.id }, true, '7 days', tags);
+    const token = await this.generateToken(ctx, user, false, tags);
     this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
-  }
-
-  async authenticate(token?: string): Promise<User> {
-    return await this.tokens.authenticate(token, async (data: UserToken, token: string) => {
-      return this.userRepo.getByToken(data._id, token)
-    });
   }
 
   async getByToken(id: string, token: string): Promise<User> {

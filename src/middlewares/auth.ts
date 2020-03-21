@@ -7,9 +7,12 @@ import { Daemon } from 'data/daemon/daemon.types';
 import { Token } from 'data/token/token.types';
 import { User } from 'data/user/user.types';
 
+import DaemonsService from 'services/daemons.service';
+import TokensService from 'services/tokens.service';
 import UsersService from 'services/users.service';
 
-import { aroute } from 'utils';
+import { aroute, parseLRN } from 'utils';
+import { HttpError } from 'middlewares/errors';
 
 // Add properties to Request
 declare global {
@@ -32,40 +35,67 @@ declare global {
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
   // Containers
+  const Daemons = DIContainer.get(DaemonsService);
+  const Tokens = DIContainer.get(TokensService);
   const Users = DIContainer.get(UsersService);
 
-  // Authenticate user
+  // Get token
   const token = req.header('Authorization')?.replace('Bearer ', '');
-  const user = await Users.authenticate(token);
+  if (!token) throw HttpError.Unauthorized();
 
-  // Store in request
-  req.user = user;
-  req.token = user.tokens.find(tk => tk.token === token) as Token;
+  // Authenticate user/daemon
+  const content = Tokens.verifyToken(token);
+  const lrn = parseLRN(content.lrn);
+  if (!lrn) throw HttpError.Unauthorized();
+
+  switch (lrn.type) {
+    case 'daemon': {
+      const daemon = await Daemons.getByToken(lrn.id, token);
+
+      req.daemon = daemon;
+      req.token = daemon.tokens.find(tk => tk.token === token) as Token;
+      break;
+    }
+
+    case 'user': {
+      const user = await Users.getByToken(lrn.id, token);
+
+      req.user = user;
+      req.token = user.tokens.find(tk => tk.token === token) as Token;
+      break;
+    }
+
+    default:
+      throw HttpError.Unauthorized();
+  }
 
   next();
 });
 
 export async function wsauth(socket: Socket, next: (err?: any) => void) {
-  try {
-    // Containers
-    const Users = DIContainer.get(UsersService);
+  // Containers
+  const Tokens = DIContainer.get(TokensService);
+  const Users = DIContainer.get(UsersService);
 
-    // Authenticate user
-    const { token } = socket.handshake.query;
-    const user = await Users.authenticate(token);
+  // Get token
+  const { token } = socket.handshake.query;
+  if (!token) throw HttpError.Unauthorized();
 
-    // Access to user from socket
-    socket.user = async () => await Users.getByToken(user.id, token);
-    socket.token = async () => {
-      const user = await socket.user();
-      return user.tokens.find(tk => tk.token === token) as Token;
-    };
+  // Authenticate user
+  const content = Tokens.verifyToken(token);
+  const lrn = parseLRN(content.lrn);
+  if (!lrn || lrn.type != 'user') throw HttpError.Unauthorized();
 
-    return next();
-  } catch (error) {
-    console.log(error);
-    return next(error);
-  }
+  const user = await Users.getByToken(lrn.id, token);
+
+  // Access to user from socket
+  socket.user = async () => await Users.getByToken(user.id, token);
+  socket.token = async () => {
+    const user = await socket.user();
+    return user.tokens.find(tk => tk.token === token) as Token;
+  };
+
+  return next();
 }
 
 export default auth;

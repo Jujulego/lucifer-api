@@ -11,6 +11,7 @@ import UsersService from 'services/users.service';
 import TokensService from 'services/tokens.service';
 
 import { aroute } from 'utils';
+import DaemonsService from 'services/daemons.service';
 
 // Router
 const router = Router();
@@ -36,6 +37,16 @@ router.post('/login',
     const Users = DIContainer.get(UsersService);
 
     res.send(await Users.login(fromRequest(req), req.body, req.body.tags));
+  })
+);
+
+router.post('/daemons/login',
+  required({ body: { id: validator.isMongoId, secret: true } }),
+  aroute(async (req, res) => {
+    // Containers
+    const Daemons = DIContainer.get(DaemonsService);
+
+    res.send(await Daemons.login(fromRequest(req), req.body, req.body.tags));
   })
 );
 
