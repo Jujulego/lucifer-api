@@ -27,7 +27,7 @@ class DaemonRepository {
 
   async getByCredentials(cred: Credentials): Promise<Daemon | null> {
     // Search by name
-    const daemon = await this.getById(cred._id);
+    const daemon = await this.getById(cred.id);
     if (!daemon) return null;
 
     // Check secret
