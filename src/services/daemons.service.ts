@@ -6,7 +6,7 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { Credentials, Daemon, DaemonToken, SimpleDaemon } from 'data/daemon/daemon.types';
+import { Credentials, Daemon, SimpleDaemon } from 'data/daemon/daemon.types';
 import { DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon/daemon.types';
 import DaemonRepository from 'data/daemon/daemon.repository';
 import { PName, PLvl } from 'data/permission/permission.enums';
@@ -16,7 +16,6 @@ import TokenRepository from 'data/token/token.repository';
 import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
-import TokensService from 'services/tokens.service';
 
 import { Service, parseLRN } from 'utils';
 
@@ -35,8 +34,7 @@ class DaemonsService extends DataEmitter<Daemon> {
   constructor(
     apievents: ApiEventService,
     private authorizer: AuthorizeService,
-    private permissions: PermissionsService,
-    private tokens: TokensService
+    private permissions: PermissionsService
   ) { super(apievents); }
 
   // Utils
@@ -70,6 +68,13 @@ class DaemonsService extends DataEmitter<Daemon> {
     };
   }
 
+  protected async generateToken(ctx: Context, daemon: Daemon, login: boolean, tags: string[]): Promise<Token> {
+    return await this.tokenRepo.createToken(
+      daemon, ctx, { lrn: daemon.lrn },
+      login, '7 days', tags
+    );
+  }
+
   // Methods
   async create(ctx: Context, data: DaemonCreate): Promise<DaemonObject> {
     await this.allow(ctx, PLvl.CREATE);
@@ -87,7 +92,7 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Generate token
     const daemon = await this.getDaemon(id);
-    const token = await this.tokenRepo.createToken(daemon, ctx, { _id: daemon.id }, false, '7 days', tags);
+    const token = await this.generateToken(ctx, daemon, false, tags);
     this.emitUpdate(daemon);
 
     return token.toObject();
@@ -177,16 +182,17 @@ class DaemonsService extends DataEmitter<Daemon> {
     if (!daemon) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.tokenRepo.createToken(daemon, ctx, { _id: daemon.id }, true, '7 days', tags);
+    const token = await this.generateToken(ctx, daemon, false, tags);
     this.emitUpdate(daemon);
 
     return { _id: token.id, token: token.token, daemon: daemon.id };
   }
 
-  async authenticate(token?: string): Promise<Daemon> {
-    return await this.tokens.authenticate(token, async (data: DaemonToken, token: string) => {
-      return await this.daemonRepo.getByToken(data._id, token);
-    });
+  async getByToken(id: string, token: string): Promise<Daemon> {
+    const daemon = await this.daemonRepo.getByToken(id, token);
+    if (!daemon) throw HttpError.Unauthorized();
+
+    return daemon;
   }
 
   // - rooms

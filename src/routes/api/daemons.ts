@@ -122,15 +122,4 @@ router.delete('/daemon/:id',
   })
 );
 
-// - authentification
-router.post('/daemon/login',
-  required({ body: { _id: validator.isMongoId } }),
-  aroute(async (req, res) => {
-    // Containers
-    const Daemons = DIContainer.get(DaemonsService);
-
-    res.send(await Daemons.login(fromRequest(req), req.body, req.body.tags));
-  })
-);
-
 export default router;

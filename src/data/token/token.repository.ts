@@ -14,7 +14,7 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return holder.tokens.id(id);
   }
 
-  async createToken(holder: T, ctx: Context, content: TokenContent, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
+  async createToken<C extends TokenContent>(holder: T, ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
     // Create token
     const token = holder.tokens.create(
       TokenRepository.generateToken(ctx, content, expiresIn, tags)
