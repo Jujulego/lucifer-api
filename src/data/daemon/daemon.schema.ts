@@ -6,7 +6,7 @@ import { omit } from 'lodash';
 import { PermissionHolderDef } from 'data/permission/permission.holder';
 import { TokenHolderDef } from 'data/token/token.holder';
 
-import { Daemon } from './daemon.types';
+import { Daemon } from './daemon';
 
 import { buildLRN } from 'utils';
 

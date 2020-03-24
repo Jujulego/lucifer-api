@@ -1,17 +1,14 @@
 import bcrypt from 'bcryptjs';
 
-import { randomString } from 'utils';
-
 import DaemonModel from './daemon.model';
-import { Credentials, Daemon, SimpleDaemon } from './daemon.types';
-import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon.types';
+import { Credentials, Daemon, DaemonObject, SimpleDaemon } from './daemon';
+import { DaemonFilter, DaemonCreate } from './daemon';
 
 // Repository
 class DaemonRepository {
   // Methods
-  async create(data: DaemonCreate): Promise<Daemon> {
+  async create(data: DaemonCreate, secret: string): Promise<Daemon> {
     // Create daemon
-    const secret = randomString(40);
     const daemon = new DaemonModel({
       name: data.name,
       secret,
@@ -27,7 +24,7 @@ class DaemonRepository {
 
   async getByCredentials(cred: Credentials): Promise<Daemon | null> {
     // Search by name
-    const daemon = await this.getById(cred._id);
+    const daemon = await this.getById(cred.id);
     if (!daemon) return null;
 
     // Check secret
@@ -49,8 +46,16 @@ class DaemonRepository {
     return DaemonModel.find(filter, { tokens: false, permissions: false });
   }
 
-  async update(id: string, update: DaemonUpdate): Promise<Daemon | null> {
-    return DaemonModel.findByIdAndUpdate(id, { $set: update });
+  async update(id: string, update: Partial<DaemonObject>): Promise<Daemon | null> {
+    const daemon = await this.getById(id);
+    if (!daemon) return daemon;
+
+    if (update.name)   daemon.name   = update.name;
+    if (update.user)   daemon.user   = update.user;
+    if (update.secret) daemon.secret = update.secret;
+    if (update.tokens) daemon.tokens.splice(0, daemon.tokens.length);
+
+    return await daemon.save();
   }
 
   async delete(id: string): Promise<Daemon | null> {

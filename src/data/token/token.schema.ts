@@ -2,7 +2,7 @@ import { Schema } from 'mongoose';
 import validator from 'validator';
 import _ from 'lodash';
 
-import { Token } from './token.types';
+import { Token } from './token';
 
 // Schema
 const TokenSchema = new Schema<Token>({

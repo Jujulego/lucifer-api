@@ -7,7 +7,7 @@ import DIContainer from 'inversify.config';
 import auth from 'middlewares/auth';
 import { required, check, checkParam } from 'middlewares/required';
 
-import { UserFilter } from 'data/user/user.types';
+import { UserFilter } from 'data/user/user';
 import { isPName } from 'data/permission/permission.enums';
 
 import UsersService from 'services/users.service';

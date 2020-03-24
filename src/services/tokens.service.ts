@@ -4,7 +4,7 @@ import Context from 'bases/context';
 
 import { HttpError } from 'middlewares/errors';
 
-import { Token, TokenContent } from 'data/token/token.types';
+import { Token, TokenContent } from 'data/token/token';
 import TokenHolder from 'data/token/token.holder';
 import TokenRepository from 'data/token/token.repository';
 
@@ -19,13 +19,18 @@ class TokensService {
 
   // Methods
   verifyToken<C extends TokenContent>(token: string | Token): C {
-    // Get token
-    if (typeof token !== 'string') {
-      token = token.token;
-    }
+    try {
+      // Get token
+      if (typeof token !== 'string') {
+        token = token.token;
+      }
 
-    // Verify
-    return jwt.verify(token, env.JWT_KEY) as C;
+      // Verify
+      return jwt.verify(token, env.JWT_KEY) as C;
+    } catch (error) {
+      console.log(error.message);
+      throw HttpError.Unauthorized();
+    }
   }
 
   async authenticate<H extends TokenHolder, C extends TokenContent>(token: string | undefined, getter: (content: C, token: string) => Promise<H | null>): Promise<H> {
@@ -36,7 +41,7 @@ class TokensService {
     try {
       data = this.verifyToken<C>(token);
     } catch (error) {
-      console.error(error);
+      console.error(error.message);
       throw HttpError.Unauthorized();
     }
 

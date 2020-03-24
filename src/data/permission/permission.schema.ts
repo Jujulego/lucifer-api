@@ -1,6 +1,6 @@
 import { Schema } from 'mongoose';
 
-import { Permission } from './permission.types';
+import { Permission } from './permission';
 
 // Schema
 const PermissionSchema = new Schema<Permission>({
