@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 
 import DaemonModel from './daemon.model';
-import { Credentials, Daemon, SimpleDaemon } from './daemon.types';
-import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon.types';
+import { Credentials, Daemon, SimpleDaemon } from './daemon';
+import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon';
 
 // Repository
 class DaemonRepository {

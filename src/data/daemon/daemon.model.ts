@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-import { Daemon } from './daemon.types';
+import { Daemon } from './daemon';
 import DaemonSchema from './daemon.schema';
 
 // Model

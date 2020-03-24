@@ -1,11 +1,11 @@
 import { Request } from 'express';
 import { Socket } from 'socket.io';
 
-import { Daemon } from 'data/daemon/daemon.types';
+import { Daemon } from 'data/daemon/daemon';
 import PermissionHolder from 'data/permission/permission.holder';
-import { Token } from 'data/token/token.types';
+import { Token } from 'data/token/token';
 import TokenHolder from 'data/token/token.holder';
-import { User } from 'data/user/user.types';
+import { User } from 'data/user/user';
 
 // Type
 type Awaitable<T> = Promise<T> | T;

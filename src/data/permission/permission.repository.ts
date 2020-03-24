@@ -1,5 +1,5 @@
 import { PLvl, PName } from 'data/permission/permission.enums';
-import { Permission } from 'data/permission/permission.types';
+import { Permission } from 'data/permission/permission';
 import PermissionHolder from 'data/permission/permission.holder';
 
 // Repository

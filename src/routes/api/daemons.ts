@@ -7,7 +7,7 @@ import DIContainer from 'inversify.config';
 import auth from 'middlewares/auth';
 import { required, checkParam, check } from 'middlewares/required';
 
-import { DaemonFilter } from 'data/daemon/daemon.types';
+import { DaemonFilter } from 'data/daemon/daemon';
 import { isPName } from 'data/permission/permission.enums';
 
 import DaemonsService from 'services/daemons.service';

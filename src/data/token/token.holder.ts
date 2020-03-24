@@ -1,6 +1,6 @@
 import { Document, SchemaDefinition, Types } from 'mongoose';
 
-import { Token } from './token.types';
+import { Token } from './token';
 import TokenSchema from './token.schema';
 
 // Interface

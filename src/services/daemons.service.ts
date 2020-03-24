@@ -6,11 +6,11 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { Credentials, Daemon, SimpleDaemon } from 'data/daemon/daemon.types';
-import { DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon/daemon.types';
+import { Credentials, Daemon, SimpleDaemon } from 'data/daemon/daemon';
+import { DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon/daemon';
 import DaemonRepository from 'data/daemon/daemon.repository';
 import { PName, PLvl } from 'data/permission/permission.enums';
-import { Token, TokenObj } from 'data/token/token.types';
+import { Token, TokenObj } from 'data/token/token';
 import TokenRepository from 'data/token/token.repository';
 
 import ApiEventService from 'services/api-event.service';

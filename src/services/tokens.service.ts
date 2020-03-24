@@ -4,7 +4,7 @@ import Context from 'bases/context';
 
 import { HttpError } from 'middlewares/errors';
 
-import { Token, TokenContent } from 'data/token/token.types';
+import { Token, TokenContent } from 'data/token/token';
 import TokenHolder from 'data/token/token.holder';
 import TokenRepository from 'data/token/token.repository';
 

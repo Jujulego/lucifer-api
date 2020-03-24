@@ -6,10 +6,10 @@ import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
 import { PName, PLvl } from 'data/permission/permission.enums';
-import { Token, TokenObj } from 'data/token/token.types';
+import { Token, TokenObj } from 'data/token/token';
 import TokenRepository from 'data/token/token.repository';
-import { User, Credentials, SimpleUser } from 'data/user/user.types';
-import { UserCreate, UserFilter, UserUpdate } from 'data/user/user.types';
+import { User, Credentials, SimpleUser } from 'data/user/user';
+import { UserCreate, UserFilter, UserUpdate } from 'data/user/user';
 import UserRepository from 'data/user/user.repository';
 
 import ApiEventService from 'services/api-event.service';

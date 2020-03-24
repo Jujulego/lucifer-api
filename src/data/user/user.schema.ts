@@ -8,7 +8,7 @@ import { TokenHolderDef } from 'data/token/token.holder';
 
 import { buildLRN } from 'utils';
 
-import { User } from './user.types';
+import { User } from './user';
 
 // Schema
 const UserSchema = new Schema<User>({

@@ -3,9 +3,9 @@ import { Socket } from 'socket.io';
 
 import DIContainer from 'inversify.config';
 
-import { Daemon } from 'data/daemon/daemon.types';
-import { Token } from 'data/token/token.types';
-import { User } from 'data/user/user.types';
+import { Daemon } from 'data/daemon/daemon';
+import { Token } from 'data/token/token';
+import { User } from 'data/user/user';
 
 import DaemonsService from 'services/daemons.service';
 import TokensService from 'services/tokens.service';

@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 
 import UserModel from './user.model';
-import { Credentials, SimpleUser, User } from './user.types';
-import { UserCreate, UserFilter, UserUpdate } from './user.types';
+import { Credentials, SimpleUser, User } from './user';
+import { UserCreate, UserFilter, UserUpdate } from './user';
 
 // Repository
 class UserRepository {
