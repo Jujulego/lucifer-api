@@ -80,6 +80,15 @@ router.put('/daemon/:id',
   })
 );
 
+router.put('/daemon/:id/secret',
+  aroute(async (req, res) => {
+    // Containers
+    const Daemons = DIContainer.get(DaemonsService);
+
+    res.send(await Daemons.regenerateSecret(fromRequest(req), req.params.id));
+  })
+);
+
 // - grant daemon
 router.put('/daemon/:id/grant',
   required({ body: { name: isPName }}),

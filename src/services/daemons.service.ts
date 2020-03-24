@@ -135,6 +135,17 @@ class DaemonsService extends DataEmitter<Daemon> {
     return this.emitUpdate(daemon);
   }
 
+  async regenerateSecret(ctx: Context, id: string): Promise<DaemonObject> {
+    await this.allow(ctx, PLvl.UPDATE, id);
+
+    // Generate new secret
+    const secret = randomString(42);
+    const daemon = await this.update(ctx, id, { secret });
+
+    this.emitUpdate(daemon);
+    return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
+  }
+
   async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<Daemon> {
     if (grant === "permissions") { throw HttpError.Forbidden(); }
 

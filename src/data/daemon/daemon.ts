@@ -20,4 +20,4 @@ export type SimpleDaemon = Omit<Daemon, 'permissions' | 'tokens'>;
 export type DaemonFilter = Partial<Pick<Daemon, 'name' | 'user'>>;
 
 export type DaemonCreate = Pick<Daemon, 'name' | 'user'>;
-export type DaemonUpdate = Partial<Pick<Daemon, 'name' | 'user'>>;
+export type DaemonUpdate = Partial<Pick<Daemon, 'name' | 'secret' | 'user'>>;
