@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 
 import DaemonModel from './daemon.model';
-import { Credentials, Daemon, SimpleDaemon } from './daemon';
-import { DaemonFilter, DaemonCreate, DaemonUpdate } from './daemon';
+import { Credentials, Daemon, DaemonObject, SimpleDaemon } from './daemon';
+import { DaemonFilter, DaemonCreate } from './daemon';
 
 // Repository
 class DaemonRepository {
@@ -46,7 +46,7 @@ class DaemonRepository {
     return DaemonModel.find(filter, { tokens: false, permissions: false });
   }
 
-  async update(id: string, update: DaemonUpdate): Promise<Daemon | null> {
+  async update(id: string, update: Partial<DaemonObject>): Promise<Daemon | null> {
     return DaemonModel.findByIdAndUpdate(id, { $set: update });
   }
 
