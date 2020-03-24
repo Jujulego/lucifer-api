@@ -47,7 +47,15 @@ class DaemonRepository {
   }
 
   async update(id: string, update: Partial<DaemonObject>): Promise<Daemon | null> {
-    return DaemonModel.findByIdAndUpdate(id, { $set: update });
+    const daemon = await this.getById(id);
+    if (!daemon) return daemon;
+
+    if (update.name)   daemon.name   = update.name;
+    if (update.user)   daemon.user   = update.user;
+    if (update.secret) daemon.secret = update.secret;
+    if (update.tokens) daemon.tokens.splice(0, daemon.tokens.length);
+
+    return await daemon.save();
   }
 
   async delete(id: string): Promise<Daemon | null> {
