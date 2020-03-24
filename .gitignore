@@ -1,5 +1,6 @@
 # Directories
 /build/
+/coverage/
 /node_modules/
 
 # Files
