@@ -1,0 +1,6 @@
+dependencies:
+  - ./package.json
+  - ./yarn.lock
+
+tests:
+  - src/**/*.test.ts
