@@ -1,15 +1,14 @@
 import { omit } from 'lodash';
-import { Document } from 'mongoose';
 
 import { HttpError } from 'middlewares/errors';
 
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { Credentials, Daemon, SimpleDaemon } from 'data/daemon/daemon';
-import { DaemonFilter, DaemonCreate, DaemonUpdate } from 'data/daemon/daemon';
+import { Credentials, Daemon, DaemonObject, SimpleDaemon } from 'data/daemon/daemon';
+import { DaemonCreate, DaemonFilter, DaemonUpdate } from 'data/daemon/daemon';
 import DaemonRepository from 'data/daemon/daemon.repository';
-import { PName, PLvl } from 'data/permission/permission.enums';
+import { PLvl, PName } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token';
 import TokenRepository from 'data/token/token.repository';
 
@@ -17,10 +16,8 @@ import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 
-import { Service, parseLRN, randomString } from 'utils';
+import { parseLRN, randomString, Service } from 'utils';
 
-// Types
-export type DaemonObject = Omit<Daemon, keyof Document>
 export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
 
 // Controller
@@ -133,6 +130,18 @@ class DaemonsService extends DataEmitter<Daemon> {
     if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
 
     return this.emitUpdate(daemon);
+  }
+
+  async regenerateSecret(ctx: Context, id: string): Promise<DaemonObject> {
+    await this.allow(ctx, PLvl.UPDATE, id);
+
+    // Generate new secret
+    const secret = randomString(42);
+    const daemon = await this.daemonRepo.update(id, { secret, tokens: [] });
+    if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
+
+    this.emitUpdate(daemon);
+    return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
   }
 
   async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<Daemon> {
