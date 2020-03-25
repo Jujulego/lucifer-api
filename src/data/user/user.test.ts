@@ -42,6 +42,7 @@ describe('data/user', () => {
   });
 
   // Tests
+  // - UserRepository.create
   test('UserRepository.create: new user', async () => {
     const repo = new UserRepository();
     const user = await repo.create({ email: 'test@test.com', password: 'test' });
@@ -70,5 +71,24 @@ describe('data/user', () => {
     const repo = new UserRepository();
 
     await expect(repo.create({ email: 'test1@test.com', password: 'test1' })).rejects.toThrow();
+  });
+
+  // - UserRepository.getById
+  test('UserRepository.getById: existing user', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.getById(user._id);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(user._id);
+    expect(res!.email).toEqual(user.email);
+    expect(res!.password).toEqual(user.password);
+  });
+
+  test('UserRepository.getById: unknown user', async () => {
+    const repo = new UserRepository();
+
+    const res = await repo.getById('deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
   });
 });
