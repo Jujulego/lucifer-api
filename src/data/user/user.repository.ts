@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 
 import UserModel from './user.model';
-import { Credentials, SimpleUser, User } from './user';
-import { UserCreate, UserFilter, UserUpdate } from './user';
+import { Credentials, SimpleUser, User, UserFields } from './user';
+import { UserCreate, UserFilter } from './user';
 
 // Repository
 class UserRepository {
@@ -41,8 +41,12 @@ class UserRepository {
     return UserModel.find(filter, { tokens: false, permissions: false });
   }
 
-  async update(id: string, update: UserUpdate): Promise<User | null> {
-    return UserModel.findByIdAndUpdate(id, { $set: update });
+  async update(user: User, update: Partial<UserFields>): Promise<User> {
+    // Apply update
+    if (update.email)    user.email    = update.email;
+    if (update.password) user.password = update.password;
+
+    return await user.save();
   }
 
   async delete(id: string): Promise<User | null> {

@@ -112,10 +112,11 @@ class UsersService extends DataEmitter<User> {
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Update user
-    const user = await this.userRepo.update(id, update);
-    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+    // Get user
+    let user = await this.getUser(id);
 
+    // Update user
+    user = await this.userRepo.update(user, update);
     return this.emitUpdate(user);
   }
 
