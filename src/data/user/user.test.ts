@@ -15,6 +15,10 @@ describe('data/user', () => {
     });
   });
 
+  afterAll(async () => {
+    await mongoose.disconnect();
+  });
+
   // Tests
   test('UserRepository.create', async () => {
     const repo = new UserRepository();
