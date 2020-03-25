@@ -148,6 +148,32 @@ describe('data/user', () => {
     expect(res.map(u => u._id)).toEqual(users.map(u => u._id));
   });
 
+  // - UserRepository.update
+  test('UserRepository.update: change email', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.update(user, { email: 'test@test.com' });
+    expect(res._id).toEqual(user._id);
+    expect(res.email).toEqual('test@test.com');
+  });
+
+  test('UserRepository.update: change to existing email', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    await expect(repo.update(user, { email: 'test2@test.com' })).rejects.toThrow();
+  });
+
+  test('UserRepository.update: change password', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.update(user, { password: 'tomato' });
+    expect(res._id).toEqual(user._id);
+    expect(await bcrypt.compare('tomato', user.password)).toBeTruthy();
+  });
+
   // - UserRepository.delete
   test('UserRepository.delete: existing user', async () => {
     const repo = new UserRepository();
