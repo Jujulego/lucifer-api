@@ -57,7 +57,7 @@ class TokensService {
       const holder = await ctx.tokens;
       const token = await ctx.token!;
 
-      await this.tokenRepo.deleteToken(holder, token);
+      await this.tokenRepo.delete(holder, token);
     }
   }
 }
