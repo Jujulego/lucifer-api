@@ -6,15 +6,16 @@ import env from 'env';
 
 import TokenHolder from './token.holder';
 import { Token, TokenContent } from './token';
+import { Types } from 'mongoose';
 
 // Repository
 class TokenRepository<T extends TokenHolder = TokenHolder> {
   // Methods
-  getToken(holder: T, id: string): Token {
+  getTokenById(holder: T, id: string): Token {
     return holder.tokens.id(id);
   }
 
-  async createToken<C extends TokenContent>(holder: T, ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
+  async create<C extends TokenContent>(holder: T, ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
     // Create token
     const token = holder.tokens.create(
       TokenRepository.generateToken(ctx, content, expiresIn, tags)
@@ -31,10 +32,21 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return token;
   }
 
-  async deleteToken(holder: T, token: Token): Promise<T> {
+  async delete(holder: T, token: Token): Promise<T> {
     // Get token
     await token.remove();
     return await holder.save();
+  }
+
+  async clear(holder: T, except: Token[] = [], save: boolean = true): Promise<T> {
+    // Filter tokens
+    holder.tokens = new Types.DocumentArray<Token>(
+      ...holder.tokens.filter(tk => except.find(t => t.id === tk.id))
+    );
+
+    // Save changes
+    if (save) return await holder.save();
+    return holder;
   }
 
   // Utils

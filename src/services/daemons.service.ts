@@ -66,7 +66,7 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   protected async generateToken(ctx: Context, daemon: Daemon, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.createToken(
+    return await this.tokenRepo.create(
       daemon, ctx, { lrn: daemon.lrn },
       login, '7 days', tags
     );
@@ -167,10 +167,10 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Delete token
     const daemon = await this.getDaemon(id);
-    const token = await this.tokenRepo.getToken(daemon, tokenId);
+    const token = await this.tokenRepo.getTokenById(daemon, tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.deleteToken(daemon, token)
+      await this.tokenRepo.delete(daemon, token)
     );
   }
 

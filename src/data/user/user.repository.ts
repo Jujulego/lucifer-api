@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 
 import UserModel from './user.model';
-import { Credentials, SimpleUser, User, UserFields } from './user';
-import { UserCreate, UserFilter } from './user';
+import { Credentials, SimpleUser, User } from './user';
+import { UserCreate, UserFilter, UserUpdate } from './user';
 
 // Repository
 class UserRepository {
@@ -41,7 +41,7 @@ class UserRepository {
     return UserModel.find(filter, { tokens: false, permissions: false });
   }
 
-  async update(user: User, update: Partial<UserFields>): Promise<User> {
+  async update(user: User, update: UserUpdate): Promise<User> {
     // Apply update
     if (update.email)    user.email    = update.email;
     if (update.password) user.password = update.password;

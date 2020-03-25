@@ -62,7 +62,7 @@ class UsersService extends DataEmitter<User> {
   }
 
   protected async generateToken(ctx: Context, user: User, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.createToken(
+    return await this.tokenRepo.create(
       user, ctx, { lrn: user.lrn },
       login, '7 days', tags
     );
@@ -115,6 +115,11 @@ class UsersService extends DataEmitter<User> {
     // Get user
     let user = await this.getUser(id);
 
+    // Clear tokens on password update
+    if (update.password) {
+      await this.tokenRepo.clear(user, [await ctx.token!], false);
+    }
+
     // Update user
     user = await this.userRepo.update(user, update);
     return this.emitUpdate(user);
@@ -149,10 +154,10 @@ class UsersService extends DataEmitter<User> {
 
     // Delete token
     const user = await this.getUser(id);
-    const token = await this.tokenRepo.getToken(user, tokenId);
+    const token = await this.tokenRepo.getTokenById(user, tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.deleteToken(user, token)
+      await this.tokenRepo.delete(user, token)
     );
   }
 
@@ -173,7 +178,7 @@ class UsersService extends DataEmitter<User> {
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.generateToken(ctx, user, false, tags);
+    const token = await this.generateToken(ctx, user, true, tags);
     this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
