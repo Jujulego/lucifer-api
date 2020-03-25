@@ -5,6 +5,8 @@ import { User } from './user';
 import UserModel from './user.model';
 import UserRepository from './user.repository';
 
+import { parseLRN } from 'utils';
+
 // Tests
 describe('data/user', () => {
   // Connect to database
@@ -42,6 +44,25 @@ describe('data/user', () => {
   });
 
   // Tests
+  // - User.lrn
+  test('User.lrn', () => {
+    const user = users[0];
+    const lrn = parseLRN(user.lrn);
+
+    expect(lrn).not.toBeNull();
+    expect(lrn!.id).toEqual(user._id.toString());
+    expect(lrn!.type).toEqual('user');
+  });
+
+  // - User.toJSON
+  test('User.toJSON', () => {
+    const user = users[0].toJSON();
+
+    expect(user).toHaveProperty('_id');
+    expect(user).toHaveProperty('email');
+    expect(user).not.toHaveProperty('password');
+  });
+
   // - UserRepository.create
   test('UserRepository.create: new user', async () => {
     const repo = new UserRepository();
