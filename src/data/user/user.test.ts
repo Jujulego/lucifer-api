@@ -91,4 +91,59 @@ describe('data/user', () => {
     const res = await repo.getById('deadbeefdeadbeefdeadbeef');
     expect(res).toBeNull();
   });
+
+  // - UserRepository.getByCredentials
+  test('UserRepository.getByCredentials: existing user', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.getByCredentials({ email: 'test1@test.com', password: 'test1' });
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(user._id);
+    expect(res!.email).toEqual(user.email);
+    expect(res!.password).toEqual(user.password);
+  });
+
+  test('UserRepository.getByCredentials: wrong email', async () => {
+    const repo = new UserRepository();
+
+    const res = await repo.getByCredentials({ email: 'tomato@test.com', password: 'test1' });
+    expect(res).toBeNull();
+  });
+
+  test('UserRepository.getByCredentials: wrong password', async () => {
+    const repo = new UserRepository();
+
+    const res = await repo.getByCredentials({ email: 'test1@test.com', password: 'tomato' });
+    expect(res).toBeNull();
+  });
+
+  // - UserRepository.find
+  test('UserRepository.find: empty filter', async () => {
+    const repo = new UserRepository();
+
+    const res = await repo.find({});
+    expect(res).toHaveLength(4);
+    expect(res.map(u => u._id)).toEqual(users.map(u => u._id));
+  });
+
+  // - UserRepository.delete
+  test('UserRepository.delete: existing user', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.delete(user.id);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(user._id);
+
+    const get = await UserModel.findById(user.id);
+    expect(get).toBeNull();
+  });
+
+  test('UserRepository.delete: unknown user', async () => {
+    const repo = new UserRepository();
+
+    const res = await repo.delete('deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
+  });
 });
