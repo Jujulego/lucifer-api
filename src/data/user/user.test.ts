@@ -50,7 +50,7 @@ describe('data/user', () => {
     const lrn = parseLRN(user.lrn);
 
     expect(lrn).not.toBeNull();
-    expect(lrn!.id).toEqual(user._id.toString());
+    expect(lrn!.id).toEqual(user.id);
     expect(lrn!.type).toEqual('user');
   });
 

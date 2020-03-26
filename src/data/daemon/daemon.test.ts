@@ -39,7 +39,7 @@ describe('data/daemon', () => {
   });
 
   // Empty database
-  afterAll(async () => {
+  afterEach(async () => {
     // Delete daemons & user
     await Promise.all(daemons.map(daemon => daemon.remove()));
     await user.remove();
@@ -48,5 +48,51 @@ describe('data/daemon', () => {
   // Disconnect
   afterAll(async () => {
     await mongoose.disconnect();
+  });
+
+  // Tests
+  // - Daemon.lrn
+  test('Daemon.lrn', () => {
+    const daemon = daemons[0];
+    const lrn = parseLRN(daemon.lrn);
+
+    expect(lrn).not.toBeNull();
+    expect(lrn!.id).toEqual(daemon.id);
+    expect(lrn!.type).toEqual('daemon');
+  });
+
+  // - Daemon.toJSON
+  test('Daemon.toJSON', () => {
+    const daemon = daemons[0].toJSON();
+
+    expect(daemon).toHaveProperty('_id');
+    expect(daemon).toHaveProperty('name');
+    expect(daemon).not.toHaveProperty('secret');
+    expect(daemon).toHaveProperty('user');
+  });
+
+  // - DaemonRepository
+  test('DaemonRepository.create: named daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = await repo.create({ name: 'Test', user: user.id }, 'test');
+
+    expect(daemon._id).toBeDefined();
+    expect(daemon.name).toEqual('Test');
+    expect(daemon.user).toEqual(user._id);
+    expect(await bcrypt.compare('test', daemon.secret)).toBeTruthy();
+
+    // Delete created daemon
+    await daemon.remove();
+  });
+
+  test('DaemonRepository.create: unnamed daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = await repo.create({ user: user.id }, 'test');
+
+    expect(daemon._id).toBeDefined();
+    expect(daemon.name).toBeUndefined();
+
+    // Delete created daemon
+    await daemon.remove();
   });
 });
