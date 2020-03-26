@@ -124,7 +124,6 @@ describe('data/daemon', () => {
     const res = await repo.getByCredentials({ id: daemon._id, secret: 'test1' });
     expect(res).not.toBeNull();
     expect(res!._id).toEqual(daemon._id);
-    expect(res!.name).toEqual(daemon.name);
     expect(res!.secret).toEqual(daemon.secret);
   });
 
@@ -151,8 +150,7 @@ describe('data/daemon', () => {
     const res = await repo.getByUser(daemon._id, user.id);
     expect(res).not.toBeNull();
     expect(res!._id).toEqual(daemon._id);
-    expect(res!.name).toEqual(daemon.name);
-    expect(res!.secret).toEqual(daemon.secret);
+    expect(res!.user).toEqual(user.id);
   });
 
   test('DaemonRepository.getByUser: wrong user', async () => {

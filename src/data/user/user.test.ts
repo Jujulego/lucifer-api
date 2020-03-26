@@ -120,7 +120,6 @@ describe('data/user', () => {
 
     const res = await repo.getByCredentials({ email: 'test1@test.com', password: 'test1' });
     expect(res).not.toBeNull();
-    expect(res!._id).toEqual(user._id);
     expect(res!.email).toEqual(user.email);
     expect(res!.password).toEqual(user.password);
   });
