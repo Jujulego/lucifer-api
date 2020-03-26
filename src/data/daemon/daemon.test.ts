@@ -22,19 +22,23 @@ describe('data/daemon', () => {
   });
 
   // Fill database
-  let user: User;
+  let user1: User;
+  let user2: User;
   let daemons: Daemon[] = [];
 
   beforeEach(async () => {
-    // Create one user
-    user = await (new UserModel({ email: 'test@test.com', password: 'test' })).save();
+    // Create users
+    [user1, user2] = await Promise.all([
+      new UserModel({ email: 'test1@test.com', password: 'test' }).save(),
+      new UserModel({ email: 'test2@test.com', password: 'test' }).save(),
+    ]);
 
     // Create some daemons
     daemons = await Promise.all([
-      new DaemonModel({ name: 'Test 1', secret: 'test1', user: user.id }).save(),
-      new DaemonModel({ name: 'Test 2', secret: 'test2', user: user.id }).save(),
-      new DaemonModel({ name: 'Test 3', secret: 'test3', user: user.id }).save(),
-      new DaemonModel({ name: 'Test 4', secret: 'test4', user: user.id }).save(),
+      new DaemonModel({ name: 'Test 1', secret: 'test1', user: user1.id }).save(),
+      new DaemonModel({ name: 'Test 2', secret: 'test2', user: user1.id }).save(),
+      new DaemonModel({ name: 'Test 3', secret: 'test3', user: user2.id }).save(),
+      new DaemonModel({ name: 'Test 4', secret: 'test4', user: user2.id }).save(),
     ]);
   });
 
@@ -42,7 +46,7 @@ describe('data/daemon', () => {
   afterEach(async () => {
     // Delete daemons & user
     await Promise.all(daemons.map(daemon => daemon.remove()));
-    await user.remove();
+    await Promise.all([user1.remove(), user2.remove()]);
   });
 
   // Disconnect
@@ -74,11 +78,11 @@ describe('data/daemon', () => {
   // - DaemonRepository
   test('DaemonRepository.create: named daemon', async () => {
     const repo = new DaemonRepository();
-    const daemon = await repo.create({ name: 'Test', user: user.id }, 'test');
+    const daemon = await repo.create({ name: 'Test', user: user1.id }, 'test');
 
     expect(daemon._id).toBeDefined();
     expect(daemon.name).toEqual('Test');
-    expect(daemon.user).toEqual(user._id);
+    expect(daemon.user).toEqual(user1._id);
     expect(await bcrypt.compare('test', daemon.secret)).toBeTruthy();
 
     // Delete created daemon
@@ -87,7 +91,7 @@ describe('data/daemon', () => {
 
   test('DaemonRepository.create: unnamed daemon', async () => {
     const repo = new DaemonRepository();
-    const daemon = await repo.create({ user: user.id }, 'test');
+    const daemon = await repo.create({ user: user1.id }, 'test');
 
     expect(daemon._id).toBeDefined();
     expect(daemon.name).toBeUndefined();
@@ -147,10 +151,10 @@ describe('data/daemon', () => {
     const repo = new DaemonRepository();
     const daemon = daemons[0];
 
-    const res = await repo.getByUser(daemon._id, user.id);
+    const res = await repo.getByUser(daemon._id, user1.id);
     expect(res).not.toBeNull();
     expect(res!._id).toEqual(daemon._id);
-    expect(res!.user).toEqual(user._id);
+    expect(res!.user).toEqual(user1._id);
   });
 
   test('DaemonRepository.getByUser: wrong user', async () => {
@@ -160,4 +164,35 @@ describe('data/daemon', () => {
     const res = await repo.getByUser(daemon._id, 'deadbeefdeadbeefdeadbeef');
     expect(res).toBeNull();
   });
+
+  // - DaemonRepository.find
+  test('DaemonRepository.find: empty filter', async () => {
+    const repo = new DaemonRepository();
+
+    const res = await repo.find({});
+    expect(res).toHaveLength(4);
+    expect(res.map(d => d._id)).toEqual(daemons.map(d => d._id));
+  });
+
+  // - DaemonRepository.update
+  test('DaemonRepository.update: change fields', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.update(daemon, { name: 'Tomato', user: user2._id });
+    expect(res._id).toEqual(daemon._id);
+    expect(res.name).toEqual('Tomato');
+    expect(res.user).toEqual(user2._id);
+  });
+
+  test('DaemonRepository.update: change secret', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.update(daemon, { secret: 'tomato' });
+    expect(res._id).toEqual(daemon._id);
+    expect(await bcrypt.compare('tomato', daemon.secret)).toBeTruthy();
+  });
+
+  // -
 });
