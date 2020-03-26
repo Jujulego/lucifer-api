@@ -150,7 +150,7 @@ describe('data/daemon', () => {
     const res = await repo.getByUser(daemon._id, user.id);
     expect(res).not.toBeNull();
     expect(res!._id).toEqual(daemon._id);
-    expect(res!.user).toEqual(user.id);
+    expect(res!.user).toEqual(user._id);
   });
 
   test('DaemonRepository.getByUser: wrong user', async () => {
