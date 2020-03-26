@@ -95,4 +95,71 @@ describe('data/daemon', () => {
     // Delete created daemon
     await daemon.remove();
   });
+
+  // - DaemonRepository.getById
+  test('DaemonRepository.getById: existing daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getById(daemon._id);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(daemon._id);
+    expect(res!.name).toEqual(daemon.name);
+    expect(res!.secret).toEqual(daemon.secret);
+    expect(res!.user).toEqual(daemon.user);
+  });
+
+  test('DaemonRepository.getById: unknown daemon', async () => {
+    const repo = new DaemonRepository();
+
+    const res = await repo.getById('deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
+  });
+
+  // - DaemonRepository.getByCredentials
+  test('DaemonRepository.getByCredentials: existing daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByCredentials({ id: daemon._id, secret: 'test1' });
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(daemon._id);
+    expect(res!.name).toEqual(daemon.name);
+    expect(res!.secret).toEqual(daemon.secret);
+  });
+
+  test('DaemonRepository.getByCredentials: wrong id', async () => {
+    const repo = new DaemonRepository();
+
+    const res = await repo.getByCredentials({ id: 'deadbeefdeadbeefdeadbeef', secret: 'test1' });
+    expect(res).toBeNull();
+  });
+
+  test('DaemonRepository.getByCredentials: wrong secret', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByCredentials({ id: daemon.id, secret: 'tomato' });
+    expect(res).toBeNull();
+  });
+
+  // - DaemonRepository.getByUser
+  test('DaemonRepository.getByuser: existing daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByUser(daemon._id, user.id);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(daemon._id);
+    expect(res!.name).toEqual(daemon.name);
+    expect(res!.secret).toEqual(daemon.secret);
+  });
+
+  test('DaemonRepository.getByUser: wrong user', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByUser(daemon._id, 'deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
+  });
 });
