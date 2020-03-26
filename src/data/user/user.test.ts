@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
+import { Token } from 'data/token/token';
+
 import { User } from './user';
 import UserModel from './user.model';
 import UserRepository from './user.repository';
@@ -21,15 +23,22 @@ describe('data/user', () => {
 
   // Fill database
   let users: User[] = [];
+  let token: Token;
 
   beforeEach(async () => {
     // Create some users
     users = await Promise.all([
-      new UserModel({ email: 'test1@test.com', password: 'test1' }).save(),
-      new UserModel({ email: 'test2@test.com', password: 'test2' }).save(),
-      new UserModel({ email: 'test3@test.com', password: 'test3' }).save(),
-      new UserModel({ email: 'test4@test.com', password: 'test4' }).save(),
+      new UserModel({ email: 'test1@user.com', password: 'test1' }).save(),
+      new UserModel({ email: 'test2@user.com', password: 'test2' }).save(),
+      new UserModel({ email: 'test3@user.com', password: 'test3' }).save(),
+      new UserModel({ email: 'test4@user.com', password: 'test4' }).save(),
     ]);
+
+    // Create a token
+    const user = users[0];
+    token = user.tokens.create({ token: 'token' });
+    user.tokens.push(token);
+    await user.save();
   });
 
   // Empty database
@@ -61,37 +70,45 @@ describe('data/user', () => {
     expect(user).toHaveProperty('_id');
     expect(user).toHaveProperty('email');
     expect(user).not.toHaveProperty('password');
+    expect(user).toHaveProperty('tokens');
   });
 
   // - UserRepository.create
   test('UserRepository.create: new user', async () => {
     const repo = new UserRepository();
-    const user = await repo.create({ email: 'test@test.com', password: 'test' });
+    const user = await repo.create({ email: 'test@user.com', password: 'test' });
 
-    expect(user._id).toBeDefined();
-    expect(user.email).toEqual('test@test.com');
-    expect(await bcrypt.compare('test', user.password)).toBeTruthy();
+    try {
+      expect(user._id).toBeDefined();
+      expect(user.email).toEqual('test@user.com');
+      expect(await bcrypt.compare('test', user.password)).toBeTruthy();
 
-    // Delete created user
-    await user.remove();
+      expect(user.lastConnexion).toBeUndefined();
+      expect(user.tokens).toHaveLength(0);
+    } finally {
+      // Delete created user
+      await user.remove();
+    }
   });
 
   test('UserRepository.create: email case', async () => {
     const repo = new UserRepository();
-    const user = await repo.create({ email: 'TeST@tESt.coM', password: 'test' });
+    const user = await repo.create({ email: 'TeST@uSEr.coM', password: 'test' });
 
-    expect(user._id).toBeDefined();
-    expect(user.email).toEqual('test@test.com');
-    expect(await bcrypt.compare('test', user.password)).toBeTruthy();
-
-    // Delete created user
-    await user.remove();
+    try {
+      expect(user._id).toBeDefined();
+      expect(user.email).toEqual('test@user.com');
+      expect(await bcrypt.compare('test', user.password)).toBeTruthy();
+    } finally {
+      // Delete created user
+      await user.remove();
+    }
   });
 
   test('UserRepository.create: existing user', async () => {
     const repo = new UserRepository();
 
-    await expect(repo.create({ email: 'test1@test.com', password: 'test1' })).rejects.toThrow();
+    await expect(repo.create({ email: 'test1@user.com', password: 'test1' })).rejects.toThrow();
   });
 
   // - UserRepository.getById
@@ -118,7 +135,7 @@ describe('data/user', () => {
     const repo = new UserRepository();
     const user = users[0];
 
-    const res = await repo.getByCredentials({ email: 'test1@test.com', password: 'test1' });
+    const res = await repo.getByCredentials({ email: 'test1@user.com', password: 'test1' });
     expect(res).not.toBeNull();
     expect(res!.email).toEqual(user.email);
     expect(res!.password).toEqual(user.password);
@@ -127,14 +144,34 @@ describe('data/user', () => {
   test('UserRepository.getByCredentials: wrong email', async () => {
     const repo = new UserRepository();
 
-    const res = await repo.getByCredentials({ email: 'tomato@test.com', password: 'test1' });
+    const res = await repo.getByCredentials({ email: 'tomato@user.com', password: 'test1' });
     expect(res).toBeNull();
   });
 
   test('UserRepository.getByCredentials: wrong password', async () => {
     const repo = new UserRepository();
 
-    const res = await repo.getByCredentials({ email: 'test1@test.com', password: 'tomato' });
+    const res = await repo.getByCredentials({ email: 'test1@user.com', password: 'tomato' });
+    expect(res).toBeNull();
+  });
+
+  // - UserRepository.getByToken
+  test('UserRepository.getByToken: existing token', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.getByToken(user.id, token.token);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(user._id);
+    expect(res!.tokens).toHaveLength(1);
+    expect(res!.tokens[0].token).toEqual(token.token);
+  });
+
+  test('UserRepository.getByToken: wrong token', async () => {
+    const repo = new UserRepository();
+    const user = users[0];
+
+    const res = await repo.getByToken(user.id, 'tomato');
     expect(res).toBeNull();
   });
 
@@ -143,7 +180,7 @@ describe('data/user', () => {
     const repo = new UserRepository();
 
     const res = await repo.find({});
-    expect(res).toHaveLength(4);
+    expect(res).not.toHaveLength(0);
   });
 
   // - UserRepository.update
@@ -151,16 +188,16 @@ describe('data/user', () => {
     const repo = new UserRepository();
     const user = users[0];
 
-    const res = await repo.update(user, { email: 'test@test.com' });
+    const res = await repo.update(user, { email: 'test@user.com' });
     expect(res._id).toEqual(user._id);
-    expect(res.email).toEqual('test@test.com');
+    expect(res.email).toEqual('test@user.com');
   });
 
   test('UserRepository.update: change to existing email', async () => {
     const repo = new UserRepository();
     const user = users[0];
 
-    await expect(repo.update(user, { email: 'test2@test.com' })).rejects.toThrow();
+    await expect(repo.update(user, { email: 'test2@user.com' })).rejects.toThrow();
   });
 
   test('UserRepository.update: change password', async () => {
