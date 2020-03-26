@@ -2,10 +2,12 @@ import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
 import env from 'env';
+import { TestContext } from 'bases/context';
+import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
 
-import { Token } from './token';
-import TokenHolder from './token.holder';
+import { Token, TokenContent } from './token';
+import TokenRepository from './token.repository';
 
 // Tests
 describe('data/token', () => {
@@ -20,22 +22,22 @@ describe('data/token', () => {
   });
 
   // Fill database
-  let holder: TokenHolder;
+  let user: User;
   let token: Token;
 
   beforeEach(async () => {
     // Create a token holder
-    holder = await (new UserModel({ email: 'test@token.com', password: 'test' })).save();
+    user = await (new UserModel({ email: 'test@token.com', password: 'test' })).save();
 
     // Create a token
-    token = holder.tokens.create({ token: 'test', from: '1.2.3.4', tags: ['test'] });
-    holder.tokens.push(token);
-    await holder.save();
+    token = user.tokens.create({ token: 'test', from: '1.2.3.4', tags: ['test'] });
+    user.tokens.push(token);
+    await user.save();
   });
 
   // Empty database
   afterEach(async () => {
-    await holder.remove();
+    await user.remove();
   });
 
   // Disconnect
@@ -51,5 +53,49 @@ describe('data/token', () => {
     expect(obj).not.toHaveProperty('token');
     expect(obj).toHaveProperty('from');
     expect(obj).toHaveProperty('tags');
+  });
+
+  // - TokenRepository.create
+  test('TokenRepository.create: login', async () => {
+    const repo = new TokenRepository();
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    const tk = await repo.create(user, ctx, { lrn: user.lrn }, true, '7 days');
+    expect(tk.token).toBeDefined();
+    expect(tk.from).toEqual(ctx.from);
+    expect(tk.tags).toHaveLength(0);
+
+    expect(user.lastConnexion).toBeDefined();
+    expect(user.tokens).toHaveLength(2);
+    expect(user.tokens[1]).toBe(tk);
+
+    const { lrn } = jwt.verify(tk.token, env.JWT_KEY) as TokenContent;
+    expect(lrn).toEqual(user.lrn);
+  });
+
+  test('TokenRepository.create: no login', async () => {
+    const repo = new TokenRepository();
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await repo.create(user, ctx, { lrn: user.lrn }, false, '7 days');
+    expect(user.lastConnexion).toBeUndefined();
+  });
+
+  test('TokenRepository.create: with tags', async () => {
+    const repo = new TokenRepository();
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    const tk = await repo.create(user, ctx, { lrn: user.lrn }, false, '7 days', ['test']);
+    expect(tk.tags).toHaveLength(1);
+    expect(tk.tags[0]).toEqual('test');
+  });
+
+  test('TokenRepository.create: invalid ip', async () => {
+    const repo = new TokenRepository();
+    const ctx = TestContext.withUser(user, 'tomato');
+
+    await expect(
+      repo.create(user, ctx, { lrn: user.lrn }, false, '7 days', ['test'])
+    ).rejects.toThrow();
   });
 });

@@ -11,10 +11,6 @@ import { Types } from 'mongoose';
 // Repository
 class TokenRepository<T extends TokenHolder = TokenHolder> {
   // Methods
-  getTokenById(holder: T, id: string): Token {
-    return holder.tokens.id(id);
-  }
-
   async create<C extends TokenContent>(holder: T, ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
     // Create token
     const token = holder.tokens.create(
@@ -30,6 +26,10 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
 
     await holder.save();
     return token;
+  }
+
+  getTokenById(holder: T, id: string): Token {
+    return holder.tokens.id(id);
   }
 
   async delete(holder: T, token: Token): Promise<T> {

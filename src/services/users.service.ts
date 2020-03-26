@@ -154,7 +154,7 @@ class UsersService extends DataEmitter<User> {
 
     // Delete token
     const user = await this.getUser(id);
-    const token = await this.tokenRepo.getTokenById(user, tokenId);
+    const token = this.tokenRepo.getTokenById(user, tokenId);
 
     return this.emitUpdate(
       await this.tokenRepo.delete(user, token)
