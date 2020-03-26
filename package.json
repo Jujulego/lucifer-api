@@ -4,6 +4,7 @@
   "main": "src/server.ts",
   "author": "Julien Capellari",
   "license": "MIT",
+  "repository": "github:Jujulego/lucifer-api",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
@@ -38,6 +39,7 @@
     "@types/validator": "^12.0.1",
     "jest": "^25.1.0",
     "nodemon": "^2.0.2",
+    "snyk": "^1.305.0",
     "ts-jest": "^25.2.0",
     "ts-node": "^8.6.2",
     "tsconfig-paths": "^3.9.0",
@@ -46,6 +48,7 @@
   "scripts": {
     "build": "tsc",
     "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
-    "test": "jest"
+    "test": "jest",
+    "wizard": "snyk wizard"
   }
 }
