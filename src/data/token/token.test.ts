@@ -44,4 +44,12 @@ describe('data/token', () => {
   });
 
   // Tests
+  // - Token.toJSON
+  test('Token.toJSON', () => {
+    const obj = token.toJSON();
+
+    expect(obj).not.toHaveProperty('token');
+    expect(obj).toHaveProperty('from');
+    expect(obj).toHaveProperty('tags');
+  });
 });
