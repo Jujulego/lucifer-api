@@ -171,7 +171,6 @@ describe('data/daemon', () => {
 
     const res = await repo.find({});
     expect(res).toHaveLength(4);
-    expect(res.map(d => d._id)).toEqual(daemons.map(d => d._id));
   });
 
   // - DaemonRepository.update

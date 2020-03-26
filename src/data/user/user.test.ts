@@ -144,7 +144,6 @@ describe('data/user', () => {
 
     const res = await repo.find({});
     expect(res).toHaveLength(4);
-    expect(res.map(u => u._id)).toEqual(users.map(u => u._id));
   });
 
   // - UserRepository.update
