@@ -1,12 +1,14 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
+import { Token } from 'data/token/token';
+import { User } from 'data/user/user';
+import UserModel from 'data/user/user.model';
+
 import { Daemon } from './daemon';
 import DaemonModel from './daemon.model';
 import DaemonRepository from './daemon.repository';
 
-import { User } from 'data/user/user';
-import UserModel from 'data/user/user.model';
 import { parseLRN } from 'utils';
 
 // Tests
@@ -25,12 +27,13 @@ describe('data/daemon', () => {
   let user1: User;
   let user2: User;
   let daemons: Daemon[] = [];
+  let token: Token;
 
   beforeEach(async () => {
     // Create users
     [user1, user2] = await Promise.all([
-      new UserModel({ email: 'test1@test.com', password: 'test' }).save(),
-      new UserModel({ email: 'test2@test.com', password: 'test' }).save(),
+      new UserModel({ email: 'test1@daemon.com', password: 'test' }).save(),
+      new UserModel({ email: 'test2@daemon.com', password: 'test' }).save(),
     ]);
 
     // Create some daemons
@@ -40,6 +43,12 @@ describe('data/daemon', () => {
       new DaemonModel({ name: 'Test 3', secret: 'test3', user: user2.id }).save(),
       new DaemonModel({ name: 'Test 4', secret: 'test4', user: user2.id }).save(),
     ]);
+
+    // Create a token
+    const daemon = daemons[0];
+    token = daemon.tokens.create({ token: 'test' });
+    daemon.tokens.push(token);
+    await daemon.save();
   });
 
   // Empty database
@@ -73,6 +82,7 @@ describe('data/daemon', () => {
     expect(daemon).toHaveProperty('name');
     expect(daemon).not.toHaveProperty('secret');
     expect(daemon).toHaveProperty('user');
+    expect(daemon).toHaveProperty('tokens');
   });
 
   // - DaemonRepository
@@ -80,24 +90,31 @@ describe('data/daemon', () => {
     const repo = new DaemonRepository();
     const daemon = await repo.create({ name: 'Test', user: user1.id }, 'test');
 
-    expect(daemon._id).toBeDefined();
-    expect(daemon.name).toEqual('Test');
-    expect(daemon.user).toEqual(user1._id);
-    expect(await bcrypt.compare('test', daemon.secret)).toBeTruthy();
+    try {
+      expect(daemon._id).toBeDefined();
+      expect(daemon.name).toEqual('Test');
+      expect(daemon.user).toEqual(user1._id);
+      expect(await bcrypt.compare('test', daemon.secret)).toBeTruthy();
 
-    // Delete created daemon
-    await daemon.remove();
+      expect(daemon.lastConnexion).toBeUndefined();
+      expect(daemon.tokens).toHaveLength(0);
+    } finally {
+      // Delete created daemon
+      await daemon.remove();
+    }
   });
 
   test('DaemonRepository.create: unnamed daemon', async () => {
     const repo = new DaemonRepository();
     const daemon = await repo.create({ user: user1.id }, 'test');
 
-    expect(daemon._id).toBeDefined();
-    expect(daemon.name).toBeUndefined();
-
-    // Delete created daemon
-    await daemon.remove();
+    try {
+      expect(daemon._id).toBeDefined();
+      expect(daemon.name).toBeUndefined();
+    } finally {
+      // Delete created daemon
+      await daemon.remove();
+    }
   });
 
   // - DaemonRepository.getById
@@ -162,6 +179,26 @@ describe('data/daemon', () => {
     const daemon = daemons[0];
 
     const res = await repo.getByUser(daemon._id, 'deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
+  });
+
+  // - DaemonRepository.getByToken
+  test('DaemonRepository.getByToken: existing token', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByToken(daemon._id, token.token);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(daemon._id);
+    expect(res!.tokens).toHaveLength(1);
+    expect(res!.tokens[0].token).toEqual(token.token);
+  });
+
+  test('DaemonRepository.getByToken: wrong token', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.getByToken(daemon._id, 'tomato');
     expect(res).toBeNull();
   });
 
