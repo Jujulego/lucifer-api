@@ -193,5 +193,23 @@ describe('data/daemon', () => {
     expect(await bcrypt.compare('tomato', daemon.secret)).toBeTruthy();
   });
 
-  // -
+  // - DaemonRepository.delete
+  test('DaemonRepository.delete: existing daemon', async () => {
+    const repo = new DaemonRepository();
+    const daemon = daemons[0];
+
+    const res = await repo.delete(daemon.id);
+    expect(res).not.toBeNull();
+    expect(res!._id).toEqual(daemon._id);
+
+    const get = await DaemonModel.findById(daemon.id);
+    expect(get).toBeNull();
+  });
+
+  test('DaemonRepository.delete: unknown daemon', async () => {
+    const repo = new DaemonRepository();
+
+    const res = await repo.delete('deadbeefdeadbeefdeadbeef');
+    expect(res).toBeNull();
+  });
 });
