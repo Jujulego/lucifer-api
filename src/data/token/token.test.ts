@@ -118,6 +118,10 @@ describe('data/token', () => {
     const res = await repo.delete(user, token);
     expect(res.tokens).toHaveLength(2);
     expect(res.tokens).not.toContain(token);
+
+    const get = await UserModel.findById(user.id);
+    expect(get).not.toBeNull();
+    expect(get!.tokens.id(token.id)).toBeNull();
   });
 
   // - TokenRepository.clear
@@ -126,6 +130,10 @@ describe('data/token', () => {
 
     const res = await repo.clear(user);
     expect(res.tokens).toHaveLength(0);
+
+    const get = await UserModel.findById(user.id);
+    expect(get).not.toBeNull();
+    expect(get!.tokens).toHaveLength(0);
   });
 
   test('TokenRepository.clear: all except one tokens', async () => {
@@ -134,5 +142,20 @@ describe('data/token', () => {
     const res = await repo.clear(user, [token]);
     expect(res.tokens).toHaveLength(1);
     expect(res.tokens).toContain(token);
+
+    const get = await UserModel.findById(user.id);
+    expect(get).not.toBeNull();
+    expect(get!.tokens).toHaveLength(1);
+  });
+
+  test('TokenRepository.clear: don\'t save' , async () => {
+    const repo = new TokenRepository();
+
+    const res = await repo.clear(user, [], false);
+    expect(res.tokens).toHaveLength(0);
+
+    const get = await UserModel.findById(user.id);
+    expect(get).not.toBeNull();
+    expect(get!.tokens).toHaveLength(3);
   });
 });
