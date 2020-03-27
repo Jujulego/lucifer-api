@@ -82,6 +82,10 @@ describe('data/daemon', () => {
     expect(daemon).toHaveProperty('name');
     expect(daemon).not.toHaveProperty('secret');
     expect(daemon).toHaveProperty('user');
+
+    expect(daemon).toHaveProperty('admin');
+    expect(daemon).toHaveProperty('permissions');
+
     expect(daemon).toHaveProperty('tokens');
   });
 
@@ -95,6 +99,9 @@ describe('data/daemon', () => {
       expect(daemon.name).toEqual('Test');
       expect(daemon.user).toEqual(user1._id);
       expect(await bcrypt.compare('test', daemon.secret)).toBeTruthy();
+
+      expect(daemon.admin).toBeFalsy();
+      expect(daemon.permissions).toHaveLength(0);
 
       expect(daemon.lastConnexion).toBeUndefined();
       expect(daemon.tokens).toHaveLength(0);
@@ -207,7 +214,11 @@ describe('data/daemon', () => {
     const repo = new DaemonRepository();
 
     const res = await repo.find({});
-    expect(res).toHaveLength(4);
+    expect(res).not.toHaveLength(0);
+
+    const one = res[0] as Daemon;
+    expect(one.tokens).toBeUndefined();
+    expect(one.permissions).toBeUndefined();
   });
 
   // - DaemonRepository.update

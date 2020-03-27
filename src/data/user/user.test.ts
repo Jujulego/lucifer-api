@@ -70,6 +70,10 @@ describe('data/user', () => {
     expect(user).toHaveProperty('_id');
     expect(user).toHaveProperty('email');
     expect(user).not.toHaveProperty('password');
+
+    expect(user).toHaveProperty('admin');
+    expect(user).toHaveProperty('permissions');
+
     expect(user).toHaveProperty('tokens');
   });
 
@@ -82,6 +86,9 @@ describe('data/user', () => {
       expect(user._id).toBeDefined();
       expect(user.email).toEqual('test@user.com');
       expect(await bcrypt.compare('test', user.password)).toBeTruthy();
+
+      expect(user.admin).toBeFalsy();
+      expect(user.permissions).toHaveLength(0);
 
       expect(user.lastConnexion).toBeUndefined();
       expect(user.tokens).toHaveLength(0);
@@ -181,6 +188,10 @@ describe('data/user', () => {
 
     const res = await repo.find({});
     expect(res).not.toHaveLength(0);
+
+    const one = res[0] as User;
+    expect(one.tokens).toBeUndefined();
+    expect(one.permissions).toBeUndefined();
   });
 
   // - UserRepository.update
