@@ -34,7 +34,9 @@ class AuthorizeService {
   }
 
   async allow(ctx: Context, name: PName, level: PLvl) {
-    if (!await this.has(ctx, name, level)) {
+    const allowed = await this.has(ctx, name, level);
+
+    if (!allowed) {
       throw HttpError.Forbidden('Not allowed');
     }
   }

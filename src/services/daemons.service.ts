@@ -49,26 +49,28 @@ class DaemonsService extends DataEmitter<Daemon> {
     return omit(daemon, ['permissions', 'tokens']);
   }
 
-  protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
-    if (id) {
-      if (ctx.daemon && (await ctx.daemon).id === id) return true;
-      if (ctx.user) {
-        if (await this.daemonRepo.getByUser(id, (await ctx.user).id)) return true;
-      }
+  private async rights(ctx: Context, id: string): Promise<boolean> {
+    if (ctx.daemon) { // Daemon override
+      const daemon = await ctx.daemon;
+      if (daemon.id === id) return true;
     }
 
+    if (ctx.user) { // User override
+      const user = await ctx.user;
+      if (await this.daemonRepo.getByUser(id, user.id)) return true;
+    }
+
+    return false;
+  }
+
+  protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
+    if (id && await this.rights(ctx, id)) return true;
     return await this.authorizer.has(ctx, 'daemons', level);
   }
 
-  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
-    if (id) {
-      if (ctx.daemon && (await ctx.daemon).id === id) return;
-      if (ctx.user) {
-        if (await this.daemonRepo.getByUser(id, (await ctx.user).id)) return;
-      }
-    }
-
-    await this.authorizer.allow(ctx, 'daemons', level);
+  protected async allow(ctx: Context, level: PLvl, id?: string | null): Promise<void> {
+    if (id && await this.rights(ctx, id)) return;
+    return await this.authorizer.allow(ctx, 'daemons', level);
   }
 
   protected async getDaemon(id: string): Promise<Daemon> {
