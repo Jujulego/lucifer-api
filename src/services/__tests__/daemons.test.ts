@@ -44,8 +44,9 @@ describe('services/daemons.service', () => {
       }).save(),
     ]);
 
-    // Create a daemon
-    daemon = await (new DaemonModel({ user: owner.id, secret: 'test' })).save();
+    // Create some daemons
+    await (new DaemonModel({ user: admin.id, secret: 'admin' })).save();
+    daemon = await (new DaemonModel({ user: owner.id, secret: 'owner' })).save();
   });
 
   // Empty database
@@ -120,5 +121,56 @@ describe('services/daemons.service', () => {
     await expect(
       service.createToken(ctx, daemon.id, ['Test'])
     ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
+  });
+
+  // - DaemonsService.get
+  test('DaemonsService.get', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: by owner', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: not allowed', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(
+      service.get(ctx, daemon.id)
+    ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
+  });
+
+  // - DaemonsService.find
+  test('DaemonsService.find', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    const res = await service.find(ctx);
+    expect(res).not.toHaveLength(0);
+  });
+
+  test('DaemonsService.find: by owner', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.find(ctx);
+    expect(res).toHaveLength(1);
+  });
+
+  test('DaemonsService.find: not allowed', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    const res = await service.find(ctx);
+    expect(res).toHaveLength(0);
   });
 });

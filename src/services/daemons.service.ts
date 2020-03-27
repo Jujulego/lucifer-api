@@ -5,8 +5,15 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { Credentials, Daemon, DaemonObject, SimpleDaemon } from 'data/daemon/daemon';
-import { DaemonCreate, DaemonFilter, DaemonUpdate } from 'data/daemon/daemon';
+import {
+  Credentials,
+  Daemon,
+  DaemonCreate,
+  DaemonFilter,
+  DaemonObject,
+  DaemonUpdate,
+  SimpleDaemon
+} from 'data/daemon/daemon';
 import DaemonRepository from 'data/daemon/daemon.repository';
 import { PLvl, PName } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token';
@@ -40,6 +47,19 @@ class DaemonsService extends DataEmitter<Daemon> {
 
   private static simplifyDaemon(daemon: Daemon): SimpleDaemon {
     return omit(daemon, ['permissions', 'tokens']);
+  }
+
+  protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
+    if (!ctx.permissions) return false;
+
+    if (id) {
+      if (ctx.daemon && (await ctx.daemon).id === id) return true;
+      if (ctx.user) {
+        if (await this.daemonRepo.getByUser(id, (await ctx.user).id)) return true;
+      }
+    }
+
+    return this.authorizer.has(await ctx.permissions, 'daemons', level);
   }
 
   protected async allow(ctx: Context, level: PLvl, id?: string | null) {
@@ -104,23 +124,22 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   async find(ctx: Context, filter: DaemonFilter = {}): Promise<SimpleDaemon[]> {
-    try {
-      await this.allow(ctx, PLvl.READ);
-
-      // Find users
+    // Has rights
+    if (await this.hasRights(ctx, PLvl.READ)) {
       return this.daemonRepo.find(filter);
-    } catch (error) {
-      if (error instanceof HttpError && error.code === 403) {
-        if (ctx.daemon) return [await ctx.daemon];
-        if (ctx.user) {
-          return this.daemonRepo.find({ ...filter, user: (await ctx.user).id });
-        }
-
-        return [];
-      }
-
-      throw error;
     }
+
+    // Is a daemon
+    if (ctx.daemon) {
+      return [await ctx.daemon];
+    }
+
+    // Is a owner
+    if (ctx.user) {
+      return this.daemonRepo.find({ ...filter, user: (await ctx.user).id });
+    }
+
+    return [];
   }
 
   async update(ctx: Context, id: string, update: DaemonUpdate): Promise<Daemon> {
