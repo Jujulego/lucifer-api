@@ -27,7 +27,7 @@ describe('services/permissions.service', () => {
   let admin: User;
 
   beforeEach(async () => {
-    // Create a permission holder
+    // Create some users
     [admin, user] = await Promise.all([
       new UserModel({
         email: 'admin@permissions.com', password: 'test', admin: true
