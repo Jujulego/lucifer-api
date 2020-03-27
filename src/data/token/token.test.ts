@@ -98,4 +98,12 @@ describe('data/token', () => {
       repo.create(user, ctx, { lrn: user.lrn }, false, '7 days', ['test'])
     ).rejects.toThrow();
   });
+
+  // - TokenRepository.getById
+  test('TokenRepository.getById', () => {
+    const repo = new TokenRepository();
+
+    const tk = repo.getTokenById(user, token.id);
+    expect(tk).toBe(token);
+  });
 });
