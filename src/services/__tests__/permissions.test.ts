@@ -94,4 +94,31 @@ describe('services/permissions.service', () => {
     ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
     expect(auth.has(user, 'users', PLvl.READ)).toBeFalsy();
   });
+
+  // - PermissionsService.elevate
+  test('PermissionsService.elevate: elevate user', async () => {
+    const service = DIContainer.get(PermissionsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await service.elevate(ctx, user);
+    expect(user.admin).toBeTruthy();
+  });
+
+  test('PermissionsService.elevate: downgrade user', async () => {
+    const service = DIContainer.get(PermissionsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await service.elevate(ctx, admin, false);
+    expect(admin.admin).toBeFalsy();
+  });
+
+  test('PermissionsService.elevate: not allowed to elevate', async () => {
+    const service = DIContainer.get(PermissionsService);
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(
+      service.elevate(ctx, user)
+    ).rejects.toThrowError(HttpError.Forbidden());
+    expect(user.admin).toBeFalsy();
+  });
 });
