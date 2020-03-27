@@ -12,8 +12,8 @@ import { Service } from 'utils';
 @Service(AuthorizeService)
 class AuthorizeService {
   // Statics
-  private static getPermissionRepository(): PermissionRepository {
-    return new PermissionRepository();
+  private static getPermissionRepository(holder: PermissionHolder): PermissionRepository {
+    return new PermissionRepository(holder);
   }
 
   // Methods
@@ -22,7 +22,7 @@ class AuthorizeService {
     if (holder.admin) return true;
 
     // Find permission
-    const permission = AuthorizeService.getPermissionRepository().getByName(holder, name);
+    const permission = AuthorizeService.getPermissionRepository(holder).getByName(name);
     if (!permission) return false;
 
     // Check level

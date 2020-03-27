@@ -25,7 +25,6 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 @Service(UsersService)
 class UsersService extends DataEmitter<User> {
   // Attributes
-  private readonly tokenRepo = new TokenRepository<User>();
   private readonly userRepo = new UserRepository();
 
   // Constructor
@@ -36,6 +35,10 @@ class UsersService extends DataEmitter<User> {
   ) { super(apievents); }
 
   // Utils
+  private static getTokenRepository(user: User): TokenRepository<User> {
+    return new TokenRepository(user);
+  }
+
   private static simplifyUser(user: User): SimpleUser {
     return omit(user, ['permissions', 'tokens']);
   }
@@ -62,10 +65,8 @@ class UsersService extends DataEmitter<User> {
   }
 
   protected async generateToken(ctx: Context, user: User, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.create(
-      user, ctx, { lrn: user.lrn },
-      login, '7 days', tags
-    );
+    return await UsersService.getTokenRepository(user)
+      .create(ctx, { lrn: user.lrn }, login, '7 days', tags);
   }
 
   // Methods
@@ -117,7 +118,8 @@ class UsersService extends DataEmitter<User> {
 
     // Clear tokens on password update
     if (update.password) {
-      await this.tokenRepo.clear(user, [await ctx.token!], false);
+      await UsersService.getTokenRepository(user)
+        .clear([await ctx.token!], false);
     }
 
     // Update user
@@ -152,12 +154,15 @@ class UsersService extends DataEmitter<User> {
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Delete token
+    // Get user
     const user = await this.getUser(id);
-    const token = this.tokenRepo.getTokenById(user, tokenId);
+
+    // Delete token
+    const tokenRepo = UsersService.getTokenRepository(user);
+    const token = tokenRepo.getById(tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.delete(user, token)
+      await tokenRepo.delete(token)
     );
   }
 
