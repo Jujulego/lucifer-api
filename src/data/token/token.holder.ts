@@ -7,7 +7,7 @@ import TokenSchema from './token.schema';
 interface TokenHolder extends Document {
   // Attributes
   lastConnexion?: Date;
-  readonly tokens: Types.DocumentArray<Token>;
+  tokens: Types.DocumentArray<Token>;
 }
 
 // Schema definition

@@ -8,33 +8,53 @@ import TokenHolder from './token.holder';
 import { Token, TokenContent } from './token';
 
 // Repository
-class TokenRepository<T extends TokenHolder = TokenHolder> {
-  // Methods
-  getToken(holder: T, id: string): Token {
-    return holder.tokens.id(id);
-  }
+class TokenRepository<H extends TokenHolder = TokenHolder> {
+  // Constructor
+  constructor(private holder: H) {}
 
-  async createToken<C extends TokenContent>(holder: T, ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
+  // Methods
+  async create<C extends TokenContent>(ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
     // Create token
-    const token = holder.tokens.create(
+    const token = this.holder.tokens.create(
       TokenRepository.generateToken(ctx, content, expiresIn, tags)
     );
 
-    holder.tokens.push(token);
+    this.holder.tokens.push(token);
 
     // Update last connexion
     if (login) {
-      holder.lastConnexion = moment().utc().toDate();
+      this.holder.lastConnexion = moment().utc().toDate();
     }
 
-    await holder.save();
+    await this.holder.save();
     return token;
   }
 
-  async deleteToken(holder: T, token: Token): Promise<T> {
-    // Get token
-    await token.remove();
-    return await holder.save();
+  getById(id: string): Token {
+    return this.holder.tokens.id(id);
+  }
+
+  async delete(token: Token): Promise<H> {
+    // Check if has token
+    const tk = this.getById(token.id);
+    if (!tk) return this.holder;
+
+    // Delete token
+    await tk.remove();
+
+    return await this.holder.save();
+  }
+
+  async clear(except: Token[] = [], save: boolean = true): Promise<H> {
+    // Filter tokens
+    await Promise.all(this.holder.tokens
+      .filter(tk => !except.find(t => t.id === tk.id))
+      .map(tk => tk.remove())
+    );
+
+    // Save changes
+    if (!save) return this.holder;
+    return await this.holder.save();
   }
 
   // Utils

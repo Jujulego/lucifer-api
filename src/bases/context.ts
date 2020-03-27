@@ -85,6 +85,26 @@ export class SocketContext extends Context {
   }
 }
 
+export class TestContext extends Context {
+  // Attributes
+  readonly from: string;
+
+  // Constructor
+  constructor(attrs: ContextAttrs, from: string) {
+    super(attrs);
+    this.from = from;
+  }
+
+  // Statics
+  static withDaemon(daemon: Daemon, from: string): Context {
+    return new TestContext({ daemon }, from);
+  }
+
+  static withUser(user: User, from: string): Context {
+    return new TestContext({ user }, from);
+  }
+}
+
 // Utils
 export function fromRequest(req: Request): Context {
   return new RequestContext(req);

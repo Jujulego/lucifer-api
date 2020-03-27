@@ -25,7 +25,6 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] 
 class DaemonsService extends DataEmitter<Daemon> {
   // Attributes
   private readonly daemonRepo = new DaemonRepository();
-  private readonly tokenRepo = new TokenRepository<Daemon>();
 
   // Constructor
   constructor(
@@ -35,6 +34,10 @@ class DaemonsService extends DataEmitter<Daemon> {
   ) { super(apievents); }
 
   // Utils
+  private static getTokenRepository(daemon: Daemon): TokenRepository<Daemon> {
+    return new TokenRepository(daemon);
+  }
+
   private static simplifyDaemon(daemon: Daemon): SimpleDaemon {
     return omit(daemon, ['permissions', 'tokens']);
   }
@@ -66,10 +69,8 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   protected async generateToken(ctx: Context, daemon: Daemon, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.createToken(
-      daemon, ctx, { lrn: daemon.lrn },
-      login, '7 days', tags
-    );
+    return await DaemonsService.getTokenRepository(daemon)
+      .create(ctx, { lrn: daemon.lrn }, login, '7 days', tags);
   }
 
   // Methods
@@ -125,20 +126,24 @@ class DaemonsService extends DataEmitter<Daemon> {
   async update(ctx: Context, id: string, update: DaemonUpdate): Promise<Daemon> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Update daemon
-    const daemon = await this.daemonRepo.update(id, update);
-    if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
+    // Get daemon
+    let daemon = await this.getDaemon(id);
 
+    // Update daemon
+    daemon = await this.daemonRepo.update(daemon, omit(update, ['secret']));
     return this.emitUpdate(daemon);
   }
 
   async regenerateSecret(ctx: Context, id: string): Promise<DaemonObject> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
+    // Get daemon
+    let daemon = await this.getDaemon(id);
+
     // Generate new secret
     const secret = randomString(42);
-    const daemon = await this.daemonRepo.update(id, { secret, tokens: [] });
-    if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
+    await DaemonsService.getTokenRepository(daemon).clear([], false);
+    daemon = await this.daemonRepo.update(daemon, { secret });
 
     this.emitUpdate(daemon);
     return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
@@ -165,12 +170,15 @@ class DaemonsService extends DataEmitter<Daemon> {
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<Daemon> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Delete token
+    // Get daemon
     const daemon = await this.getDaemon(id);
-    const token = await this.tokenRepo.getToken(daemon, tokenId);
+
+    // Delete token
+    const tokenRepo = DaemonsService.getTokenRepository(daemon);
+    const token = tokenRepo.getById(tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.deleteToken(daemon, token)
+      await tokenRepo.delete(token)
     );
   }
 

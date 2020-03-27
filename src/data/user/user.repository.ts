@@ -41,8 +41,12 @@ class UserRepository {
     return UserModel.find(filter, { tokens: false, permissions: false });
   }
 
-  async update(id: string, update: UserUpdate): Promise<User | null> {
-    return UserModel.findByIdAndUpdate(id, { $set: update });
+  async update(user: User, update: UserUpdate): Promise<User> {
+    // Apply update
+    if (update.email)    user.email    = update.email;
+    if (update.password) user.password = update.password;
+
+    return await user.save();
   }
 
   async delete(id: string): Promise<User | null> {

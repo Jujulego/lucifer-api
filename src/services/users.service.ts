@@ -25,7 +25,6 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 @Service(UsersService)
 class UsersService extends DataEmitter<User> {
   // Attributes
-  private readonly tokenRepo = new TokenRepository<User>();
   private readonly userRepo = new UserRepository();
 
   // Constructor
@@ -36,6 +35,10 @@ class UsersService extends DataEmitter<User> {
   ) { super(apievents); }
 
   // Utils
+  private static getTokenRepository(user: User): TokenRepository<User> {
+    return new TokenRepository(user);
+  }
+
   private static simplifyUser(user: User): SimpleUser {
     return omit(user, ['permissions', 'tokens']);
   }
@@ -62,10 +65,8 @@ class UsersService extends DataEmitter<User> {
   }
 
   protected async generateToken(ctx: Context, user: User, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.createToken(
-      user, ctx, { lrn: user.lrn },
-      login, '7 days', tags
-    );
+    return await UsersService.getTokenRepository(user)
+      .create(ctx, { lrn: user.lrn }, login, '7 days', tags);
   }
 
   // Methods
@@ -112,10 +113,17 @@ class UsersService extends DataEmitter<User> {
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Update user
-    const user = await this.userRepo.update(id, update);
-    if (!user) throw HttpError.NotFound(`No user found at ${id}`);
+    // Get user
+    let user = await this.getUser(id);
 
+    // Clear tokens on password update
+    if (update.password) {
+      await UsersService.getTokenRepository(user)
+        .clear([await ctx.token!], false);
+    }
+
+    // Update user
+    user = await this.userRepo.update(user, update);
     return this.emitUpdate(user);
   }
 
@@ -146,12 +154,15 @@ class UsersService extends DataEmitter<User> {
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Delete token
+    // Get user
     const user = await this.getUser(id);
-    const token = await this.tokenRepo.getToken(user, tokenId);
+
+    // Delete token
+    const tokenRepo = UsersService.getTokenRepository(user);
+    const token = tokenRepo.getById(tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.deleteToken(user, token)
+      await tokenRepo.delete(token)
     );
   }
 
@@ -172,7 +183,7 @@ class UsersService extends DataEmitter<User> {
     if (!user) throw HttpError.Unauthorized("Login failed");
 
     // Generate token
-    const token = await this.generateToken(ctx, user, false, tags);
+    const token = await this.generateToken(ctx, user, true, tags);
     this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
