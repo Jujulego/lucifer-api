@@ -25,7 +25,6 @@ export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] 
 class DaemonsService extends DataEmitter<Daemon> {
   // Attributes
   private readonly daemonRepo = new DaemonRepository();
-  private readonly tokenRepo = new TokenRepository<Daemon>();
 
   // Constructor
   constructor(
@@ -35,6 +34,10 @@ class DaemonsService extends DataEmitter<Daemon> {
   ) { super(apievents); }
 
   // Utils
+  private static getTokenRepository(daemon: Daemon): TokenRepository<Daemon> {
+    return new TokenRepository(daemon);
+  }
+
   private static simplifyDaemon(daemon: Daemon): SimpleDaemon {
     return omit(daemon, ['permissions', 'tokens']);
   }
@@ -66,10 +69,8 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   protected async generateToken(ctx: Context, daemon: Daemon, login: boolean, tags: string[]): Promise<Token> {
-    return await this.tokenRepo.create(
-      daemon, ctx, { lrn: daemon.lrn },
-      login, '7 days', tags
-    );
+    return await DaemonsService.getTokenRepository(daemon)
+      .create(ctx, { lrn: daemon.lrn }, login, '7 days', tags);
   }
 
   // Methods
@@ -141,7 +142,7 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Generate new secret
     const secret = randomString(42);
-    await this.tokenRepo.clear(daemon, [], false);
+    await DaemonsService.getTokenRepository(daemon).clear([], false);
     daemon = await this.daemonRepo.update(daemon, { secret });
 
     this.emitUpdate(daemon);
@@ -169,12 +170,15 @@ class DaemonsService extends DataEmitter<Daemon> {
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<Daemon> {
     await this.allow(ctx, PLvl.UPDATE, id);
 
-    // Delete token
+    // Get daemon
     const daemon = await this.getDaemon(id);
-    const token = this.tokenRepo.getTokenById(daemon, tokenId);
+
+    // Delete token
+    const tokenRepo = DaemonsService.getTokenRepository(daemon);
+    const token = tokenRepo.getById(tokenId);
 
     return this.emitUpdate(
-      await this.tokenRepo.delete(daemon, token)
+      await tokenRepo.delete(token)
     );
   }
 

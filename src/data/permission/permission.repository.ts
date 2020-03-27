@@ -3,23 +3,26 @@ import { Permission } from 'data/permission/permission';
 import PermissionHolder from 'data/permission/permission.holder';
 
 // Repository
-class PermissionRepository {
+class PermissionRepository<H extends PermissionHolder> {
+  // Constructor
+  constructor(private holder: H) {}
+
   // Methods
   // - admin state
-  async setAdmin<T extends PermissionHolder>(holder: T, admin: boolean): Promise<T> {
-    holder.admin = admin;
+  async setAdmin(admin: boolean): Promise<H> {
+    this.holder.admin = admin;
 
-    return await holder.save();
+    return await this.holder.save();
   }
 
   // - permissions
-  getByName(holder: PermissionHolder, name: PName): Permission | null {
-    return holder.permissions.find(p => p.name === name) || null;
+  getByName(name: PName): Permission | null {
+    return this.holder.permissions.find(p => p.name === name) || null;
   }
 
-  async update<T extends PermissionHolder>(holder: T, name: PName, level: PLvl): Promise<T> {
+  async update(name: PName, level: PLvl): Promise<H> {
     // Get permission
-    let perm = this.getByName(holder, name);
+    let perm = this.getByName(name);
 
     // Apply new level
     if (perm) {
@@ -27,21 +30,21 @@ class PermissionRepository {
       perm.level = level;
     } else {
       // Add permission
-      perm = holder.permissions.create({ name, level });
-      holder.permissions.push(perm);
+      perm = this.holder.permissions.create({ name, level });
+      this.holder.permissions.push(perm);
     }
 
-    return await holder.save();
+    return await this.holder.save();
   }
 
-  async delete<T extends PermissionHolder>(holder: T, name: PName): Promise<T> {
+  async delete(name: PName): Promise<H> {
     // Get permission
-    const perm = this.getByName(holder, name);
-    if (!perm) return holder;
+    const perm = this.getByName(name);
+    if (!perm) return this.holder;
 
     // Delete permission
     await perm.remove();
-    return await holder.save();
+    return await this.holder.save();
   }
 }
 

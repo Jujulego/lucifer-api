@@ -57,10 +57,10 @@ describe('data/token', () => {
 
   // - TokenRepository.create
   test('TokenRepository.create: login', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    const tk = await repo.create(user, ctx, { lrn: user.lrn }, true, '7 days');
+    const tk = await repo.create(ctx, { lrn: user.lrn }, true, '7 days');
     expect(tk.token).toBeDefined();
     expect(tk.from).toEqual(ctx.from);
     expect(tk.tags).toHaveLength(0);
@@ -74,44 +74,44 @@ describe('data/token', () => {
   });
 
   test('TokenRepository.create: no login', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    await repo.create(user, ctx, { lrn: user.lrn }, false, '7 days');
+    await repo.create(ctx, { lrn: user.lrn }, false, '7 days');
     expect(user.lastConnexion).toBeUndefined();
   });
 
   test('TokenRepository.create: with tags', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    const tk = await repo.create(user, ctx, { lrn: user.lrn }, false, '7 days', ['test']);
+    const tk = await repo.create(ctx, { lrn: user.lrn }, false, '7 days', ['test']);
     expect(tk.tags).toHaveLength(1);
     expect(tk.tags[0]).toEqual('test');
   });
 
   test('TokenRepository.create: invalid ip', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
     const ctx = TestContext.withUser(user, 'tomato');
 
     await expect(
-      repo.create(user, ctx, { lrn: user.lrn }, false, '7 days', ['test'])
+      repo.create(ctx, { lrn: user.lrn }, false, '7 days', ['test'])
     ).rejects.toThrow();
   });
 
   // - TokenRepository.getById
   test('TokenRepository.getById', () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
 
-    const tk = repo.getTokenById(user, token.id);
+    const tk = repo.getById(token.id);
     expect(tk).toBe(token);
   });
 
   // - TokenRepository.delete
   test('TokenRepository.delete', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
 
-    const res = await repo.delete(user, token);
+    const res = await repo.delete(token);
     expect(res.tokens).toHaveLength(2);
     expect(res.tokens).not.toContain(token);
 
@@ -122,9 +122,9 @@ describe('data/token', () => {
 
   // - TokenRepository.clear
   test('TokenRepository.clear: all tokens', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
 
-    const res = await repo.clear(user);
+    const res = await repo.clear();
     expect(res.tokens).toHaveLength(0);
 
     const get = await UserModel.findById(user.id);
@@ -133,9 +133,9 @@ describe('data/token', () => {
   });
 
   test('TokenRepository.clear: all except one tokens', async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
 
-    const res = await repo.clear(user, [token]);
+    const res = await repo.clear([token]);
     expect(res.tokens).toHaveLength(1);
     expect(res.tokens).toContain(token);
 
@@ -145,9 +145,9 @@ describe('data/token', () => {
   });
 
   test('TokenRepository.clear: don\'t save' , async () => {
-    const repo = new TokenRepository();
+    const repo = new TokenRepository(user);
 
-    const res = await repo.clear(user, [], false);
+    const res = await repo.clear([], false);
     expect(res.tokens).toHaveLength(0);
 
     const get = await UserModel.findById(user.id);
