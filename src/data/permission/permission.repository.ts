@@ -13,13 +13,13 @@ class PermissionRepository {
   }
 
   // - permissions
-  getPermission(holder: PermissionHolder, name: PName): Permission | undefined {
-    return holder.permissions.find(p => p.name === name);
+  getByName(holder: PermissionHolder, name: PName): Permission | null {
+    return holder.permissions.find(p => p.name === name) || null;
   }
 
   async update<T extends PermissionHolder>(holder: T, name: PName, level: PLvl): Promise<T> {
     // Get permission
-    let perm = this.getPermission(holder, name);
+    let perm = this.getByName(holder, name);
 
     // Apply new level
     if (perm) {
@@ -36,7 +36,7 @@ class PermissionRepository {
 
   async delete<T extends PermissionHolder>(holder: T, name: PName): Promise<T> {
     // Get permission
-    const perm = this.getPermission(holder, name);
+    const perm = this.getByName(holder, name);
     if (!perm) return holder;
 
     // Delete permission
