@@ -136,7 +136,8 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Is a owner
     if (ctx.user) {
-      return this.daemonRepo.find({ ...filter, user: (await ctx.user).id });
+      const user = await ctx.user;
+      return this.daemonRepo.find({ ...filter, user: user.id });
     }
 
     return [];

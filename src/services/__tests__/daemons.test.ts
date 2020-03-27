@@ -45,8 +45,13 @@ describe('services/daemons.service', () => {
     ]);
 
     // Create some daemons
-    await (new DaemonModel({ user: admin.id, secret: 'admin' })).save();
-    daemon = await (new DaemonModel({ user: owner.id, secret: 'owner' })).save();
+    [, daemon] = await Promise.all([
+      new DaemonModel({ user: admin.id, secret: 'admin' }).save(),
+      new DaemonModel({
+        user: owner.id, secret: 'owner',
+        tokens: [{ token: 'roar !' }]
+      }).save(),
+    ]);
   });
 
   // Empty database
@@ -114,6 +119,16 @@ describe('services/daemons.service', () => {
     expect(token.tags).toEqual(['Test']);
   });
 
+  test('DaemonsService.createToken: by daemon', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+
+    const token = await service.createToken(ctx, daemon.id, ['Test']);
+    expect(token.token).toBeDefined();
+    expect(token.from).toEqual('1.2.3.4');
+    expect(token.tags).toEqual(['Test']);
+  });
+
   test('DaemonsService.createToken: not allowed', async () => {
     const service = DIContainer.get(DaemonsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
@@ -135,6 +150,14 @@ describe('services/daemons.service', () => {
   test('DaemonsService.get: by owner', async () => {
     const service = DIContainer.get(DaemonsService);
     const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: by daemon', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
 
     const res = await service.get(ctx, daemon.id);
     expect(res.id).toEqual(daemon.id);
@@ -166,11 +189,93 @@ describe('services/daemons.service', () => {
     expect(res).toHaveLength(1);
   });
 
+  test('DaemonsService.find: by daemon', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+
+    const res = await service.find(ctx);
+    expect(res).toHaveLength(1);
+  });
+
   test('DaemonsService.find: not allowed', async () => {
     const service = DIContainer.get(DaemonsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
     const res = await service.find(ctx);
     expect(res).toHaveLength(0);
+  });
+
+  // - DaemonsService.update
+  test('DaemonsService.update', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    const res = await service.update(ctx, daemon.id, { name: 'Tomato' });
+    expect(res.id).toEqual(daemon.id);
+    expect(res.name).toEqual('Tomato');
+  });
+
+  test('DaemonsService.update: by owner', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.update(ctx, daemon.id, { name: 'Tomato' });
+    expect(res.id).toEqual(daemon.id);
+    expect(res.name).toEqual('Tomato');
+  });
+
+  test('DaemonsService.update: by daemon', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+
+    const res = await service.update(ctx, daemon.id, { name: 'Tomato' });
+    expect(res.id).toEqual(daemon.id);
+    expect(res.name).toEqual('Tomato');
+  });
+
+  test('DaemonsService.update: not allowed', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(
+      service.update(ctx, daemon.id, { name: 'Tomato' })
+    ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
+  });
+
+  // - DaemonsService.regenerateSecret
+  test('DaemonsService.regenerateSecret', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    const res = await service.regenerateSecret(ctx, daemon.id);
+    expect(res._id).toEqual(daemon._id);
+    expect(res.tokens).toHaveLength(0);
+  });
+
+  test('DaemonsService.regenerateSecret: by owner', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.regenerateSecret(ctx, daemon.id);
+    expect(res._id).toEqual(daemon._id);
+    expect(res.tokens).toHaveLength(0);
+  });
+
+  test('DaemonsService.regenerateSecret: by daemon', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+
+    const res = await service.regenerateSecret(ctx, daemon.id);
+    expect(res._id).toEqual(daemon._id);
+    expect(res.tokens).toHaveLength(0);
+  });
+
+  test('DaemonsService.regenerateSecret: not allowed', async () => {
+    const service = DIContainer.get(DaemonsService);
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(
+      service.regenerateSecret(ctx, daemon.id)
+    ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
   });
 });
