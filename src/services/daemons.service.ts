@@ -50,8 +50,6 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
-    if (!ctx.permissions) return false;
-
     if (id) {
       if (ctx.daemon && (await ctx.daemon).id === id) return true;
       if (ctx.user) {
@@ -59,7 +57,7 @@ class DaemonsService extends DataEmitter<Daemon> {
       }
     }
 
-    return this.authorizer.has(await ctx.permissions, 'daemons', level);
+    return await this.authorizer.has(ctx, 'daemons', level);
   }
 
   protected async allow(ctx: Context, level: PLvl, id?: string | null) {

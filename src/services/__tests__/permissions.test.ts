@@ -10,9 +10,9 @@ import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
 import { PLvl } from 'data/permission/permission.enums';
 
-import AuthorizeService from '../authorize.service';
 import PermissionsService from '../permissions.service';
 import { HttpError } from '../../middlewares/errors';
+import PermissionRepository from '../../data/permission/permission.repository';
 
 // Tests
 describe('services/permissions.service', () => {
@@ -55,44 +55,51 @@ describe('services/permissions.service', () => {
   // Tests
   // - PermissionsService.grant
   test('PermissionsService.grant: grant permission to user', async () => {
-    const auth = DIContainer.get(AuthorizeService);
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.grant(ctx, user, 'users', PLvl.READ);
-    expect(auth.has(user, 'users', PLvl.READ)).toBeTruthy();
+
+    const repo = new PermissionRepository(user);
+    const perm = repo.getByName('users');
+
+    expect(perm).not.toBeNull();
+    expect(perm!.level).toEqual(PLvl.READ);
   });
 
   test('PermissionsService.grant: not allowed to grant', async () => {
-    const auth = DIContainer.get(AuthorizeService);
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
     await expect(
       service.grant(ctx, user, 'users', PLvl.READ)
     ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
-    expect(auth.has(user, 'users', PLvl.READ)).toBeFalsy();
+
+    const repo = new PermissionRepository(user);
+    expect(repo.getByName('users')).toBeNull();
   });
 
   // - PermissionsService.revoke
   test('PermissionsService.revoke: revoke permission to user', async () => {
-    const auth = DIContainer.get(AuthorizeService);
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.revoke(ctx, user, 'daemons');
-    expect(auth.has(user, 'daemons', PLvl.READ)).toBeFalsy();
+
+    const repo = new PermissionRepository(user);
+    expect(repo.getByName('daemons')).toBeNull();
   });
 
   test('PermissionsService.revoke: not allowed to revoke', async () => {
-    const auth = DIContainer.get(AuthorizeService);
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
     await expect(
       service.revoke(ctx, user, 'daemons')
     ).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
-    expect(auth.has(user, 'users', PLvl.READ)).toBeFalsy();
+
+    const repo = new PermissionRepository(user);
+    expect(repo.getByName('users')).toBeNull();
   });
 
   // - PermissionsService.elevate
@@ -101,6 +108,7 @@ describe('services/permissions.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.elevate(ctx, user);
+
     expect(user.admin).toBeTruthy();
   });
 
@@ -109,6 +117,7 @@ describe('services/permissions.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.elevate(ctx, admin, false);
+
     expect(admin.admin).toBeFalsy();
   });
 
@@ -119,6 +128,7 @@ describe('services/permissions.service', () => {
     await expect(
       service.elevate(ctx, user)
     ).rejects.toThrowError(HttpError.Forbidden());
+
     expect(user.admin).toBeFalsy();
   });
 });

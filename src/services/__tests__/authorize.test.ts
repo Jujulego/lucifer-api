@@ -54,25 +54,31 @@ describe('services/authorize.service', () => {
 
   // Tests
   // - AuthorizeService.has
-  test('AuthorizeService.has: granted permission', () => {
+  test('AuthorizeService.has: granted permission', async () => {
     const service = DIContainer.get(AuthorizeService);
+    const ctxU = TestContext.withUser(user, '1.2.3.4');
+    const ctxA = TestContext.withUser(admin, '1.2.3.4');
 
-    expect(service.has(user, 'users', PLvl.READ)).toBeTruthy();
-    expect(service.has(admin, 'users', PLvl.READ)).toBeTruthy();
+    expect(await service.has(ctxU, 'users', PLvl.READ)).toBeTruthy();
+    expect(await service.has(ctxA, 'users', PLvl.READ)).toBeTruthy();
   });
 
-  test('AuthorizeService.has: not granted permission', () => {
+  test('AuthorizeService.has: not granted permission', async () => {
     const service = DIContainer.get(AuthorizeService);
+    const ctxU = TestContext.withUser(user, '1.2.3.4');
+    const ctxA = TestContext.withUser(admin, '1.2.3.4');
 
-    expect(service.has(user, 'daemons', PLvl.READ)).toBeFalsy();
-    expect(service.has(admin, 'daemons', PLvl.READ)).toBeTruthy();
+    expect(await service.has(ctxU, 'daemons', PLvl.READ)).toBeFalsy();
+    expect(await service.has(ctxA, 'daemons', PLvl.READ)).toBeTruthy();
   });
 
-  test('AuthorizeService.has: not granted permission level', () => {
+  test('AuthorizeService.has: not granted permission level', async () => {
     const service = DIContainer.get(AuthorizeService);
+    const ctxU = TestContext.withUser(user, '1.2.3.4');
+    const ctxA = TestContext.withUser(admin, '1.2.3.4');
 
-    expect(service.has(user, 'users', PLvl.UPDATE)).toBeFalsy();
-    expect(service.has(admin, 'users', PLvl.UPDATE)).toBeTruthy();
+    expect(await service.has(ctxU, 'users', PLvl.UPDATE)).toBeFalsy();
+    expect(await service.has(ctxA, 'users', PLvl.UPDATE)).toBeTruthy();
   });
 
   // - AuthorizeService.allow

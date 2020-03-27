@@ -17,7 +17,11 @@ class AuthorizeService {
   }
 
   // Methods
-  has(holder: PermissionHolder, name: PName, level: PLvl): boolean {
+  async has(ctx: Context, name: PName, level: PLvl): Promise<boolean> {
+    // Has holder
+    if (!ctx.permissions) return false;
+    const holder = await ctx.permissions;
+
     // Admins always pass
     if (holder.admin) return true;
 
@@ -30,7 +34,7 @@ class AuthorizeService {
   }
 
   async allow(ctx: Context, name: PName, level: PLvl) {
-    if (!ctx.permissions || !this.has(await ctx.permissions, name, level)) {
+    if (!await this.has(ctx, name, level)) {
       throw HttpError.Forbidden('Not allowed');
     }
   }
