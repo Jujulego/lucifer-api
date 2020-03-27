@@ -6,7 +6,6 @@ import env from 'env';
 
 import TokenHolder from './token.holder';
 import { Token, TokenContent } from './token';
-import { Types } from 'mongoose';
 
 // Repository
 class TokenRepository<T extends TokenHolder = TokenHolder> {
@@ -40,8 +39,9 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
 
   async clear(holder: T, except: Token[] = [], save: boolean = true): Promise<T> {
     // Filter tokens
-    holder.tokens = new Types.DocumentArray<Token>(
-      ...holder.tokens.filter(tk => except.find(t => t.id === tk.id))
+    await Promise.all(holder.tokens
+      .filter(tk => !except.find(t => t.id === tk.id))
+      .map(tk => tk.remove())
     );
 
     // Save changes
