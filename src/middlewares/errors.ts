@@ -1,13 +1,15 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
 // Class
-export class HttpError {
+export class HttpError extends Error {
   // Attributes
+  readonly name = 'HttpError';
   readonly message: string;
   readonly code: number;
 
   // Constructor
   constructor(code: number, message: string) {
+    super();
     this.message = message;
     this.code = code;
   }
