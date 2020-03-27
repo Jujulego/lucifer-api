@@ -14,8 +14,10 @@ import { Service } from 'utils';
 // Service
 @Service(TokensService)
 class TokensService {
-  // Attributes
-  private readonly tokenRepo = new TokenRepository();
+  // Statics
+  private static getTokenRepository<H extends TokenHolder>(holder: H): TokenRepository<H> {
+    return new TokenRepository<H>(holder)
+  }
 
   // Methods
   verifyToken<C extends TokenContent>(token: string | Token): C {
@@ -57,7 +59,7 @@ class TokensService {
       const holder = await ctx.tokens;
       const token = await ctx.token!;
 
-      await this.tokenRepo.delete(holder, token);
+      await TokensService.getTokenRepository(holder).delete(token);
     }
   }
 }

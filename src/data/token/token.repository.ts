@@ -8,9 +8,9 @@ import TokenHolder from './token.holder';
 import { Token, TokenContent } from './token';
 
 // Repository
-class TokenRepository<T extends TokenHolder = TokenHolder> {
+class TokenRepository<H extends TokenHolder = TokenHolder> {
   // Constructor
-  constructor(private holder: T) {}
+  constructor(private holder: H) {}
 
   // Methods
   async create<C extends TokenContent>(ctx: Context, content: C, login: boolean, expiresIn: string | number, tags?: string[]): Promise<Token> {
@@ -34,7 +34,7 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return this.holder.tokens.id(id);
   }
 
-  async delete(token: Token): Promise<T> {
+  async delete(token: Token): Promise<H> {
     // Check if has token
     const tk = this.getById(token.id);
     if (!tk) return this.holder;
@@ -45,7 +45,7 @@ class TokenRepository<T extends TokenHolder = TokenHolder> {
     return await this.holder.save();
   }
 
-  async clear(except: Token[] = [], save: boolean = true): Promise<T> {
+  async clear(except: Token[] = [], save: boolean = true): Promise<H> {
     // Filter tokens
     await Promise.all(this.holder.tokens
       .filter(tk => !except.find(t => t.id === tk.id))
