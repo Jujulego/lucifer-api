@@ -171,7 +171,7 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Delete token
     const daemon = await this.getDaemon(id);
-    const token = this.tokenRepo.getTokenById(daemon, tokenId);
+    const token = this.tokenRepo.getById(daemon, tokenId);
 
     return this.emitUpdate(
       await this.tokenRepo.delete(daemon, token)

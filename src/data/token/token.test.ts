@@ -103,7 +103,7 @@ describe('data/token', () => {
   test('TokenRepository.getById', () => {
     const repo = new TokenRepository();
 
-    const tk = repo.getTokenById(user, token.id);
+    const tk = repo.getById(user, token.id);
     expect(tk).toBe(token);
   });
 
