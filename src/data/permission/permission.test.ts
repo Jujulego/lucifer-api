@@ -62,41 +62,41 @@ describe("data/permission", () => {
 
   // - PermissionRepository.setAdmin
   test('PermissionRepository.setAdmin: true', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.setAdmin(user, true);
+    const res = await repo.setAdmin(true);
     expect(res.admin).toBeTruthy();
   });
 
   test('PermissionRepository.setAdmin: false', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.setAdmin(user, false);
+    const res = await repo.setAdmin(false);
     expect(res.admin).toBeFalsy();
   });
 
   // - PermissionRepository.getByName
   test('PermissionRepository.getByName: granted permission', () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = repo.getByName(user, 'users');
+    const res = repo.getByName('users');
     expect(res).not.toBeNull();
     expect(res!.name).toEqual('users');
     expect(res!.level).toEqual(PLvl.READ);
   });
 
   test('PermissionRepository.getByName: not granted permission', () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = repo.getByName(user, 'daemons');
+    const res = repo.getByName('daemons');
     expect(res).toBeNull();
   });
 
   // - PermissionRepository.update
   test('PermissionRepository.update: grant new permission', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.update(user, 'daemons', PLvl.READ);
+    const res = await repo.update('daemons', PLvl.READ);
     expect(res.permissions).toHaveLength(2);
 
     const perm = res.permissions.find(p => p.name === 'daemons');
@@ -105,9 +105,9 @@ describe("data/permission", () => {
   });
 
   test('PermissionRepository.update: change level', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.update(user, 'users', PLvl.UPDATE);
+    const res = await repo.update('users', PLvl.UPDATE);
     expect(res.permissions).toHaveLength(1);
 
     const perm = res.permissions.find(p => p.name === 'users');
@@ -117,16 +117,16 @@ describe("data/permission", () => {
 
   // - PermissionRepository.delete
   test('PermissionRepository.delete: granted permission', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.delete(user, 'users');
+    const res = await repo.delete('users');
     expect(res.permissions).toHaveLength(0);
   });
 
   test('PermissionRepository.delete: not granted permission', async () => {
-    const repo = new PermissionRepository();
+    const repo = new PermissionRepository(user);
 
-    const res = await repo.delete(user, 'daemons');
+    const res = await repo.delete('daemons');
     expect(res.permissions).toHaveLength(1);
   });
 });
