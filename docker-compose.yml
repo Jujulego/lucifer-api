@@ -1,0 +1,22 @@
+version: '3'
+
+networks:
+  back:
+
+services:
+  api:
+    image: lucifer-api:latest
+    build: ./
+    networks:
+      - back
+    environment:
+      MONGO_URL: mongodb://mongo:27017/lucifer
+    ports:
+    - 8001:8000
+
+  mongo:
+    image: mongo
+    networks:
+      back:
+        aliases:
+          - mongo
