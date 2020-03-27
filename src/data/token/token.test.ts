@@ -30,8 +30,12 @@ describe('data/token', () => {
     user = await (new UserModel({ email: 'test@token.com', password: 'test' })).save();
 
     // Create a token
-    token = user.tokens.create({ token: 'test', from: '1.2.3.4', tags: ['test'] });
+    token = user.tokens.create({ token: 'test1', from: '1.2.3.4', tags: ['test'] });
+
+    user.tokens.push(user.tokens.create({ token: 'test2', from: '1.2.3.4', tags: ['test'] }));
     user.tokens.push(token);
+    user.tokens.push(user.tokens.create({ token: 'test3', from: '1.2.3.4', tags: ['test'] }));
+
     await user.save();
   });
 
@@ -66,8 +70,8 @@ describe('data/token', () => {
     expect(tk.tags).toHaveLength(0);
 
     expect(user.lastConnexion).toBeDefined();
-    expect(user.tokens).toHaveLength(2);
-    expect(user.tokens[1]).toBe(tk);
+    expect(user.tokens).toHaveLength(4);
+    expect(user.tokens[3]).toBe(tk);
 
     const { lrn } = jwt.verify(tk.token, env.JWT_KEY) as TokenContent;
     expect(lrn).toEqual(user.lrn);
@@ -105,5 +109,30 @@ describe('data/token', () => {
 
     const tk = repo.getTokenById(user, token.id);
     expect(tk).toBe(token);
+  });
+
+  // - TokenRepository.delete
+  test('TokenRepository.delete', async () => {
+    const repo = new TokenRepository();
+
+    const res = await repo.delete(user, token);
+    expect(res.tokens).toHaveLength(2);
+    expect(res.tokens).not.toContain(token);
+  });
+
+  // - TokenRepository.clear
+  test('TokenRepository.clear: all tokens', async () => {
+    const repo = new TokenRepository();
+
+    const res = await repo.clear(user);
+    expect(res.tokens).toHaveLength(0);
+  });
+
+  test('TokenRepository.clear: all except one tokens', async () => {
+    const repo = new TokenRepository();
+
+    const res = await repo.clear(user, [token]);
+    expect(res.tokens).toHaveLength(1);
+    expect(res.tokens).toContain(token);
   });
 });
