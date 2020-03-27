@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
+import * as db from 'db';
+
 import env from 'env';
 import { TestContext } from 'bases/context';
 import { User } from 'data/user/user';
@@ -12,14 +14,7 @@ import TokenRepository from './token.repository';
 // Tests
 describe('data/token', () => {
   // Connect to database
-  beforeAll(async () => {
-    await mongoose.connect(process.env.MONGO_URL!, {
-      useCreateIndex: true,
-      useFindAndModify: false,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-  });
+  beforeAll(db.connect);
 
   // Fill database
   let user: User;

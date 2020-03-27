@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
+import * as db from 'db';
+
 import { Token } from 'data/token/token';
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
@@ -14,14 +16,7 @@ import { parseLRN } from 'utils';
 // Tests
 describe('data/daemon', () => {
   // Connect to database
-  beforeAll(async () => {
-    await mongoose.connect(process.env.MONGO_URL!, {
-      useCreateIndex: true,
-      useFindAndModify: false,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-  });
+  beforeAll(db.connect);
 
   // Fill database
   let user1: User;

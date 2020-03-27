@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 
+import * as db from 'db';
+
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
 import PermissionRepository from './permission.repository';
@@ -8,14 +10,7 @@ import { isPLvl, isPName, LEVELS, PERMISSIONS, PLvl } from './permission.enums';
 // Tests
 describe("data/permission", () => {
   // Connect to database
-  beforeAll(async () => {
-    await mongoose.connect(process.env.MONGO_URL!, {
-      useCreateIndex: true,
-      useFindAndModify: false,
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    });
-  });
+  beforeAll(db.connect);
 
   // Fill database
   let user: User;

@@ -9,7 +9,7 @@ mongoose.Promise = global.Promise;
 export async function connect() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(env.MONGODB_URL, {
+    await mongoose.connect(env.MONGO_URL, {
       useCreateIndex: true,
       useFindAndModify: false,
       useNewUrlParser: true,
