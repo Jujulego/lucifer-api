@@ -27,16 +27,17 @@ describe('data/token', () => {
 
   beforeEach(async () => {
     // Create a token holder
-    user = await (new UserModel({ email: 'test@token.com', password: 'test' })).save();
+    user = await (new UserModel({
+      email: 'test@token.com', password: 'test',
+      tokens: [
+        { token: 'test1', from: '1.2.3.4', tags: ['test'] },
+        { token: 'test2', from: '1.2.3.4', tags: ['test'] },
+        { token: 'test3', from: '1.2.3.4', tags: ['test'] },
+      ]
+    })).save();
 
-    // Create a token
-    token = user.tokens.create({ token: 'test1', from: '1.2.3.4', tags: ['test'] });
-
-    user.tokens.push(user.tokens.create({ token: 'test2', from: '1.2.3.4', tags: ['test'] }));
-    user.tokens.push(token);
-    user.tokens.push(user.tokens.create({ token: 'test3', from: '1.2.3.4', tags: ['test'] }));
-
-    await user.save();
+    // Get a token
+    token = user.tokens[1];
   });
 
   // Empty database

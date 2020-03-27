@@ -38,17 +38,17 @@ describe('data/daemon', () => {
 
     // Create some daemons
     daemons = await Promise.all([
-      new DaemonModel({ name: 'Test 1', secret: 'test1', user: user1.id }).save(),
+      new DaemonModel({
+        name: 'Test 1', secret: 'test1', user: user1.id,
+        tokens: [{ token: 'test', from: '1.2.3.4', tags: ['test'] }]
+      }).save(),
       new DaemonModel({ name: 'Test 2', secret: 'test2', user: user1.id }).save(),
       new DaemonModel({ name: 'Test 3', secret: 'test3', user: user2.id }).save(),
       new DaemonModel({ name: 'Test 4', secret: 'test4', user: user2.id }).save(),
     ]);
 
-    // Create a token
-    const daemon = daemons[0];
-    token = daemon.tokens.create({ token: 'test' });
-    daemon.tokens.push(token);
-    await daemon.save();
+    // Get a token
+    token = daemons[0].tokens[0];
   });
 
   // Empty database

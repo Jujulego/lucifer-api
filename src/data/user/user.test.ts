@@ -28,17 +28,17 @@ describe('data/user', () => {
   beforeEach(async () => {
     // Create some users
     users = await Promise.all([
-      new UserModel({ email: 'test1@user.com', password: 'test1' }).save(),
+      new UserModel({
+        email: 'test1@user.com', password: 'test1',
+        tokens: [{ token: 'test', from: '1.2.3.4', tags: ['test'] }]
+      }).save(),
       new UserModel({ email: 'test2@user.com', password: 'test2' }).save(),
       new UserModel({ email: 'test3@user.com', password: 'test3' }).save(),
       new UserModel({ email: 'test4@user.com', password: 'test4' }).save(),
     ]);
 
-    // Create a token
-    const user = users[0];
-    token = user.tokens.create({ token: 'token' });
-    user.tokens.push(token);
-    await user.save();
+    // Get a token
+    token = users[0].tokens[0];
   });
 
   // Empty database
