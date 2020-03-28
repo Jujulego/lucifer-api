@@ -34,12 +34,9 @@ jobs:
       - name: Build docker image
         run: |
           echo ::set-env name=IMAGE_NAME::docker.pkg.github.com/jujulego/lucifer-api/lucifer-api
-          echo ::set-env name=IMAGE_TAG::$(echo ${GITHUB_REF:10})
+          echo ::set-env name=IMAGE_TAG::$(echo ${GITHUB_REF})
 
           docker build . --tag lucifer-api
 
           docker tag lucifer-api $IMAGE_NAME:$IMAGE_TAG
-          docker tag lucifer-api $IMAGE_NAME:latest
-
           docker push $IMAGE_NAME:$IMAGE_TAG
-          docker push $IMAGE_NAME:latest
