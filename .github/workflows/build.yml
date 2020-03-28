@@ -34,7 +34,7 @@ jobs:
       - name: Build docker image
         run: |
           export IMAGE_NAME=docker.pkg.github.com/jujulego/lucifer-api/lucifer-api
-          export IMAGE_TAG=$(echo ${GITHUB_REF:10})
+          export IMAGE_TAG=$(echo ${GITHUB_REF##*/})
 
           docker build . --tag lucifer-api
 
