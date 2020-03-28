@@ -13,14 +13,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Use Node.js 12.x
         uses: actions/setup-node@v1
         with:
           node-version: 12.x
-      - run: yarn install --pure-lockfile
-      - run: yarn test
+
+      - name: Tests
         env:
           CI: true
+        run: |
+          yarn install --pure-lockfile
+          yarn test
+
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
 
