@@ -17,6 +17,7 @@ import { HttpError } from 'middlewares/errors';
 // Add properties to Request
 declare global {
   namespace Express {
+    // noinspection JSUnusedGlobalSymbols
     interface Request {
       user?: User;
       daemon?: Daemon;
@@ -25,6 +26,7 @@ declare global {
   }
 
   namespace SocketIO {
+    // noinspection JSUnusedGlobalSymbols
     interface Socket {
       user: () => Promise<User>;
       token: () => Promise<Token>;

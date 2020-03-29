@@ -1,5 +1,4 @@
 import Context, { ContextParams, TestContext } from 'bases/context';
-import { HttpError } from 'middlewares/errors';
 
 // Types
 type LA = { label: string, allowed: boolean };
@@ -23,7 +22,7 @@ export async function contexts<P, T>(matrix: Matrix<P>, call: Call<P, T>, cb: Ca
       if (allowed) {
         await cb(await prom, params);
       } else {
-        await expect(prom).rejects.toThrowError(HttpError.Forbidden('Not allowed'));
+        await expect(prom).rejects.toBeForbidden('Not allowed');
         if (rejected) await rejected(params);
       }
     } catch (error) {
