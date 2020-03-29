@@ -36,7 +36,7 @@ class PermissionsService {
   async elevate<H extends PermissionHolder>(ctx: Context, holder: H, admin: boolean = true): Promise<H> {
     // Only admins are allowed to manage admins
     if (!ctx.permissions || !(await ctx.permissions).admin) {
-      throw HttpError.Forbidden();
+      throw HttpError.Forbidden('Not allowed');
     }
 
     // Change admin state

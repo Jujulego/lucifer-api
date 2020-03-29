@@ -5,6 +5,7 @@ import * as db from 'db';
 import DIContainer, { loadServices } from 'inversify.config';
 
 import { TestContext } from 'bases/context';
+import { HttpError } from 'middlewares/errors';
 
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
@@ -92,8 +93,7 @@ describe('services/authorize.service', () => {
     const service = DIContainer.get(AuthorizeService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    await expect(
-      service.allow(ctx, 'daemons', PLvl.READ)
-    ).rejects.toBeForbidden('Not allowed');
+    await expect(service.allow(ctx, 'daemons', PLvl.READ))
+      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
   });
 });

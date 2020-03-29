@@ -10,9 +10,6 @@ import { User } from 'data/user/user';
 // Type
 type Awaitable<T> = Promise<T> | T;
 
-type Options = { from: string };
-export type ContextParams<P> = P & Options & ({ user: User } | { daemon: Daemon });
-
 // Interface
 interface ContextAttrs {
   // Objects
@@ -105,14 +102,6 @@ export class TestContext extends Context {
 
   static withUser(user: User, from: string): Context {
     return new TestContext({ user }, from);
-  }
-
-  static fromParams<P>(params: ContextParams<P>): Context {
-    if ('user' in params) {
-      return TestContext.withUser(params.user, params.from);
-    }
-
-    return TestContext.withDaemon(params.daemon, params.from);
   }
 }
 
