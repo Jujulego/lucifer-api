@@ -11,8 +11,7 @@ import { User } from 'data/user/user';
 type Awaitable<T> = Promise<T> | T;
 
 type Options = { from: string };
-export type ContextParams = Options & ({ user: User } | { daemon: Daemon });
-export type ContextMatrix<P> = Array<ContextParams & P>;
+export type ContextParams<P> = P & Options & ({ user: User } | { daemon: Daemon });
 
 // Interface
 interface ContextAttrs {
@@ -108,16 +107,12 @@ export class TestContext extends Context {
     return new TestContext({ user }, from);
   }
 
-  static fromParams(params: ContextParams): Context {
+  static fromParams<P>(params: ContextParams<P>): Context {
     if ('user' in params) {
       return TestContext.withUser(params.user, params.from);
     }
 
     return TestContext.withDaemon(params.daemon, params.from);
-  }
-
-  static async map<P = {}>(matrix: ContextMatrix<P>, cb: (ctx: Context, p: P) => Promise<void>) {
-    await Promise.all(matrix.map(p => cb(TestContext.fromParams(p), p)));
   }
 }
 
