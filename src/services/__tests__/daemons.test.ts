@@ -123,6 +123,13 @@ describe('services/daemons.service', () => {
       .rejects.toEqual(HttpError.Forbidden('Not allowed'));
   });
 
+  test('DaemonsService.createToken: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await expect(service.createToken(ctx, 'deadbeefdeadbeefdeadbeef', ['Test']))
+      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+  });
+
   // - DaemonsService.find
   test('DaemonsService.find', async () => {
     await expect(service.find(TestContext.withUser(admin, '1.2.3.4')))
