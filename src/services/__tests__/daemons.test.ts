@@ -89,13 +89,12 @@ describe('services/daemons.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     const daemon = await service.create(ctx, { name: 'Test', user: owner.id });
-    expect(daemon)
-      .toEqual(expect.objectContaining({
-        _id: should.objectId(),
-        name: 'Test',
-        secret: should.haveLength(42),
-        user: owner._id
-      }));
+    expect(daemon).toRespect({
+      _id: should.objectId(),
+      name: 'Test',
+      secret: should.haveLength(42),
+      user: owner._id
+    });
 
     expect(await DaemonModel.findById(daemon._id)).not.toBeNull();
   });
@@ -108,11 +107,11 @@ describe('services/daemons.service', () => {
   // - DaemonsService.createToken
   async function testCreateToken(ctx: Context) {
     expect(await service.createToken(ctx, daemon.id, ['Test']))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         token: expect.any(String),
         from: '1.2.3.4',
         tags: ['Test']
-      }));
+      });
   }
 
   test('DaemonsService.createToken', async () => {
@@ -142,21 +141,21 @@ describe('services/daemons.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     expect(await service.get(ctx, daemon.id))
-      .toEqual(expect.objectContaining({ id: daemon.id }));
+      .toRespect({ id: daemon.id });
   });
 
   test('DaemonsService.get: by owner', async () => {
     const ctx = TestContext.withUser(owner, '1.2.3.4');
 
     expect(await service.get(ctx, daemon.id))
-      .toEqual(expect.objectContaining({ id: daemon.id }));
+      .toRespect({ id: daemon.id });
   });
 
   test('DaemonsService.get: by daemon', async () => {
     const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
 
     expect(await service.get(ctx, daemon.id))
-      .toEqual(expect.objectContaining({ id: daemon.id }));
+      .toRespect({ id: daemon.id });
   });
 
   test('DaemonsService.get: by user', async () => {
@@ -193,10 +192,10 @@ describe('services/daemons.service', () => {
   // - DaemonsService.update
   async function testUpdate(ctx: Context) {
     expect(await service.update(ctx, daemon.id, { name: 'Tomato' }))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         id: daemon.id,
         name: 'Tomato'
-      }));
+      });
   }
 
   test('DaemonsService.update', async () => {
@@ -224,11 +223,11 @@ describe('services/daemons.service', () => {
   // - DaemonsService.regenerateSecret
   async function testRegenerateSecret(ctx: Context) {
     expect(await service.regenerateSecret(ctx, daemon.id))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         _id: daemon._id,
         secret: should.all(should.not.hashTo(daemon.secret), should.haveLength(42)),
         tokens: []
-      }));
+      });
   }
 
   test('DaemonsService.regenerateSecret', async () => {
@@ -262,11 +261,11 @@ describe('services/daemons.service', () => {
 
     const repo = new PermissionRepository(res);
     expect(repo.getByName('daemons'))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         _id: should.objectId(),
         name: 'daemons',
         level: PLvl.READ
-      }));
+      });
   });
 
   test('DaemonsService.grant: by owner', async () => {
@@ -323,9 +322,9 @@ describe('services/daemons.service', () => {
   // - DaemonsService.deleteToken
   async function testDeleteToken(ctx: Context) {
     expect(await service.deleteToken(ctx, daemon.id, token.id))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         tokens: should.haveLength(0)
-      }));
+      });
   }
 
   test('DaemonsService.deleteToken', async () => {
@@ -353,9 +352,9 @@ describe('services/daemons.service', () => {
   // - DaemonsService.delete
   async function testDelete(ctx: Context) {
     expect(await service.delete(ctx, daemon.id))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         _id: daemon._id
-      }));
+      });
 
     expect(await DaemonModel.findById(daemon.id)).toBeNull();
   }
@@ -387,12 +386,11 @@ describe('services/daemons.service', () => {
     const ctx = TestContext.notConnected('1.2.3.4');
     const tk = await service.login(ctx, { id: daemon.id, secret: 'owner' }, ['Test']);
 
-    expect(tk)
-      .toEqual(expect.objectContaining({
-        _id: should.objectId(),
-        token: expect.any(String),
-        daemon: daemon.id
-      }));
+    expect(tk).toRespect({
+      _id: should.objectId(),
+      token: expect.any(String),
+      daemon: daemon.id
+    });
 
     const get = await DaemonModel.findById(daemon.id);
     const repo = new TokenRepository(get!);
@@ -412,9 +410,9 @@ describe('services/daemons.service', () => {
   // - DaemonsService.getByToken
   test('DaemonsService.getByToken', async () => {
     expect(await service.getByToken(daemon.id, 'roar !'))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         _id: daemon._id
-      }));
+      });
   });
 
   test('DaemonsService.getByToken: wrong id', async () => {

@@ -7,9 +7,7 @@ import { HttpError } from 'middlewares/errors';
 // Utils
 export async function shouldNotBeFound<T>(prom: Promise<T>) {
   await expect(prom)
-    .rejects.toEqual(expect.objectContaining(
-      HttpError.NotFound(expect.any(String))
-    ));
+    .rejects.toRespect(HttpError.NotFound(expect.any(String)));
 }
 
 export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
@@ -19,9 +17,7 @@ export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
 
 export async function shouldBeUnauthorized<T>(prom: Promise<T>) {
   await expect(prom)
-    .rejects.toEqual(expect.objectContaining(
-      HttpError.Unauthorized(expect.any(String))
-    ));
+    .rejects.toRespect(HttpError.Unauthorized(expect.any(String)));
 }
 
 // Matchers logic

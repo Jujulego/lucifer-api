@@ -65,9 +65,9 @@ describe('services/permissions.service', () => {
 
     const repo = new PermissionRepository(user);
     expect(repo.getByName('users'))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         level: PLvl.READ
-      }));
+      });
   });
 
   test('PermissionsService.grant: not allowed', async () => {
@@ -93,9 +93,9 @@ describe('services/permissions.service', () => {
 
     const repo = new PermissionRepository(user);
     expect(repo.getByName('daemons'))
-      .toEqual(expect.objectContaining({
+      .toRespect({
         level: PLvl.READ
-      }));
+      });
   });
 
   // - PermissionsService.elevate
