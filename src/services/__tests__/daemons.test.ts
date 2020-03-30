@@ -130,6 +130,42 @@ describe('services/daemons.service', () => {
       .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
   });
 
+  // - DaemonsService.get
+  test('DaemonsService.get', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: by owner', async () => {
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: by daemon', async () => {
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+
+    const res = await service.get(ctx, daemon.id);
+    expect(res.id).toEqual(daemon.id);
+  });
+
+  test('DaemonsService.get: by user', async () => {
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(service.get(ctx, daemon.id))
+      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+  });
+
+  test('DaemonsService.get: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await expect(service.get(ctx, 'deadbeefdeadbeefdeadbeef'))
+      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+  });
+
   // - DaemonsService.find
   test('DaemonsService.find', async () => {
     await expect(service.find(TestContext.withUser(admin, '1.2.3.4')))
@@ -172,8 +208,17 @@ describe('services/daemons.service', () => {
   });
 
   test('DaemonsService.update: by user', async () => {
-    await expect(testUpdate(TestContext.withUser(user, '1.2.3.4')))
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(service.update(ctx, daemon.id, { name: 'Tomato' }))
       .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+  });
+
+  test('DaemonsService.update: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await expect(service.update(ctx, 'deadbeefdeadbeefdeadbeef', { name: 'Tomato' }))
+      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
   });
 
   // - DaemonsService.regenerateSecret
@@ -198,7 +243,16 @@ describe('services/daemons.service', () => {
   });
 
   test('DaemonsService.regenerateSecret: by user', async () => {
-    await expect(testRegenerateSecret(TestContext.withUser(user, '1.2.3.4')))
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+
+    await expect(service.regenerateSecret(ctx, daemon.id))
       .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+  });
+
+  test('DaemonsService.regenerateSecret: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+
+    await expect(service.regenerateSecret(ctx, 'deadbeefdeadbeefdeadbeef'))
+      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
   });
 });
