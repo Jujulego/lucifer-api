@@ -68,7 +68,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     return await this.authorizer.has(ctx, 'daemons', level);
   }
 
-  protected async allow(ctx: Context, level: PLvl, id?: string | null): Promise<void> {
+  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
     if (id && await this.rights(ctx, id)) return;
     return await this.authorizer.allow(ctx, 'daemons', level);
   }
@@ -131,7 +131,8 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Is a daemon
     if (ctx.daemon) {
-      return [await ctx.daemon];
+      const daemon = await ctx.daemon;
+      return this.daemonRepo.find({ ...filter, _id: daemon.id });
     }
 
     // Is a owner

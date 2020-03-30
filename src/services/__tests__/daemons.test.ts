@@ -34,7 +34,7 @@ describe('services/daemons.service', () => {
   let user: User;
   let owner: User;
   let admin: User;
-  let daemon: Daemon;
+  let self: Daemon;
   let token: Token;
 
   beforeEach(async () => {
@@ -56,7 +56,7 @@ describe('services/daemons.service', () => {
     ]);
 
     // Create some daemons
-    [, daemon] = await Promise.all([
+    [, self] = await Promise.all([
       new DaemonModel({ user: admin.id, secret: 'admin' }).save(),
       new DaemonModel({
         user: owner.id, secret: 'owner',
@@ -65,7 +65,7 @@ describe('services/daemons.service', () => {
       }).save(),
     ]);
 
-    token = daemon.tokens[0];
+    token = self.tokens[0];
   });
 
   // Empty database
@@ -74,7 +74,7 @@ describe('services/daemons.service', () => {
       admin.remove(),
       owner.remove(),
       user.remove(),
-      daemon.remove()
+      self.remove()
     ]);
   });
 
@@ -89,13 +89,12 @@ describe('services/daemons.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     const daemon = await service.create(ctx, { name: 'Test', user: owner.id });
-    expect(daemon)
-      .toRespect({
-        _id: should.objectId(),
-        name: 'Test',
-        secret: should.haveLength(42),
-        user: owner._id
-      });
+    expect(daemon).toRespect({
+      _id: should.objectId(),
+      name: 'Test',
+      secret: should.haveLength(42),
+      user: owner._id
+    });
 
     expect(await DaemonModel.findById(daemon._id)).not.toBeNull();
   });
@@ -107,7 +106,7 @@ describe('services/daemons.service', () => {
 
   // - DaemonsService.createToken
   async function testCreateToken(ctx: Context) {
-    expect(await service.createToken(ctx, daemon.id, ['Test']))
+    expect(await service.createToken(ctx, self.id, ['Test']))
       .toRespect({
         token: expect.any(String),
         from: '1.2.3.4',
@@ -123,13 +122,13 @@ describe('services/daemons.service', () => {
     await testCreateToken(TestContext.withUser(owner, '1.2.3.4'));
   });
 
-  test('DaemonsService.createToken: by daemon', async () => {
-    await testCreateToken(TestContext.withDaemon(daemon, '1.2.3.4'));
+  test('DaemonsService.createToken: by self', async () => {
+    await testCreateToken(TestContext.withDaemon(self, '1.2.3.4'));
   });
 
   test('DaemonsService.createToken: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.createToken(ctx, daemon.id, ['Test']));
+    await should.not.beAllowed(service.createToken(ctx, self.id, ['Test']));
   });
 
   test('DaemonsService.createToken: unknown daemon', async () => {
@@ -141,27 +140,27 @@ describe('services/daemons.service', () => {
   test('DaemonsService.get', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
-    expect(await service.get(ctx, daemon.id))
-      .toRespect({ id: daemon.id });
+    expect(await service.get(ctx, self.id))
+      .toRespect({ id: self.id });
   });
 
   test('DaemonsService.get: by owner', async () => {
     const ctx = TestContext.withUser(owner, '1.2.3.4');
 
-    expect(await service.get(ctx, daemon.id))
-      .toRespect({ id: daemon.id });
+    expect(await service.get(ctx, self.id))
+      .toRespect({ id: self.id });
   });
 
-  test('DaemonsService.get: by daemon', async () => {
-    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+  test('DaemonsService.get: by self', async () => {
+    const ctx = TestContext.withDaemon(self, '1.2.3.4');
 
-    expect(await service.get(ctx, daemon.id))
-      .toRespect({ id: daemon.id });
+    expect(await service.get(ctx, self.id))
+      .toRespect({ id: self.id });
   });
 
   test('DaemonsService.get: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.get(ctx, daemon.id));
+    await should.not.beAllowed(service.get(ctx, self.id));
   });
 
   test('DaemonsService.get: unknown daemon', async () => {
@@ -180,8 +179,8 @@ describe('services/daemons.service', () => {
       .toHaveLength(1);
   });
 
-  test('DaemonsService.find: by daemon', async () => {
-    expect(await service.find(TestContext.withDaemon(daemon, '1.2.3.4')))
+  test('DaemonsService.find: by self', async () => {
+    expect(await service.find(TestContext.withDaemon(self, '1.2.3.4')))
       .toHaveLength(1);
   });
 
@@ -192,9 +191,9 @@ describe('services/daemons.service', () => {
 
   // - DaemonsService.update
   async function testUpdate(ctx: Context) {
-    expect(await service.update(ctx, daemon.id, { name: 'Tomato' }))
+    expect(await service.update(ctx, self.id, { name: 'Tomato' }))
       .toRespect({
-        id: daemon.id,
+        id: self.id,
         name: 'Tomato'
       });
   }
@@ -207,13 +206,13 @@ describe('services/daemons.service', () => {
     await testUpdate(TestContext.withUser(owner, '1.2.3.4'));
   });
 
-  test('DaemonsService.update: by daemon', async () => {
-    await testUpdate(TestContext.withDaemon(daemon, '1.2.3.4'));
+  test('DaemonsService.update: by self', async () => {
+    await testUpdate(TestContext.withDaemon(self, '1.2.3.4'));
   });
 
   test('DaemonsService.update: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.update(ctx, daemon.id, { name: 'Tomato' }));
+    await should.not.beAllowed(service.update(ctx, self.id, { name: 'Tomato' }));
   });
 
   test('DaemonsService.update: unknown daemon', async () => {
@@ -223,10 +222,10 @@ describe('services/daemons.service', () => {
 
   // - DaemonsService.regenerateSecret
   async function testRegenerateSecret(ctx: Context) {
-    expect(await service.regenerateSecret(ctx, daemon.id))
+    expect(await service.regenerateSecret(ctx, self.id))
       .toRespect({
-        _id: daemon._id,
-        secret: should.all(should.not.hashTo(daemon.secret), should.haveLength(42)),
+        _id: self._id,
+        secret: should.all(should.not.hashTo(self.secret), should.haveLength(42)),
         tokens: []
       });
   }
@@ -239,13 +238,13 @@ describe('services/daemons.service', () => {
     await testRegenerateSecret(TestContext.withUser(owner, '1.2.3.4'));
   });
 
-  test('DaemonsService.regenerateSecret: by daemon', async () => {
-    await testRegenerateSecret(TestContext.withDaemon(daemon, '1.2.3.4'));
+  test('DaemonsService.regenerateSecret: by self', async () => {
+    await testRegenerateSecret(TestContext.withDaemon(self, '1.2.3.4'));
   });
 
   test('DaemonsService.regenerateSecret: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.regenerateSecret(ctx, daemon.id));
+    await should.not.beAllowed(service.regenerateSecret(ctx, self.id));
   });
 
   test('DaemonsService.regenerateSecret: unknown daemon', async () => {
@@ -257,8 +256,8 @@ describe('services/daemons.service', () => {
   test('DaemonsService.grant', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
-    const res = await service.grant(ctx, daemon.id, 'daemons', PLvl.READ);
-    expect(res.id).toEqual(daemon.id);
+    const res = await service.grant(ctx, self.id, 'daemons', PLvl.READ);
+    expect(res.id).toEqual(self.id);
 
     const repo = new PermissionRepository(res);
     expect(repo.getByName('daemons'))
@@ -271,17 +270,17 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.grant: by owner', async () => {
     const ctx = TestContext.withUser(owner, '1.2.3.4');
-    await should.not.beAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+    await should.not.beAllowed(service.grant(ctx, self.id, 'daemons', PLvl.READ));
   });
 
-  test('DaemonsService.grant: by daemon', async () => {
-    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
-    await should.not.beAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+  test('DaemonsService.grant: by self', async () => {
+    const ctx = TestContext.withDaemon(self, '1.2.3.4');
+    await should.not.beAllowed(service.grant(ctx, self.id, 'daemons', PLvl.READ));
   });
 
   test('DaemonsService.grant: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+    await should.not.beAllowed(service.grant(ctx, self.id, 'daemons', PLvl.READ));
   });
 
   test('DaemonsService.grant: unknown daemon', async () => {
@@ -293,8 +292,8 @@ describe('services/daemons.service', () => {
   test('DaemonsService.revoke', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
-    const res = await service.revoke(ctx, daemon.id, 'users');
-    expect(res.id).toEqual(daemon.id);
+    const res = await service.revoke(ctx, self.id, 'users');
+    expect(res.id).toEqual(self.id);
 
     const repo = new PermissionRepository(res);
     expect(repo.getByName('users')).toBeNull();
@@ -302,17 +301,17 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.revoke: by owner', async () => {
     const ctx = TestContext.withUser(owner, '1.2.3.4');
-    await should.not.beAllowed(service.revoke(ctx, daemon.id, 'users'));
+    await should.not.beAllowed(service.revoke(ctx, self.id, 'users'));
   });
 
-  test('DaemonsService.revoke: by daemon', async () => {
-    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
-    await should.not.beAllowed(service.revoke(ctx, daemon.id, 'users'));
+  test('DaemonsService.revoke: by self', async () => {
+    const ctx = TestContext.withDaemon(self, '1.2.3.4');
+    await should.not.beAllowed(service.revoke(ctx, self.id, 'users'));
   });
 
   test('DaemonsService.revoke: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.revoke(ctx, daemon.id, 'users'));
+    await should.not.beAllowed(service.revoke(ctx, self.id, 'users'));
   });
 
   test('DaemonsService.revoke: unknown daemon', async () => {
@@ -322,7 +321,7 @@ describe('services/daemons.service', () => {
 
   // - DaemonsService.deleteToken
   async function testDeleteToken(ctx: Context) {
-    expect(await service.deleteToken(ctx, daemon.id, token.id))
+    expect(await service.deleteToken(ctx, self.id, token.id))
       .toRespect({
         tokens: should.haveLength(0)
       });
@@ -336,13 +335,13 @@ describe('services/daemons.service', () => {
     await testDeleteToken(TestContext.withUser(owner, '1.2.3.4'));
   });
 
-  test('DaemonsService.deleteToken: by daemon', async () => {
-    await testDeleteToken(TestContext.withDaemon(daemon, '1.2.3.4'));
+  test('DaemonsService.deleteToken: by self', async () => {
+    await testDeleteToken(TestContext.withDaemon(self, '1.2.3.4'));
   });
 
   test('DaemonsService.deleteToken: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.deleteToken(ctx, daemon.id, token.id));
+    await should.not.beAllowed(service.deleteToken(ctx, self.id, token.id));
   });
 
   test('DaemonsService.deleteToken: unknown daemon', async () => {
@@ -352,12 +351,12 @@ describe('services/daemons.service', () => {
 
   // - DaemonsService.delete
   async function testDelete(ctx: Context) {
-    expect(await service.delete(ctx, daemon.id))
+    expect(await service.delete(ctx, self.id))
       .toRespect({
-        _id: daemon._id
+        _id: self._id
       });
 
-    expect(await DaemonModel.findById(daemon.id)).toBeNull();
+    expect(await DaemonModel.findById(self.id)).toBeNull();
   }
 
   test('DaemonsService.delete', async () => {
@@ -368,13 +367,13 @@ describe('services/daemons.service', () => {
     await testDelete(TestContext.withUser(owner, '1.2.3.4'));
   });
 
-  test('DaemonsService.delete: by daemon', async () => {
-    await testDelete(TestContext.withDaemon(daemon, '1.2.3.4'));
+  test('DaemonsService.delete: by self', async () => {
+    await testDelete(TestContext.withDaemon(self, '1.2.3.4'));
   });
 
   test('DaemonsService.delete: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await should.not.beAllowed(service.delete(ctx, daemon.id));
+    await should.not.beAllowed(service.delete(ctx, self.id));
   });
 
   test('DaemonsService.delete: unknown daemon', async () => {
@@ -385,15 +384,15 @@ describe('services/daemons.service', () => {
   // - DaemonsService.login
   test('DaemonsService.login', async () => {
     const ctx = TestContext.notConnected('1.2.3.4');
-    const tk = await service.login(ctx, { id: daemon.id, secret: 'owner' }, ['Test']);
+    const tk = await service.login(ctx, { id: self.id, secret: 'owner' }, ['Test']);
 
     expect(tk).toRespect({
       _id: should.objectId(),
       token: expect.any(String),
-      daemon: daemon.id
+      daemon: self.id
     });
 
-    const get = await DaemonModel.findById(daemon.id);
+    const get = await DaemonModel.findById(self.id);
     const repo = new TokenRepository(get!);
     expect(repo.getById(tk._id)).not.toBeNull();
   });
@@ -405,14 +404,14 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.login: wrong secret', async () => {
     const ctx = TestContext.notConnected('1.2.3.4');
-    await should.beUnauthorized(service.login(ctx, { id: daemon.id, secret: 'tomato' }));
+    await should.beUnauthorized(service.login(ctx, { id: self.id, secret: 'tomato' }));
   });
 
   // - DaemonsService.getByToken
   test('DaemonsService.getByToken', async () => {
-    expect(await service.getByToken(daemon.id, 'roar !'))
+    expect(await service.getByToken(self.id, 'roar !'))
       .toRespect({
-        _id: daemon._id
+        _id: self._id
       });
   });
 
@@ -421,6 +420,6 @@ describe('services/daemons.service', () => {
   });
 
   test('DaemonsService.getByToken: wrong token', async () => {
-    await should.beUnauthorized(service.getByToken( daemon.id, 'tomato'));
+    await should.beUnauthorized(service.getByToken( self.id, 'tomato'));
   });
 });

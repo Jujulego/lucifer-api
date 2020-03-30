@@ -55,16 +55,29 @@ class Any implements jest.AsymmetricMatcher {
 }
 
 // Asymmetric Matchers
-class HashTo implements jest.AsymmetricMatcher {
+class HashOf implements jest.AsymmetricMatcher {
   // Constructor
   constructor(
-    private hashed: string,
+    private value: string,
     private not: boolean = false
   ) {}
 
   // Methods
   asymmetricMatch(other: string): boolean {
-    return this.not != bcrypt.compareSync(other, this.hashed);
+    return this.not != bcrypt.compareSync(this.value, other);
+  }
+}
+
+class HashTo implements jest.AsymmetricMatcher {
+  // Constructor
+  constructor(
+    private hash: string,
+    private not: boolean = false
+  ) {}
+
+  // Methods
+  asymmetricMatch(other: string): boolean {
+    return this.not != bcrypt.compareSync(other, this.hash);
   }
 }
 
@@ -98,6 +111,7 @@ const should = {
   any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
 
   // Matchers
+  hashOf: (value: string) => new HashOf(value),
   hashTo: (hash: string) => new HashTo(hash),
   haveLength: (length: number) => new HaveLength(length),
   objectId: () => new IsObjectId(),
@@ -109,6 +123,7 @@ const should = {
     beFound: shouldNotBeFound,
 
     // Matchers
+    hashOf: (hash: string) => new HashOf(hash, true),
     hashTo: (hash: string) => new HashTo(hash, true),
     haveLength: (length: number) => new HaveLength(length, true),
   }
