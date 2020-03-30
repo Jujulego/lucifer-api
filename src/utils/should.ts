@@ -7,15 +7,21 @@ import { HttpError } from 'middlewares/errors';
 // Utils
 export async function shouldNotBeFound<T>(prom: Promise<T>) {
   await expect(prom)
-    .rejects.toEqual(expect.objectContaining({
-      ...HttpError.NotFound(),
-      message: expect.any(String)
-    }));
+    .rejects.toEqual(expect.objectContaining(
+      HttpError.NotFound(expect.any(String))
+    ));
 }
 
 export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
   await expect(prom)
     .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+}
+
+export async function shouldBeUnauthorized<T>(prom: Promise<T>) {
+  await expect(prom)
+    .rejects.toEqual(expect.objectContaining(
+      HttpError.Unauthorized(expect.any(String))
+    ));
 }
 
 // Matchers logic
@@ -65,6 +71,9 @@ class IsObjectId implements jest.AsymmetricMatcher {
 
 // Namespace
 const should = {
+  // Utils
+  beUnauthorized: shouldBeUnauthorized,
+
   // Logic
   all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
 

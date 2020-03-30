@@ -14,6 +14,7 @@ import DaemonModel from 'data/daemon/daemon.model';
 import { PLvl } from 'data/permission/permission.enums';
 import PermissionRepository from 'data/permission/permission.repository';
 import { Token } from 'data/token/token';
+import TokenRepository from 'data/token/token.repository';
 
 import DaemonsService from '../daemons.service';
 
@@ -349,7 +350,7 @@ describe('services/daemons.service', () => {
     await should.not.beFound(service.deleteToken(ctx, 'deadbeefdeadbeefdeadbeef', token.id));
   });
 
-  // DaemonsService.delete
+  // - DaemonsService.delete
   async function testDelete(ctx: Context) {
     expect(await service.delete(ctx, daemon.id))
       .toEqual(expect.objectContaining({
@@ -379,5 +380,48 @@ describe('services/daemons.service', () => {
   test('DaemonsService.delete: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
     await should.not.beFound(service.delete(ctx, 'deadbeefdeadbeefdeadbeef'));
+  });
+
+  // - DaemonsService.login
+  test('DaemonsService.login', async () => {
+    const ctx = TestContext.notConnected('1.2.3.4');
+    const tk = await service.login(ctx, { id: daemon.id, secret: 'owner' }, ['Test']);
+
+    expect(tk)
+      .toEqual(expect.objectContaining({
+        _id: should.objectId(),
+        token: expect.any(String),
+        daemon: daemon.id
+      }));
+
+    const get = await DaemonModel.findById(daemon.id);
+    const repo = new TokenRepository(get!);
+    expect(repo.getById(tk._id)).not.toBeNull();
+  });
+
+  test('DaemonsService.login: wrong id', async () => {
+    const ctx = TestContext.notConnected('1.2.3.4');
+    await should.beUnauthorized(service.login(ctx, { id: 'deadbeefdeadbeefdeadbeef', secret: 'owner' }));
+  });
+
+  test('DaemonsService.login: wrong secret', async () => {
+    const ctx = TestContext.notConnected('1.2.3.4');
+    await should.beUnauthorized(service.login(ctx, { id: daemon.id, secret: 'tomato' }));
+  });
+
+  // - DaemonsService.getByToken
+  test('DaemonsService.getByToken', async () => {
+    expect(await service.getByToken(daemon.id, 'roar !'))
+      .toEqual(expect.objectContaining({
+        _id: daemon._id
+      }));
+  });
+
+  test('DaemonsService.getByToken: wrong id', async () => {
+    await should.beUnauthorized(service.getByToken('deadbeefdeadbeefdeadbeef', 'roar !'));
+  });
+
+  test('DaemonsService.getByToken: wrong token', async () => {
+    await should.beUnauthorized(service.getByToken( daemon.id, 'tomato'));
   });
 });

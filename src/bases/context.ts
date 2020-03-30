@@ -103,6 +103,10 @@ export class TestContext extends Context {
   static withUser(user: User, from: string): Context {
     return new TestContext({ user }, from);
   }
+
+  static notConnected(from: string): Context {
+    return new TestContext({}, from);
+  }
 }
 
 // Utils
