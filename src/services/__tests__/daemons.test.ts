@@ -3,15 +3,16 @@ import 'reflect-metadata';
 
 import * as db from 'db';
 import DIContainer, { loadServices } from 'inversify.config';
+import { shouldBeNotAllowed, shouldBeNotFound } from 'utils/tests';
 
 import Context, { TestContext } from 'bases/context';
-import { HttpError } from 'middlewares/errors';
 
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
 import { Daemon } from 'data/daemon/daemon';
 import DaemonModel from 'data/daemon/daemon.model';
 import { PLvl } from 'data/permission/permission.enums';
+import PermissionRepository from 'data/permission/permission.repository';
 
 import DaemonsService from '../daemons.service';
 
@@ -38,7 +39,10 @@ describe('services/daemons.service', () => {
     [admin, owner, user] = await Promise.all([
       new UserModel({
         email: 'admin@daemons.com', password: 'test',
-        permissions: [{ name: 'daemons', level: PLvl.ALL }]
+        permissions: [
+          { name: 'daemons', level: PLvl.ALL },
+          { name: 'permissions', level: PLvl.ALL }
+        ]
       }).save(),
       new UserModel({
         email: 'owner@daemons.com', password: 'test', admin: false
@@ -53,7 +57,8 @@ describe('services/daemons.service', () => {
       new DaemonModel({ user: admin.id, secret: 'admin' }).save(),
       new DaemonModel({
         user: owner.id, secret: 'owner',
-        tokens: [{ token: 'roar !' }]
+        tokens: [{ token: 'roar !' }],
+        permissions: [{ name: 'users', level: PLvl.READ }]
       }).save(),
     ]);
   });
@@ -90,9 +95,7 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.create: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.create(ctx, { name: 'Test', user: owner.id }))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.create(ctx, { name: 'Test', user: owner.id }));
   });
 
   // - DaemonsService.createToken
@@ -118,16 +121,12 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.createToken: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.createToken(ctx, daemon.id, ['Test']))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.createToken(ctx, daemon.id, ['Test']));
   });
 
   test('DaemonsService.createToken: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
-
-    await expect(service.createToken(ctx, 'deadbeefdeadbeefdeadbeef', ['Test']))
-      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+    await shouldBeNotFound(service.createToken(ctx, 'deadbeefdeadbeefdeadbeef', ['Test']));
   });
 
   // - DaemonsService.get
@@ -154,16 +153,12 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.get: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.get(ctx, daemon.id))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.get(ctx, daemon.id));
   });
 
   test('DaemonsService.get: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
-
-    await expect(service.get(ctx, 'deadbeefdeadbeefdeadbeef'))
-      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+    await shouldBeNotFound(service.get(ctx, 'deadbeefdeadbeefdeadbeef'));
   });
 
   // - DaemonsService.find
@@ -209,16 +204,12 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.update: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.update(ctx, daemon.id, { name: 'Tomato' }))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.update(ctx, daemon.id, { name: 'Tomato' }));
   });
 
   test('DaemonsService.update: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
-
-    await expect(service.update(ctx, 'deadbeefdeadbeefdeadbeef', { name: 'Tomato' }))
-      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+    await shouldBeNotFound(service.update(ctx, 'deadbeefdeadbeefdeadbeef', { name: 'Tomato' }));
   });
 
   // - DaemonsService.regenerateSecret
@@ -244,15 +235,47 @@ describe('services/daemons.service', () => {
 
   test('DaemonsService.regenerateSecret: by user', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.regenerateSecret(ctx, daemon.id))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.regenerateSecret(ctx, daemon.id));
   });
 
   test('DaemonsService.regenerateSecret: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
+    await shouldBeNotFound(service.regenerateSecret(ctx, 'deadbeefdeadbeefdeadbeef'));
+  });
 
-    await expect(service.regenerateSecret(ctx, 'deadbeefdeadbeefdeadbeef'))
-      .rejects.toEqual(HttpError.NotFound('No daemon found at deadbeefdeadbeefdeadbeef'));
+  // - DaemonsService.grant
+  async function testGrant(ctx: Context) {
+    const res = await service.grant(ctx, daemon.id, 'daemons', PLvl.READ);
+    expect(res.id).toEqual(daemon.id);
+
+    const repo = new PermissionRepository(res);
+    const perm = repo.getByName('daemons');
+    expect(perm).not.toBeNull();
+    expect(perm!.name).toEqual('daemons');
+    expect(perm!.level).toEqual(PLvl.READ);
+  }
+
+  test('DaemonsService.grant', async () => {
+    await testGrant(TestContext.withUser(admin, '1.2.3.4'));
+  });
+
+  test('DaemonsService.grant: by owner', async () => {
+    const ctx = TestContext.withUser(owner, '1.2.3.4');
+    await shouldBeNotAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+  });
+
+  test('DaemonsService.grant: by daemon', async () => {
+    const ctx = TestContext.withDaemon(daemon, '1.2.3.4');
+    await shouldBeNotAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+  });
+
+  test('DaemonsService.grant: by user', async () => {
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+    await shouldBeNotAllowed(service.grant(ctx, daemon.id, 'daemons', PLvl.READ));
+  });
+
+  test('DaemonsService.grant: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+    await shouldBeNotFound(service.grant(ctx, 'deadbeefdeadbeefdeadbeef', 'daemons', PLvl.READ));
   });
 });

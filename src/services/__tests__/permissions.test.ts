@@ -3,9 +3,9 @@ import 'reflect-metadata';
 
 import * as db from 'db';
 import DIContainer, { loadServices } from 'inversify.config';
+import { shouldBeNotAllowed } from 'utils/tests';
 
 import { TestContext } from 'bases/context';
-import { HttpError } from 'middlewares/errors';
 
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
@@ -72,9 +72,7 @@ describe('services/permissions.service', () => {
 
   test('PermissionsService.grant: not allowed', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.grant(ctx, user, 'users', PLvl.READ))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.grant(ctx, user, 'users', PLvl.READ));
 
     const repo = new PermissionRepository(user);
     expect(repo.getByName('users')).toBeNull();
@@ -83,7 +81,6 @@ describe('services/permissions.service', () => {
   // - PermissionsService.revoke
   test('PermissionsService.revoke', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
-
     await service.revoke(ctx, user, 'daemons');
 
     const repo = new PermissionRepository(user);
@@ -92,9 +89,7 @@ describe('services/permissions.service', () => {
 
   test('PermissionsService.revoke: not allowed', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-
-    await expect(service.revoke(ctx, user, 'daemons'))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+    await shouldBeNotAllowed(service.revoke(ctx, user, 'daemons'));
 
     const repo = new PermissionRepository(user);
     const perm = repo.getByName('daemons');
@@ -109,7 +104,6 @@ describe('services/permissions.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.elevate(ctx, user);
-
     expect(user.admin).toBeTruthy();
   });
 
@@ -118,7 +112,6 @@ describe('services/permissions.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     await service.elevate(ctx, admin, false);
-
     expect(admin.admin).toBeFalsy();
   });
 
@@ -126,9 +119,7 @@ describe('services/permissions.service', () => {
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    await expect(service.elevate(ctx, user))
-      .rejects.toEqual(HttpError.Forbidden('Not allowed'));
-
+    await shouldBeNotAllowed(service.elevate(ctx, user));
     expect(user.admin).toBeFalsy();
   });
 });
