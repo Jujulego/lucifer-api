@@ -6,18 +6,15 @@ import { HttpError } from 'middlewares/errors';
 
 // Utils
 export async function shouldNotBeFound<T>(prom: Promise<T>) {
-  await expect(prom)
-    .rejects.toRespect(HttpError.NotFound(expect.any(String)));
+  await expect(prom).rejects.toRespect(HttpError.NotFound(expect.any(String)));
 }
 
 export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
-  await expect(prom)
-    .rejects.toEqual(HttpError.Forbidden('Not allowed'));
+  await expect(prom).rejects.toEqual(HttpError.Forbidden('Not allowed'));
 }
 
 export async function shouldBeUnauthorized<T>(prom: Promise<T>) {
-  await expect(prom)
-    .rejects.toRespect(HttpError.Unauthorized(expect.any(String)));
+  await expect(prom).rejects.toRespect(HttpError.Unauthorized(expect.any(String)));
 }
 
 // Matchers logic
@@ -27,7 +24,33 @@ class All implements jest.AsymmetricMatcher {
 
   // Methods
   asymmetricMatch(other: unknown): boolean {
-    return this.matchers.reduce<boolean>((res, matcher) => res && matcher.asymmetricMatch(other), true);
+    let res = true;
+    let i = 0;
+
+    while (res && i < this.matchers.length) {
+      res = res && this.matchers[i].asymmetricMatch(other);
+      ++i;
+    }
+
+    return res;
+  }
+}
+
+class Any implements jest.AsymmetricMatcher {
+  // Constructor
+  constructor(private matchers: jest.AsymmetricMatcher[]) {}
+
+  // Methods
+  asymmetricMatch(other: unknown): boolean {
+    let res = false;
+    let i = 0;
+
+    while (!res && i < this.matchers.length) {
+      res = res || this.matchers[i].asymmetricMatch(other);
+      ++i;
+    }
+
+    return res;
   }
 }
 
@@ -72,6 +95,7 @@ const should = {
 
   // Logic
   all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
+  any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
 
   // Matchers
   hashTo: (hash: string) => new HashTo(hash),

@@ -89,12 +89,13 @@ describe('services/daemons.service', () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
 
     const daemon = await service.create(ctx, { name: 'Test', user: owner.id });
-    expect(daemon).toRespect({
-      _id: should.objectId(),
-      name: 'Test',
-      secret: should.haveLength(42),
-      user: owner._id
-    });
+    expect(daemon)
+      .toRespect({
+        _id: should.objectId(),
+        name: 'Test',
+        secret: should.haveLength(42),
+        user: owner._id
+      });
 
     expect(await DaemonModel.findById(daemon._id)).not.toBeNull();
   });
