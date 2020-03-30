@@ -3,7 +3,7 @@ import 'reflect-metadata';
 
 import * as db from 'db';
 import DIContainer, { loadServices } from 'inversify.config';
-import { shouldBeNotAllowed } from 'utils/tests';
+import should from 'utils/should';
 
 import { TestContext } from 'bases/context';
 
@@ -93,6 +93,6 @@ describe('services/authorize.service', () => {
     const service = DIContainer.get(AuthorizeService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    await shouldBeNotAllowed(service.allow(ctx, 'daemons', PLvl.READ));
+    await should.not.beAllowed(service.allow(ctx, 'daemons', PLvl.READ));
   });
 });

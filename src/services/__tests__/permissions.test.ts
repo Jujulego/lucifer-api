@@ -3,7 +3,7 @@ import 'reflect-metadata';
 
 import * as db from 'db';
 import DIContainer, { loadServices } from 'inversify.config';
-import { shouldBeNotAllowed } from 'utils/tests';
+import should from 'utils/should';
 
 import { TestContext } from 'bases/context';
 
@@ -64,15 +64,15 @@ describe('services/permissions.service', () => {
     await service.grant(ctx, user, 'users', PLvl.READ);
 
     const repo = new PermissionRepository(user);
-    const perm = repo.getByName('users');
-
-    expect(perm).not.toBeNull();
-    expect(perm!.level).toEqual(PLvl.READ);
+    expect(repo.getByName('users'))
+      .toEqual(expect.objectContaining({
+        level: PLvl.READ
+      }));
   });
 
   test('PermissionsService.grant: not allowed', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await shouldBeNotAllowed(service.grant(ctx, user, 'users', PLvl.READ));
+    await should.not.beAllowed(service.grant(ctx, user, 'users', PLvl.READ));
 
     const repo = new PermissionRepository(user);
     expect(repo.getByName('users')).toBeNull();
@@ -89,13 +89,13 @@ describe('services/permissions.service', () => {
 
   test('PermissionsService.revoke: not allowed', async () => {
     const ctx = TestContext.withUser(user, '1.2.3.4');
-    await shouldBeNotAllowed(service.revoke(ctx, user, 'daemons'));
+    await should.not.beAllowed(service.revoke(ctx, user, 'daemons'));
 
     const repo = new PermissionRepository(user);
-    const perm = repo.getByName('daemons');
-
-    expect(perm).not.toBeNull();
-    expect(perm!.level).toEqual(PLvl.READ);
+    expect(repo.getByName('daemons'))
+      .toEqual(expect.objectContaining({
+        level: PLvl.READ
+      }));
   });
 
   // - PermissionsService.elevate
@@ -119,7 +119,7 @@ describe('services/permissions.service', () => {
     const service = DIContainer.get(PermissionsService);
     const ctx = TestContext.withUser(user, '1.2.3.4');
 
-    await shouldBeNotAllowed(service.elevate(ctx, user));
+    await should.not.beAllowed(service.elevate(ctx, user));
     expect(user.admin).toBeFalsy();
   });
 });
