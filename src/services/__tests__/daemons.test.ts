@@ -13,6 +13,7 @@ import { Daemon } from 'data/daemon/daemon';
 import DaemonModel from 'data/daemon/daemon.model';
 import { PLvl } from 'data/permission/permission.enums';
 import PermissionRepository from 'data/permission/permission.repository';
+import { Token } from 'data/token/token';
 
 import DaemonsService from '../daemons.service';
 
@@ -33,6 +34,7 @@ describe('services/daemons.service', () => {
   let owner: User;
   let admin: User;
   let daemon: Daemon;
+  let token: Token;
 
   beforeEach(async () => {
     // Create some users
@@ -61,6 +63,8 @@ describe('services/daemons.service', () => {
         permissions: [{ name: 'users', level: PLvl.READ }]
       }).save(),
     ]);
+
+    token = daemon.tokens[0];
   });
 
   // Empty database
@@ -92,7 +96,7 @@ describe('services/daemons.service', () => {
         user: owner._id
       }));
 
-    expect(DaemonModel.findById(daemon._id)).not.toBeNull();
+    expect(await DaemonModel.findById(daemon._id)).not.toBeNull();
   });
 
   test('DaemonsService.create: by user', async () => {
@@ -313,5 +317,67 @@ describe('services/daemons.service', () => {
   test('DaemonsService.revoke: unknown daemon', async () => {
     const ctx = TestContext.withUser(admin, '1.2.3.4');
     await should.not.beFound(service.revoke(ctx, 'deadbeefdeadbeefdeadbeef', 'users'));
+  });
+
+  // - DaemonsService.deleteToken
+  async function testDeleteToken(ctx: Context) {
+    expect(await service.deleteToken(ctx, daemon.id, token.id))
+      .toEqual(expect.objectContaining({
+        tokens: should.haveLength(0)
+      }));
+  }
+
+  test('DaemonsService.deleteToken', async () => {
+    await testDeleteToken(TestContext.withUser(admin, '1.2.3.4'));
+  });
+
+  test('DaemonsService.deleteToken: by owner', async () => {
+    await testDeleteToken(TestContext.withUser(owner, '1.2.3.4'));
+  });
+
+  test('DaemonsService.deleteToken: by daemon', async () => {
+    await testDeleteToken(TestContext.withDaemon(daemon, '1.2.3.4'));
+  });
+
+  test('DaemonsService.deleteToken: by user', async () => {
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+    await should.not.beAllowed(service.deleteToken(ctx, daemon.id, token.id));
+  });
+
+  test('DaemonsService.deleteToken: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+    await should.not.beFound(service.deleteToken(ctx, 'deadbeefdeadbeefdeadbeef', token.id));
+  });
+
+  // DaemonsService.delete
+  async function testDelete(ctx: Context) {
+    expect(await service.delete(ctx, daemon.id))
+      .toEqual(expect.objectContaining({
+        _id: daemon._id
+      }));
+
+    expect(await DaemonModel.findById(daemon.id)).toBeNull();
+  }
+
+  test('DaemonsService.delete', async () => {
+    await testDelete(TestContext.withUser(admin, '1.2.3.4'));
+  });
+
+  test('DaemonsService.delete: by owner', async () => {
+    await testDelete(TestContext.withUser(owner, '1.2.3.4'));
+  });
+
+  test('DaemonsService.delete: by daemon', async () => {
+    await testDelete(TestContext.withDaemon(daemon, '1.2.3.4'));
+  });
+
+  test('DaemonsService.delete: by user', async () => {
+    const ctx = TestContext.withUser(user, '1.2.3.4');
+    await should.not.beAllowed(service.delete(ctx, daemon.id));
+  });
+
+  test('DaemonsService.delete: unknown daemon', async () => {
+    const ctx = TestContext.withUser(admin, '1.2.3.4');
+    await should.not.beFound(service.delete(ctx, 'deadbeefdeadbeefdeadbeef'));
   });
 });
