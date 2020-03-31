@@ -48,7 +48,7 @@
     "typescript": "^3.7.5"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.prod.json",
     "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
     "test": "jest",
     "wizard": "snyk wizard"
