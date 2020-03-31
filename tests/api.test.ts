@@ -24,7 +24,7 @@ describe('api', () => {
   });
 
   // Tests
-  test('/api/version', async () => {
+  test('GET /api/version', async () => {
     const rep = await request.get('/api/version')
       .expect(200)
       .expect('Content-Type', /json/);

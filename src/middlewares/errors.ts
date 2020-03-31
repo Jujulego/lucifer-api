@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from 'express';
 
 // Class
-export class HttpError extends Error {
+export class HttpError implements Error {
   // Attributes
   readonly name: string;
   readonly message: string;
@@ -9,7 +9,6 @@ export class HttpError extends Error {
 
   // Constructor
   constructor(code: number, message: string, name: string = 'HttpError') {
-    super();
     this.name = name;
     this.message = message;
     this.code = code;
