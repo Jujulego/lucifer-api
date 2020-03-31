@@ -1,3 +1,5 @@
+/// <references types="express" />
+
 declare namespace Express {
   // noinspection JSUnusedGlobalSymbols
   interface Request {

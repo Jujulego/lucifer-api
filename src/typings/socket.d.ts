@@ -1,3 +1,5 @@
+/// <references types="socket.io" />
+
 declare namespace SocketIO {
   // noinspection JSUnusedGlobalSymbols
   interface Socket {

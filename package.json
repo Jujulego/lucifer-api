@@ -49,7 +49,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.prod.json",
-    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "start": "nodemon --exec ts-node --files -r tsconfig-paths/register src/server.ts",
     "test": "jest",
     "wizard": "snyk wizard"
   }
