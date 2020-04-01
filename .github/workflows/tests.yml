@@ -4,9 +4,6 @@
 name: Tests
 
 on:
-  push:
-    branches: [ master, dev ]
-
   pull_request:
     branches: [ master, dev ]
 
@@ -14,19 +11,20 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [10.x, 12.x]
-
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: Use Node.js 12.x
         uses: actions/setup-node@v1
         with:
-          node-version: ${{ matrix.node-version }}
-      - run: yarn install --pure-lockfile
-      - run: yarn test
+          node-version: 12.x
+
+      - name: Tests
         env:
           CI: true
+        run: |
+          yarn install --pure-lockfile
+          yarn test
+
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6

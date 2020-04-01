@@ -1,0 +1,66 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Test & Build Docker image
+
+on:
+  push:
+    branches: [ master, dev ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Tests
+        env:
+          CI: true
+        run: |
+          yarn install --pure-lockfile
+          yarn test
+
+      - name: Codecov
+        uses: codecov/codecov-action@v1.0.6
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [tests]
+
+    env:
+      IMAGE_NAME: docker.pkg.github.com/jujulego/lucifer-api/lucifer-api
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js 12.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+
+      - name: Build
+        run: |
+          yarn install --pure-lockfile
+          yarn run build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: lucifer-api
+          path: build
+
+      - name: Build Docker image
+        run: docker build . --tag lucifer-api
+
+      - name: Push Docker image
+        run: |
+          docker login docker.pkg.github.com -u jujulego -p ${{ secrets.GITHUB_TOKEN }}
+
+          docker tag lucifer-api $IMAGE_NAME:${GITHUB_REF##*/}
+          docker push $IMAGE_NAME:${GITHUB_REF##*/}
