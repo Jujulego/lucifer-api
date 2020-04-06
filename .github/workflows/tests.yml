@@ -19,6 +19,17 @@ jobs:
         with:
           node-version: 12.x
 
+      - name: Setup
+        id: setup
+        run: echo "::set-output name=yarn-cache::$(yarn cache dir)"
+        
+      - name: Cache
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.setup.outputs.yarn-cache }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
       - name: Tests
         env:
           CI: true
