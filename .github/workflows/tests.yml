@@ -23,19 +23,19 @@ jobs:
         id: setup
         run: echo "::set-output name=yarn-cache::$(yarn cache dir)"
         
-      - name: Cache
-        uses: actions/cache@v1
+      - uses: actions/cache@v1
         with:
           path: ${{ steps.setup.outputs.yarn-cache }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
 
+      - name: Install dependencies
+        run: yarn install --pure-lockfile
+
       - name: Tests
         env:
           CI: true
-        run: |
-          yarn install --pure-lockfile
-          yarn test
+        run: yarn test
 
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
