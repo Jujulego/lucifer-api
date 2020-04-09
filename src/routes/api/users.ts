@@ -25,7 +25,7 @@ router.param('id', checkParam(validator.isMongoId));
 
 // Routes
 // - create user
-router.post('/user/',
+router.post('/',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
     // Containers
@@ -39,7 +39,7 @@ router.post('/user/',
 );
 
 // - create user token
-router.post('/user/:id/token',
+router.post('/:id/token',
   aroute(async (req, res) => {
     // Containers
     const Users = DIContainer.get(UsersService);
@@ -49,7 +49,7 @@ router.post('/user/:id/token',
 );
 
 // - get user
-router.get('/user/:id',
+router.get('/:id',
   aroute(async (req, res) => {
     // Containers
     const Users = DIContainer.get(UsersService);
@@ -59,7 +59,7 @@ router.get('/user/:id',
 );
 
 // - find users
-router.get('/users/',
+router.get('/',
   check({ query: { email: validator.isEmail } }),
   aroute(async (req, res) => {
     // Containers
@@ -71,7 +71,7 @@ router.get('/users/',
 );
 
 // - update user
-router.put('/user/:id',
+router.put('/:id',
   check({ body: { email: validator.isEmail }}),
   aroute(async (req, res) => {
     // Containers
@@ -82,7 +82,7 @@ router.put('/user/:id',
 );
 
 // - grant user
-router.put('/user/:id/grant',
+router.put('/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
     // Containers
@@ -93,7 +93,7 @@ router.put('/user/:id/grant',
 );
 
 // - elevate user
-router.put('/user/:id/elevate',
+router.put('/:id/elevate',
   check({ body: { admin: validator.isBoolean }}),
   aroute(async (req, res) => {
     // Containers
@@ -104,7 +104,7 @@ router.put('/user/:id/elevate',
 );
 
 // - revoke user
-router.put('/user/:id/revoke',
+router.put('/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
     // Containers
@@ -115,7 +115,7 @@ router.put('/user/:id/revoke',
 );
 
 // - delete user token
-router.delete('/user/:id/token/:token',
+router.delete('/:id/token/:token',
   aroute(async (req, res) => {
     // Containers
     const Users = DIContainer.get(UsersService);
@@ -125,7 +125,7 @@ router.delete('/user/:id/token/:token',
 );
 
 // - delete user
-router.delete('/user/:id',
+router.delete('/:id',
   aroute(async (req, res) => {
     // Containers
     const Users = DIContainer.get(UsersService);
