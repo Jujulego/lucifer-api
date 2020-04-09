@@ -116,7 +116,8 @@ module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
 
   // A list of paths to directories that Jest should use to search for files in
   roots: [
-    "src"
+    "src",
+    "tests"
   ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
@@ -126,7 +127,9 @@ module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
   // setupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // setupFilesAfterEnv: [],
+  setupFilesAfterEnv: [
+    "<rootDir>/src/jest.setup.js"
+  ],
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],

@@ -3,7 +3,7 @@ import { Permission } from 'data/permission/permission';
 import PermissionHolder from 'data/permission/permission.holder';
 
 // Repository
-class PermissionRepository<H extends PermissionHolder> {
+class PermissionRepository<H extends PermissionHolder = PermissionHolder> {
   // Constructor
   constructor(private holder: H) {}
 

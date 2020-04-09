@@ -5,18 +5,17 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { PName, PLvl } from 'data/permission/permission.enums';
+import { PLvl, PName } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token';
 import TokenRepository from 'data/token/token.repository';
-import { User, Credentials, SimpleUser } from 'data/user/user';
-import { UserCreate, UserFilter, UserUpdate } from 'data/user/user';
+import { Credentials, SimpleUser, User, UserCreate, UserFilter, UserUpdate } from 'data/user/user';
 import UserRepository from 'data/user/user.repository';
 
 import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 
-import { Service, parseLRN } from 'utils';
+import { parseLRN, Service } from 'utils';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
@@ -43,10 +42,23 @@ class UsersService extends DataEmitter<User> {
     return omit(user, ['permissions', 'tokens']);
   }
 
-  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
-    if (id && ctx.user && (await ctx.user).id === id) return;
+  private async rights(ctx: Context, id: string): Promise<boolean> {
+    if (ctx.user) { // User override
+      const user = await ctx.user;
+      if (user.id === id) return true
+    }
 
-    await this.authorizer.allow(ctx, "users", level);
+    return false;
+  }
+
+  protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
+    if (id && await this.rights(ctx, id)) return true;
+    return await this.authorizer.has(ctx, 'users', level);
+  }
+
+  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
+    if (id && await this.rights(ctx, id)) return;
+    return await this.authorizer.allow(ctx, 'users', level);
   }
 
   protected async getUser(id: string): Promise<User> {
@@ -85,7 +97,7 @@ class UsersService extends DataEmitter<User> {
     const token = await this.generateToken(ctx, user, false, tags);
     this.emitUpdate(user);
 
-    return token;
+    return token.toObject();
   }
 
   async get(ctx: Context, id: string): Promise<User> {
@@ -96,18 +108,18 @@ class UsersService extends DataEmitter<User> {
   }
 
   async find(ctx: Context, filter: UserFilter = {}): Promise<SimpleUser[]> {
-    try {
-      await this.allow(ctx, PLvl.READ);
-
-      // Find users
+    // Has rights
+    if (await this.hasRights(ctx, PLvl.READ)) {
       return this.userRepo.find(filter);
-    } catch (error) {
-      if (error instanceof HttpError && error.code === 403) {
-        return ctx.user ? [await ctx.user] : [];
-      }
-
-      throw error;
     }
+
+    // Is a user
+    if (ctx.user) {
+      const user = await ctx.user;
+      return this.userRepo.find({ ...filter, _id: user.id });
+    }
+
+    return [];
   }
 
   async update(ctx: Context, id: string, update: UserUpdate): Promise<User> {

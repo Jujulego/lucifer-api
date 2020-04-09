@@ -100,8 +100,12 @@ export class TestContext extends Context {
     return new TestContext({ daemon }, from);
   }
 
-  static withUser(user: User, from: string): Context {
-    return new TestContext({ user }, from);
+  static withUser(user: User, from: string, token?: Token): Context {
+    return new TestContext({ user, token }, from);
+  }
+
+  static notConnected(from: string): Context {
+    return new TestContext({}, from);
   }
 }
 
