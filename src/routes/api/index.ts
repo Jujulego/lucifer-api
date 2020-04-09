@@ -16,7 +16,7 @@ router.get('/version', aroute(async (req, res) => {
 }));
 
 router.use(auth);
-router.use(daemons);
+router.use('/daemons', daemons);
 router.use(users);
 
 router.use((req) => {
