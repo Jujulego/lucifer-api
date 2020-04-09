@@ -94,10 +94,28 @@ class HaveLength implements jest.AsymmetricMatcher {
   }
 }
 
+class Validator<T = any> implements jest.AsymmetricMatcher {
+  // Constructor
+  constructor(
+    private validator: (value: T) => boolean,
+    private not: boolean = false
+  ) {}
+
+  // Methods
+  asymmetricMatch(other: T): boolean {
+    return this.not != this.validator(other);
+  }
+}
+
 class IsObjectId implements jest.AsymmetricMatcher {
+  // Constructor
+  constructor(
+    private not: boolean = false
+  ) {}
+
   // Methods
   asymmetricMatch(other?: Types.ObjectId | string): boolean {
-    return !!other && validator.isMongoId(other.toString());
+    return this.not != (!!other && validator.isMongoId(other.toString()));
   }
 }
 
@@ -116,6 +134,8 @@ const should = {
   haveLength: (length: number) => new HaveLength(length),
   objectId: () => new IsObjectId(),
 
+  validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator),
+
   // Inverted
   not: {
     // Utils
@@ -126,6 +146,9 @@ const should = {
     hashOf: (hash: string) => new HashOf(hash, true),
     hashTo: (hash: string) => new HashTo(hash, true),
     haveLength: (length: number) => new HaveLength(length, true),
+    objectId: () => new IsObjectId(true),
+
+    validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator, true),
   }
 };
 
