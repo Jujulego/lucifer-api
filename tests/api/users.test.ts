@@ -5,6 +5,7 @@ import 'reflect-metadata';
 import app from 'app';
 import * as db from 'db';
 import { loadServices } from 'inversify.config';
+import { should } from 'utils';
 
 import { PLvl } from 'data/permission/permission.enums';
 import UserModel from 'data/user/user.model';
@@ -29,9 +30,7 @@ describe('api/users', () => {
   let self: User;
   let user: User;
 
-  let tokenA: string;
-  let tokenS: string;
-  let tokenU: string;
+  let token: string;
 
   beforeEach(async () => {
     // Create some users
@@ -53,9 +52,8 @@ describe('api/users', () => {
     ]);
 
     // Get tokens
-    tokenA = (await userLogin({ email: 'admin@api.users.com', password: 'test' }, '1.2.3.4')).token;
-    tokenS = (await userLogin({ email: 'self@api.users.com', password: 'test' }, '1.2.3.4')).token;
-    tokenU = (await userLogin({ email: 'user@api.users.com', password: 'test' }, '1.2.3.4')).token;
+    token = (await userLogin({ email: 'admin@api.users.com', password: 'test' }, '1.2.3.4')).token;
+    await userLogin({ email: 'self@api.users.com', password: 'test' }, '1.2.3.4');
   });
 
   // Empty database
@@ -73,38 +71,31 @@ describe('api/users', () => {
   });
 
   // Tests
-  test('GET /api/user/:id', async () => {
-    const rep = await request.get(`/api/user/${self.id}`)
-      .set('Authorization', `Bearer ${tokenA}`)
+  // - get all users
+  test('GET /api/users', async () => {
+    const rep = await request.get(`/api/users`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body._id).toEqual(self.id.toString());
+    expect(rep.body).toEqual(expect.arrayContaining([
+      should.simpleUser({ _id: admin.id.toString() }),
+      should.simpleUser({ _id: self.id.toString() }),
+      should.simpleUser({ _id: user.id.toString(), lastConnexion: undefined })
+    ]));
   });
 
-  test('GET /api/user/:id (as self)', async () => {
-    const rep = await request.get(`/api/user/${self.id}`)
-      .set('Authorization', `Bearer ${tokenS}`)
+  // - get a user
+  test('GET /api/users/:id', async () => {
+    const rep = await request.get(`/api/users/${self.id}`)
+      .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body._id).toEqual(self.id.toString());
-  });
-
-  test('GET /api/user/:id (as user)', async () => {
-    const rep = await request.get(`/api/user/${self.id}`)
-      .set('Authorization', `Bearer ${tokenU}`)
-      .expect(403)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toRespect({ code: 403, error: 'Not allowed' });
-  });
-
-  test('GET /api/user/:id (not connected)', async () => {
-    const rep = await request.get(`/api/user/${self.id}`)
-      .expect(401)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toRespect({ code: 401, error: expect.any(String) });
+    expect(rep.body).toEqual(should.user({
+      _id: self.id.toString(),
+      permissions: [should.permission('daemons', PLvl.READ)],
+      tokens: [should.token(['Tests'])]
+    }));
   });
 });
