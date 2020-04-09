@@ -5,5 +5,6 @@ declare namespace jest {
   interface Matchers<R> {
     // Matchers
     toRespect(matcher: jest.AsymmetricMatcher | object | Array<any>): R
+    toValidate<E = any>(validator: (value: E) => void): R
   }
 }
