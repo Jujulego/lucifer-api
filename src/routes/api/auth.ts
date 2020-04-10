@@ -17,7 +17,7 @@ import DaemonsService from 'services/daemons.service';
 const router = Router();
 
 // Routes
-router.post('/signin',
+router.post('/users/signin',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
     // Containers
@@ -30,7 +30,7 @@ router.post('/signin',
   })
 );
 
-router.post('/login',
+router.post('/users/login',
   required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
     // Containers

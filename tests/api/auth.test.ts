@@ -6,14 +6,15 @@ import app from 'app';
 import * as db from 'db';
 import { loadServices } from 'inversify.config';
 
-import { PLvl } from 'data/permission/permission.enums';
 import UserModel from 'data/user/user.model';
 import { User } from 'data/user/user';
 
 import { userLogin } from '../utils';
+import { should } from '../../src/utils';
+import validator from 'validator';
 
 // Tests
-describe('api/users', () => {
+describe('api/auth', () => {
   // Server setup
   let request: ReturnType<typeof supertest>;
 
@@ -26,42 +27,25 @@ describe('api/users', () => {
 
   // Fill database
   let admin: User;
-  let self: User;
-  let user: User;
-
-  let tokenA: string;
-  let tokenU: string;
+  let token: string;
 
   beforeEach(async () => {
     // Create some users
-    [admin, self, user] = await Promise.all([
+    [admin] = await Promise.all([
       new UserModel({
         email: 'admin@api.auth.com', password: 'test',
-        permissions: [
-          { name: 'users', level: PLvl.ALL },
-          { name: 'permissions', level: PLvl.ALL }
-        ],
-      }).save(),
-      new UserModel({
-        email: 'self@api.auth.com', password: 'test', admin: false,
-        permissions: [{ name: 'daemons', level: PLvl.READ }],
-      }).save(),
-      new UserModel({
-        email: 'user@api.auth.com', password: 'test', admin: false
+        admin: true,
       }).save(),
     ]);
 
     // Get tokens
-    tokenA = (await userLogin({ email: 'admin@api.auth.com', password: 'test' }, '1.2.3.4')).token;
-    tokenU = (await userLogin({ email: 'user@api.auth.com', password: 'test' }, '1.2.3.4')).token;
+    token = (await userLogin({ email: 'admin@api.auth.com', password: 'test' }, '1.2.3.4')).token;
   });
 
   // Empty database
   afterEach(async () => {
     await Promise.all([
       admin.remove(),
-      self.remove(),
-      user.remove(),
     ])
   });
 
@@ -71,21 +55,59 @@ describe('api/users', () => {
   });
 
   // Tests
-  // - get a user
-  test('GET /api/users/:id', async () => {
-    const rep = await request.get(`/api/users/${self.id}`)
-      .set('Authorization', `Bearer ${tokenA}`)
+  // - user login
+  test('POST /api/users/login', async () => {
+    const rep = await request.post('/api/users/login')
+      .send({ email: 'admin@api.auth.com', password: 'test', tags: ['Tests'] })
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body._id).toEqual(self.id.toString());
+    expect(rep.body).toEqual({
+      _id: should.objectId(),
+      token: should.validate(validator.isJWT),
+      user: admin.id.toString()
+    });
   });
 
-  test('GET /api/users/:id (not connected)', async () => {
-    const rep = await request.get(`/api/users/${self.id}`)
+  test('POST /api/users/login (wrong credentials)', async () => {
+    const rep = await request.post('/api/users/login')
+      .send({ email: 'wrong@api.auth.com', password: 'test', tags: ['Tests'] })
       .expect(401)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toRespect({ code: 401, error: expect.any(String) });
+    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
+  });
+
+  test('POST /api/users/login (invalid email)', async () => {
+    const rep = await request.post('/api/users/login')
+      .send({ email: 'wrong', password: 'test', tags: ['Tests'] })
+      .expect(400)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
+  });
+
+  test('POST /api/users/login (missing credentials)', async () => {
+    const rep = await request.post('/api/users/login')
+      .expect(400)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
+  });
+
+  // - connexion check
+  test('GET /api/users/:id (connected)', async () => {
+    await request.get(`/api/users/${admin.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
+  });
+
+  test('GET /api/users/:id (not connected)', async () => {
+    const rep = await request.get(`/api/users/${admin.id}`)
+      .expect(401)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
   });
 });
