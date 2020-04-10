@@ -20,8 +20,8 @@ describe('services/permissions.service', () => {
   let service: PermissionsService;
 
   beforeAll(async () => {
-    await db.connect();
     loadServices();
+    await db.connect();
 
     service = DIContainer.get(PermissionsService);
   });

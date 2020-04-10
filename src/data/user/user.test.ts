@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
 import * as db from 'db';
+import { loadServices } from 'inversify.config';
+import { parseLRN } from 'utils';
 
 import { Token } from 'data/token/token';
 
@@ -9,12 +11,13 @@ import { User } from './user';
 import UserModel from './user.model';
 import UserRepository from './user.repository';
 
-import { parseLRN } from 'utils';
-
 // Tests
 describe('data/user', () => {
   // Connect to database
-  beforeAll(db.connect);
+  beforeAll(async () => {
+    loadServices();
+    await db.connect();
+  });
 
   // Fill database
   let users: User[] = [];

@@ -2,6 +2,8 @@ import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 
 import * as db from 'db';
+import { loadServices } from 'inversify.config';
+import { parseLRN } from 'utils';
 
 import { Token } from 'data/token/token';
 import { User } from 'data/user/user';
@@ -11,12 +13,13 @@ import { Daemon } from './daemon';
 import DaemonModel from './daemon.model';
 import DaemonRepository from './daemon.repository';
 
-import { parseLRN } from 'utils';
-
 // Tests
 describe('data/daemon', () => {
   // Connect to database
-  beforeAll(db.connect);
+  beforeAll(async () => {
+    loadServices();
+    await db.connect();
+  });
 
   // Fill database
   let user1: User;
