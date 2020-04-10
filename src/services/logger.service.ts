@@ -27,13 +27,41 @@ class LoggerService {
   constructor() {
     // Start level based on env
     const level = env.LOG_LEVEL.toUpperCase();
-    if (isLogLevel(level)) this._level = LogLevel[level];
+    if (isLogLevel(level)) {
+      this._level = LogLevel[level];
+    } else if (env.PRODUCTION) {
+      this._level = LogLevel.INFO;
+    }
   }
 
   // Methods
   log(level: LogLevel, msg: string) {
     if (level >= this._level) {
-      this.stream.write(`${msg}\n`);
+      let line: string;
+
+      switch (level) {
+        case LogLevel.CRITICAL:
+          line = `\x1b[m\x1b[31;1m${msg}\x1b[m`; // bold red
+          break;
+
+        case LogLevel.ERROR:
+          line = `\x1b[m\x1b[31m${msg}\x1b[m`; // red
+          break;
+
+        case LogLevel.WARNING:
+          line = `\x1b[m\x1b[33m${msg}\x1b[m`; // yellow
+          break;
+
+        case LogLevel.DEBUG:
+          line = `\x1b[m\x1b[34m${msg}\x1b[m`; // blue
+          break;
+
+        case LogLevel.INFO:
+        default:
+          line = msg;
+      }
+
+      this.stream.write(line + '\n');
     }
   }
 
