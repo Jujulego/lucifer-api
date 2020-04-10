@@ -179,8 +179,8 @@ const should = {
   permission(name: PName, level: PLvl) { return shouldPermission(this, name, level); },
   token(tags: string[] = []) { return shouldToken(this, tags); },
 
-  simpleUser(others: object) { return shouldSimpleUser(this, others); },
-  user(others: object) { return shouldUser(this, others); },
+  simpleUser(others: object = {}) { return shouldSimpleUser(this, others); },
+  user(others: object = {}) { return shouldUser(this, others); },
 
   // Inverted
   not: {

@@ -83,7 +83,7 @@ router.put('/:id',
 
 // - grant user
 router.put('/:id/grant',
-  required({ body: { name: isPName }}),
+  required({ body: { name: isPName, level: true }}),
   aroute(async (req, res) => {
     // Containers
     const Users = DIContainer.get(UsersService);
