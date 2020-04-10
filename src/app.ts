@@ -5,8 +5,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 
 import api from 'routes/api';
-
-import 'inversify.config';
+import { LoggerStream, LogLevel } from './services/logger.service';
 
 // Application
 const app = express();
@@ -15,7 +14,7 @@ const app = express();
 app.set('trust poxy', true);
 
 // Middlewares
-app.use(morgan('dev'));
+app.use(morgan('dev', { stream: new LoggerStream(LogLevel.INFO) }));
 app.use(helmet());
 app.use(cors());
 

@@ -35,6 +35,7 @@ jobs:
       - name: Tests
         env:
           CI: true
+          LOG_LEVEL: WARNING
         run: yarn test
 
       - name: Codecov

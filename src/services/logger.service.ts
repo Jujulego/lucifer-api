@@ -1,4 +1,5 @@
 import env from 'env';
+import DIContainer from 'inversify.config';
 
 import { Service } from 'utils';
 
@@ -77,6 +78,26 @@ class LoggerService {
 
   set level(level: LogLevel) {
     this._level = level;
+  }
+}
+
+// Stream
+export class LoggerStream {
+  // Attributes
+  private logger: LoggerService | null = null;
+
+  // Constructor
+  constructor(
+    private readonly level: LogLevel
+  ) {}
+
+  // Methods
+  write(msg: string) {
+    if (!this.logger) {
+      this.logger = DIContainer.get(LoggerService)
+    }
+
+    this.logger.log(this.level, msg);
   }
 }
 
