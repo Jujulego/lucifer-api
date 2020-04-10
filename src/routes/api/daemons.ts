@@ -25,7 +25,7 @@ router.param('id', checkParam(validator.isMongoId));
 
 // Routes
 // - create daemon
-router.post('/daemon/',
+router.post('/',
   required({ body: { user: validator.isMongoId } }),
   aroute(async (req, res) => {
     // Containers
@@ -39,7 +39,7 @@ router.post('/daemon/',
 );
 
 // - create daemon token
-router.post('/daemon/:id/token',
+router.post('/:id/token',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);
@@ -49,7 +49,7 @@ router.post('/daemon/:id/token',
 );
 
 // - get daemon
-router.get('/daemon/:id',
+router.get('/:id',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);
@@ -59,7 +59,7 @@ router.get('/daemon/:id',
 );
 
 // - find daemons
-router.get('/daemons/',
+router.get('/',
   check({ query: { user: validator.isMongoId } }),
   aroute(async (req, res) => {
     // Containers
@@ -71,7 +71,7 @@ router.get('/daemons/',
 );
 
 // - update daemon
-router.put('/daemon/:id',
+router.put('/:id',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);
@@ -80,7 +80,7 @@ router.put('/daemon/:id',
   })
 );
 
-router.put('/daemon/:id/secret',
+router.put('/:id/secret',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);
@@ -90,7 +90,7 @@ router.put('/daemon/:id/secret',
 );
 
 // - grant daemon
-router.put('/daemon/:id/grant',
+router.put('/:id/grant',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
     // Containers
@@ -101,7 +101,7 @@ router.put('/daemon/:id/grant',
 );
 
 // - revoke daemon
-router.put('/daemon/:id/revoke',
+router.put('/:id/revoke',
   required({ body: { name: isPName }}),
   aroute(async (req, res) => {
     // Containers
@@ -112,7 +112,7 @@ router.put('/daemon/:id/revoke',
 );
 
 // - delete daemon token
-router.delete('/daemon/:id/token/:token',
+router.delete('/:id/token/:token',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);
@@ -122,7 +122,7 @@ router.delete('/daemon/:id/token/:token',
 );
 
 // - delete daemon
-router.delete('/daemon/:id',
+router.delete('/:id',
   aroute(async (req, res) => {
     // Containers
     const Daemons = DIContainer.get(DaemonsService);

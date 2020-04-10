@@ -35,25 +35,6 @@ class TokensService {
     }
   }
 
-  async authenticate<H extends TokenHolder, C extends TokenContent>(token: string | undefined, getter: (content: C, token: string) => Promise<H | null>): Promise<H> {
-    // Decode token
-    if (!token) throw HttpError.Unauthorized();
-    let data: C;
-
-    try {
-      data = this.verifyToken<C>(token);
-    } catch (error) {
-      console.error(error.message);
-      throw HttpError.Unauthorized();
-    }
-
-    // Find holder
-    const holder = await getter(data, token);
-    if (!holder) throw HttpError.Unauthorized();
-
-    return holder;
-  }
-
   async logout(ctx: Context) {
     if (ctx.tokens) {
       const holder = await ctx.tokens;

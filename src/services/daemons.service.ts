@@ -5,8 +5,15 @@ import { HttpError } from 'middlewares/errors';
 import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
-import { Credentials, Daemon, DaemonObject, SimpleDaemon } from 'data/daemon/daemon';
-import { DaemonCreate, DaemonFilter, DaemonUpdate } from 'data/daemon/daemon';
+import {
+  Credentials,
+  Daemon,
+  DaemonCreate,
+  DaemonFilter,
+  DaemonObject,
+  DaemonUpdate,
+  SimpleDaemon
+} from 'data/daemon/daemon';
 import DaemonRepository from 'data/daemon/daemon.repository';
 import { PLvl, PName } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token';
@@ -42,15 +49,28 @@ class DaemonsService extends DataEmitter<Daemon> {
     return omit(daemon, ['permissions', 'tokens']);
   }
 
-  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
-    if (id) {
-      if (ctx.daemon && (await ctx.daemon).id === id) return;
-      if (ctx.user) {
-        if (await this.daemonRepo.getByUser(id, (await ctx.user).id)) return;
-      }
+  private async rights(ctx: Context, id: string): Promise<boolean> {
+    if (ctx.daemon) { // Daemon override
+      const daemon = await ctx.daemon;
+      if (daemon.id === id) return true;
     }
 
-    await this.authorizer.allow(ctx, 'daemons', level);
+    if (ctx.user) { // User override
+      const user = await ctx.user;
+      if (await this.daemonRepo.getByUser(id, user.id)) return true;
+    }
+
+    return false;
+  }
+
+  protected async hasRights(ctx: Context, level: PLvl, id?: string | null): Promise<boolean> {
+    if (id && await this.rights(ctx, id)) return true;
+    return await this.authorizer.has(ctx, 'daemons', level);
+  }
+
+  protected async allow(ctx: Context, level: PLvl, id?: string | null) {
+    if (id && await this.rights(ctx, id)) return;
+    return await this.authorizer.allow(ctx, 'daemons', level);
   }
 
   protected async getDaemon(id: string): Promise<Daemon> {
@@ -104,23 +124,24 @@ class DaemonsService extends DataEmitter<Daemon> {
   }
 
   async find(ctx: Context, filter: DaemonFilter = {}): Promise<SimpleDaemon[]> {
-    try {
-      await this.allow(ctx, PLvl.READ);
-
-      // Find users
+    // Has rights
+    if (await this.hasRights(ctx, PLvl.READ)) {
       return this.daemonRepo.find(filter);
-    } catch (error) {
-      if (error instanceof HttpError && error.code === 403) {
-        if (ctx.daemon) return [await ctx.daemon];
-        if (ctx.user) {
-          return this.daemonRepo.find({ ...filter, user: (await ctx.user).id });
-        }
-
-        return [];
-      }
-
-      throw error;
     }
+
+    // Is a daemon
+    if (ctx.daemon) {
+      const daemon = await ctx.daemon;
+      return this.daemonRepo.find({ ...filter, _id: daemon.id });
+    }
+
+    // Is a owner
+    if (ctx.user) {
+      const user = await ctx.user;
+      return this.daemonRepo.find({ ...filter, user: user.id });
+    }
+
+    return [];
   }
 
   async update(ctx: Context, id: string, update: DaemonUpdate): Promise<Daemon> {

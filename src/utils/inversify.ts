@@ -1,3 +1,5 @@
+import 'reflect-metadata';
+
 import { interfaces } from 'inversify';
 import { fluentProvide } from 'inversify-binding-decorators';
 

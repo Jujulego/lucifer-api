@@ -2,35 +2,14 @@ import { NextFunction, Request, Response } from 'express';
 import { Socket } from 'socket.io';
 
 import DIContainer from 'inversify.config';
+import { aroute, parseLRN } from 'utils';
 
-import { Daemon } from 'data/daemon/daemon';
+import { HttpError } from 'middlewares/errors';
 import { Token } from 'data/token/token';
-import { User } from 'data/user/user';
 
 import DaemonsService from 'services/daemons.service';
 import TokensService from 'services/tokens.service';
 import UsersService from 'services/users.service';
-
-import { aroute, parseLRN } from 'utils';
-import { HttpError } from 'middlewares/errors';
-
-// Add properties to Request
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-      daemon?: Daemon;
-      token?: Token;
-    }
-  }
-
-  namespace SocketIO {
-    interface Socket {
-      user: () => Promise<User>;
-      token: () => Promise<Token>;
-    }
-  }
-}
 
 // Middlewares
 const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {

@@ -16,7 +16,7 @@ export interface User extends Document, PermissionHolder, TokenHolder {
 export type Credentials = Pick<User, 'email' | 'password'>
 
 export type SimpleUser = Omit<User, 'permissions' | 'tokens'>;
-export type UserFilter = Partial<Pick<User, 'email'>>;
+export type UserFilter = Partial<Pick<User, '_id' | 'email'>>;
 
 export type UserCreate = Pick<User, 'email' | 'password'>;
 export type UserUpdate = Partial<UserCreate>;

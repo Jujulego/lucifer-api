@@ -1,12 +1,18 @@
 import mongoose from 'mongoose';
 
 import env from 'env';
+import DIContainer from './inversify.config';
+
+import LoggerService from './services/logger.service';
 
 // Mongoose config
 mongoose.Promise = global.Promise;
 
 // Functions
 export async function connect() {
+  // Get logger
+  const logger = DIContainer.get(LoggerService);
+
   try {
     // Connect to MongoDB
     await mongoose.connect(env.MONGO_URL, {
@@ -16,9 +22,9 @@ export async function connect() {
       useUnifiedTopology: true
     });
 
-    console.log('Connected to MongoDB');
+    logger.info('Connected to MongoDB');
   } catch (error) {
-    console.error(`Failed to connect to MongoDB: ${error.message} (${error.reason})`);
+    logger.critical(`Failed to connect to MongoDB: ${error.message} (${error.reason})`);
     process.exit(1);
   }
 }
