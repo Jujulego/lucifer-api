@@ -24,8 +24,8 @@ describe('services/daemons.service', () => {
   let service: DaemonsService;
 
   beforeAll(async () => {
-    await db.connect();
     loadServices();
+    await db.connect();
 
     service = DIContainer.get(DaemonsService);
   });

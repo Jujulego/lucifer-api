@@ -1,16 +1,21 @@
 import mongoose from "mongoose";
 
 import * as db from 'db';
+import { loadServices } from 'inversify.config';
 
 import { User } from 'data/user/user';
 import UserModel from 'data/user/user.model';
+
 import PermissionRepository from './permission.repository';
 import { isPLvl, isPName, LEVELS, PERMISSIONS, PLvl } from './permission.enums';
 
 // Tests
 describe("data/permission", () => {
   // Connect to database
-  beforeAll(db.connect);
+  beforeAll(async () => {
+    loadServices();
+    await db.connect();
+  });
 
   // Fill database
   let user: User;

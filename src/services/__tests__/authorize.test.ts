@@ -17,8 +17,8 @@ import AuthorizeService from '../authorize.service';
 describe('services/authorize.service', () => {
   // Connect to database & load services
   beforeAll(async () => {
-    await db.connect();
     loadServices();
+    await db.connect();
   });
 
   // Fill database

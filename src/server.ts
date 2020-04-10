@@ -4,12 +4,17 @@ import http from 'http';
 import app from 'app';
 import * as db from 'db';
 import env from 'env';
-import { loadServices } from 'inversify.config';
+import DIContainer, { loadServices } from 'inversify.config';
 import wsapp from 'wsapp';
 
+import LoggerService from 'services/logger.service';
+
+// Starter
 (async () => {
   // Load modules
   loadServices();
+
+  const logger = DIContainer.get(LoggerService);
 
   // Connect to database
   await db.connect();
@@ -19,6 +24,6 @@ import wsapp from 'wsapp';
   await wsapp(server);
 
   server.listen(env.PORT, () => {
-    console.log(`Server listening at http://localhost:${env.PORT}/`);
+    logger.info(`Server listening at http://localhost:${env.PORT}/`);
   });
 })();
