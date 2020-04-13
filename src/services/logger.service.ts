@@ -62,7 +62,11 @@ class LoggerService {
           line = msg;
       }
 
-      this.stream.write(line + '\n');
+      if (!msg.endsWith('\n')) {
+        line += '\n';
+      }
+
+      this.stream.write(line);
     }
   }
 
