@@ -2,7 +2,6 @@ import { omit } from 'lodash';
 
 import { HttpError } from 'middlewares/errors';
 
-import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
 import {
@@ -19,34 +18,28 @@ import { PLvl, PName } from 'data/permission/permission.enums';
 import { Token, TokenObj } from 'data/token/token';
 import TokenRepository from 'data/token/token.repository';
 
-import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 
-import { parseLRN, randomString, Service } from 'utils';
+import { randomString, Service } from 'utils';
 
 export type LoginToken = Pick<Token, '_id' | 'token'> & { daemon: Daemon['_id'] }
 
 // Controller
 @Service(DaemonsService)
-class DaemonsService extends DataEmitter<Daemon> {
+class DaemonsService {
   // Attributes
   private readonly daemonRepo = new DaemonRepository();
 
   // Constructor
   constructor(
-    apievents: ApiEventService,
     private authorizer: AuthorizeService,
     private permissions: PermissionsService
-  ) { super(apievents); }
+  ) {}
 
   // Utils
   private static getTokenRepository(daemon: Daemon): TokenRepository<Daemon> {
     return new TokenRepository(daemon);
-  }
-
-  private static simplifyDaemon(daemon: Daemon): SimpleDaemon {
-    return omit(daemon, ['permissions', 'tokens']);
   }
 
   private async rights(ctx: Context, id: string): Promise<boolean> {
@@ -81,13 +74,6 @@ class DaemonsService extends DataEmitter<Daemon> {
     return daemon;
   }
 
-  protected getTargets(data: Daemon) {
-    return {
-      [data.lrn]: (data: Daemon) => data.toJSON(),
-      daemons: DaemonsService.simplifyDaemon
-    };
-  }
-
   protected async generateToken(ctx: Context, daemon: Daemon, login: boolean, tags: string[]): Promise<Token> {
     return await DaemonsService.getTokenRepository(daemon)
       .create(ctx, { lrn: daemon.lrn }, login, '7 days', tags);
@@ -101,7 +87,6 @@ class DaemonsService extends DataEmitter<Daemon> {
     const secret = randomString(42);
     const daemon = await this.daemonRepo.create(data, secret);
 
-    this.emitCreate(daemon);
     return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
   }
 
@@ -111,7 +96,6 @@ class DaemonsService extends DataEmitter<Daemon> {
     // Generate token
     const daemon = await this.getDaemon(id);
     const token = await this.generateToken(ctx, daemon, false, tags);
-    this.emitUpdate(daemon);
 
     return token.toObject();
   }
@@ -151,8 +135,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     let daemon = await this.getDaemon(id);
 
     // Update daemon
-    daemon = await this.daemonRepo.update(daemon, omit(update, ['secret']));
-    return this.emitUpdate(daemon);
+    return await this.daemonRepo.update(daemon, omit(update, ['secret']));
   }
 
   async regenerateSecret(ctx: Context, id: string): Promise<DaemonObject> {
@@ -166,7 +149,6 @@ class DaemonsService extends DataEmitter<Daemon> {
     await DaemonsService.getTokenRepository(daemon).clear([], false);
     daemon = await this.daemonRepo.update(daemon, { secret });
 
-    this.emitUpdate(daemon);
     return { ...daemon.toObject(), secret }; // Send full daemon with clear secret
   }
 
@@ -177,7 +159,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     const daemon = await this.getDaemon(id);
 
     // Grant permission
-    return this.emitUpdate(await this.permissions.grant(ctx, daemon, grant, level));
+    return await this.permissions.grant(ctx, daemon, grant, level);
   }
 
   async revoke(ctx: Context, id: string, revoke: PName): Promise<Daemon> {
@@ -185,7 +167,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     const daemon = await this.getDaemon(id);
 
     // Revoke permission
-    return this.emitUpdate(await this.permissions.revoke(ctx, daemon, revoke));
+    return await this.permissions.revoke(ctx, daemon, revoke);
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<Daemon> {
@@ -198,9 +180,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     const tokenRepo = DaemonsService.getTokenRepository(daemon);
     const token = tokenRepo.getById(tokenId);
 
-    return this.emitUpdate(
-      await tokenRepo.delete(token)
-    );
+    return await tokenRepo.delete(token);
   }
 
   async delete(ctx: Context, id: string): Promise<Daemon> {
@@ -210,7 +190,7 @@ class DaemonsService extends DataEmitter<Daemon> {
     const daemon = await this.daemonRepo.delete(id);
     if (!daemon) throw HttpError.NotFound(`No daemon found at ${id}`);
 
-    return this.emitDelete(daemon);
+    return daemon;
   }
 
   // - authentication
@@ -221,7 +201,6 @@ class DaemonsService extends DataEmitter<Daemon> {
 
     // Generate token
     const token = await this.generateToken(ctx, daemon, false, tags);
-    this.emitUpdate(daemon);
 
     return { _id: token.id, token: token.token, daemon: daemon.id };
   }
@@ -231,12 +210,6 @@ class DaemonsService extends DataEmitter<Daemon> {
     if (!daemon) throw HttpError.Unauthorized();
 
     return daemon;
-  }
-
-  // - rooms
-  async canJoinRoom(ctx: Context, room: string) {
-    const id = room === 'daemons' ? null : parseLRN(room)?.id;
-    await this.allow(ctx, PLvl.READ, id);
   }
 }
 

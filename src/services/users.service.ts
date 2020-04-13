@@ -1,8 +1,5 @@
-import { omit } from 'lodash';
-
 import { HttpError } from 'middlewares/errors';
 
-import { DataEmitter } from 'bases/data';
 import Context from 'bases/context';
 
 import { PLvl, PName } from 'data/permission/permission.enums';
@@ -11,35 +8,29 @@ import TokenRepository from 'data/token/token.repository';
 import { Credentials, SimpleUser, User, UserCreate, UserFilter, UserUpdate } from 'data/user/user';
 import UserRepository from 'data/user/user.repository';
 
-import ApiEventService from 'services/api-event.service';
 import AuthorizeService from 'services/authorize.service';
 import PermissionsService from 'services/permissions.service';
 
-import { parseLRN, Service } from 'utils';
+import { Service } from 'utils';
 
 // Types
 export type LoginToken = Pick<Token, '_id' | 'token'> & { user: User['_id'] }
 
 // Controller
 @Service(UsersService)
-class UsersService extends DataEmitter<User> {
+class UsersService {
   // Attributes
   private readonly userRepo = new UserRepository();
 
   // Constructor
   constructor(
-    apievents: ApiEventService,
     private authorizer: AuthorizeService,
     private permissions: PermissionsService,
-  ) { super(apievents); }
+  ) {  }
 
   // Utils
   private static getTokenRepository(user: User): TokenRepository<User> {
     return new TokenRepository(user);
-  }
-
-  private static simplifyUser(user: User): SimpleUser {
-    return omit(user, ['permissions', 'tokens']);
   }
 
   private async rights(ctx: Context, id: string): Promise<boolean> {
@@ -69,13 +60,6 @@ class UsersService extends DataEmitter<User> {
     return user;
   }
 
-  protected getTargets(data: User) {
-    return {
-      [data.lrn]: (data: User) => data.toJSON(),
-      users: UsersService.simplifyUser
-    };
-  }
-
   protected async generateToken(ctx: Context, user: User, login: boolean, tags: string[]): Promise<Token> {
     return await UsersService.getTokenRepository(user)
       .create(ctx, { lrn: user.lrn }, login, '7 days', tags);
@@ -86,7 +70,7 @@ class UsersService extends DataEmitter<User> {
     if (ctx.user) await this.allow(ctx, PLvl.CREATE);
 
     // Create user
-    return this.emitCreate(await this.userRepo.create(data));
+    return await this.userRepo.create(data);
   }
 
   async createToken(ctx: Context, id: string, tags: string[] = []): Promise<TokenObj> {
@@ -95,7 +79,6 @@ class UsersService extends DataEmitter<User> {
     // Generate token
     const user = await this.getUser(id);
     const token = await this.generateToken(ctx, user, false, tags);
-    this.emitUpdate(user);
 
     return token.toObject();
   }
@@ -135,8 +118,7 @@ class UsersService extends DataEmitter<User> {
     }
 
     // Update user
-    user = await this.userRepo.update(user, update);
-    return this.emitUpdate(user);
+    return await this.userRepo.update(user, update);
   }
 
   async grant(ctx: Context, id: string, grant: PName, level: PLvl): Promise<User> {
@@ -144,7 +126,7 @@ class UsersService extends DataEmitter<User> {
     const user = await this.getUser(id);
 
     // Grant permission
-    return this.emitUpdate(await this.permissions.grant(ctx, user, grant, level));
+    return await this.permissions.grant(ctx, user, grant, level);
   }
 
   async elevate(ctx: Context, id: string, admin?: boolean): Promise<User> {
@@ -152,7 +134,7 @@ class UsersService extends DataEmitter<User> {
     const user = await this.getUser(id);
 
     // Elevate user
-    return this.emitUpdate(await this.permissions.elevate(ctx, user, admin));
+    return await this.permissions.elevate(ctx, user, admin);
   }
 
   async revoke(ctx: Context, id: string, revoke: PName): Promise<User> {
@@ -160,7 +142,7 @@ class UsersService extends DataEmitter<User> {
     const user = await this.getUser(id);
 
     // Revoke permission
-    return this.emitUpdate(await this.permissions.revoke(ctx, user, revoke));
+    return await this.permissions.revoke(ctx, user, revoke);
   }
 
   async deleteToken(ctx: Context, id: string, tokenId: string): Promise<User> {
@@ -173,9 +155,7 @@ class UsersService extends DataEmitter<User> {
     const tokenRepo = UsersService.getTokenRepository(user);
     const token = tokenRepo.getById(tokenId);
 
-    return this.emitUpdate(
-      await tokenRepo.delete(token)
-    );
+    return await tokenRepo.delete(token);
   }
 
   async delete(ctx: Context, id: string): Promise<User> {
@@ -185,7 +165,7 @@ class UsersService extends DataEmitter<User> {
     const user = await this.userRepo.delete(id);
     if (!user) throw HttpError.NotFound(`No user found at ${id}`);
 
-    return this.emitDelete(user);
+    return user;
   }
 
   // - authentication
@@ -196,7 +176,6 @@ class UsersService extends DataEmitter<User> {
 
     // Generate token
     const token = await this.generateToken(ctx, user, true, tags);
-    this.emitUpdate(user);
 
     return { _id: token.id, token: token.token, user: user.id };
   }
@@ -206,12 +185,6 @@ class UsersService extends DataEmitter<User> {
     if (!user) throw HttpError.Unauthorized();
 
     return user;
-  }
-
-  // - rooms
-  async canJoinRoom(ctx: Context, room: string) {
-    const id = room === 'users' ? null : parseLRN(room)?.id;
-    await this.allow(ctx, PLvl.READ, id);
   }
 }
 

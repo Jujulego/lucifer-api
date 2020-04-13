@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import { Socket } from 'socket.io';
 
 import DIContainer from 'inversify.config';
 import { aroute, parseLRN } from 'utils';
@@ -50,31 +49,5 @@ const auth = aroute(async (req: Request, res: Response, next: NextFunction) => {
 
   next();
 });
-
-export async function wsauth(socket: Socket, next: (err?: any) => void) {
-  // Containers
-  const Tokens = DIContainer.get(TokensService);
-  const Users = DIContainer.get(UsersService);
-
-  // Get token
-  const { token } = socket.handshake.query;
-  if (!token) throw HttpError.Unauthorized();
-
-  // Authenticate user
-  const content = Tokens.verifyToken(token);
-  const lrn = parseLRN(content.lrn);
-  if (!lrn || lrn.type != 'user') throw HttpError.Unauthorized();
-
-  const user = await Users.getByToken(lrn.id, token);
-
-  // Access to user from socket
-  socket.user = async () => await Users.getByToken(user.id, token);
-  socket.token = async () => {
-    const user = await socket.user();
-    return user.tokens.find(tk => tk.token === token) as Token;
-  };
-
-  return next();
-}
 
 export default auth;

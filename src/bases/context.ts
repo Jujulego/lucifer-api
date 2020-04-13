@@ -1,5 +1,4 @@
 import { Request } from 'express';
-import { Socket } from 'socket.io';
 
 import { Daemon } from 'data/daemon/daemon';
 import PermissionHolder from 'data/permission/permission.holder';
@@ -65,26 +64,6 @@ export class RequestContext extends Context {
   }
 }
 
-export class SocketContext extends Context {
-  // Attributes
-  readonly socket: Socket;
-
-  // Constructor
-  constructor(socket: Socket) {
-    super({
-      user:  socket.user(),
-      token: socket.token()
-    });
-
-    this.socket = socket;
-  }
-
-  // Getters
-  get from(): string {
-    return this.socket.handshake.address;
-  }
-}
-
 export class TestContext extends Context {
   // Attributes
   readonly from: string;
@@ -112,10 +91,6 @@ export class TestContext extends Context {
 // Utils
 export function fromRequest(req: Request): Context {
   return new RequestContext(req);
-}
-
-export function fromSocket(sock: Socket): Context {
-  return new SocketContext(sock);
 }
 
 export default Context;
