@@ -7,7 +7,7 @@ import { buildLRN } from 'utils';
 // Schema
 const ContainerSchema = new Schema<Container>({
   image: { type: String },
-  daemon: { type: Types.ObjectId },
+  daemon: { type: Types.ObjectId, default: null },
   status: { type: String, default: 'stopped', validate: isCStatus }
 });
 

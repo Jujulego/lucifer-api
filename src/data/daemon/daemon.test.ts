@@ -87,7 +87,7 @@ describe('data/daemon', () => {
     expect(daemon).toHaveProperty('tokens');
   });
 
-  // - DaemonRepository
+  // - DaemonRepository.create
   test('DaemonRepository.create: named daemon', async () => {
     const repo = new DaemonRepository();
     const daemon = await repo.create({ name: 'Test', user: user1.id }, 'test');
