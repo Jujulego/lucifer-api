@@ -6,9 +6,10 @@ import { buildLRN } from 'utils';
 
 // Schema
 const ContainerSchema = new Schema<Container>({
-  image: { type: String },
-  daemon: { type: Types.ObjectId, default: null },
-  status: { type: String, default: 'stopped', validate: isCStatus }
+  image: { type: String, required: true },
+  status: { type: String, default: 'stopped', validate: isCStatus },
+  owner: { type: Types.ObjectId, required: true },
+  daemon: { type: Types.ObjectId, default: null }
 });
 
 // Virtuals

@@ -8,6 +8,7 @@ class ContainerRepository {
     // Create container
     const container = new ContainerModel({
       image: data.image,
+      owner: data.owner,
       daemon: data.daemon,
     });
 
@@ -25,8 +26,9 @@ class ContainerRepository {
   async update(container: Container, update: ContainerUpdate): Promise<Container> {
     // Apply update
     if (update.image)  container.image  = update.image;
-    if (update.daemon) container.daemon = update.daemon;
     if (update.status) container.status = update.status;
+    if (update.owner)  container.owner  = update.owner;
+    if (update.daemon) container.daemon = update.daemon;
 
     return await container.save();
   }

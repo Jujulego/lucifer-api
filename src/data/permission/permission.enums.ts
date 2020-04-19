@@ -1,5 +1,5 @@
 // Enums
-export type PName = "daemons" | "permissions" | "users";
+export type PName = "containers" | "daemons" | "permissions" | "users";
 export const PERMISSIONS: PName[] = [
   "daemons", "permissions", "users"
 ];

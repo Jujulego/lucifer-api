@@ -6,14 +6,15 @@ import { CStatus } from './container.enum';
 export interface Container extends Document {
   // Attributes
   image: string;
-  daemon?: Types.ObjectId;
   status: CStatus;
+  owner: Types.ObjectId;
+  daemon?: Types.ObjectId;
 
   readonly lrn: string;
 }
 
 // Types
-export type ContainerFilter = Partial<Pick<Container, 'image' | 'daemon' | 'status'>>;
+export type ContainerFilter = Partial<Pick<Container, 'image' | 'daemon' | 'owner' | 'status'>>;
 
-export type ContainerCreate = Pick<Container, 'image' | 'daemon'>;
-export type ContainerUpdate = Partial<Pick<Container, 'image' | 'daemon' | 'status'>>;
+export type ContainerCreate = Pick<Container, 'image' | 'daemon' | 'owner'>;
+export type ContainerUpdate = Partial<Pick<Container, 'image' | 'daemon' | 'owner' | 'status'>>;
