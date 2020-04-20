@@ -4,13 +4,13 @@ const PART_RE = /([a-z0-9-]+):([a-f0-9]{24})/i
 // Class
 class LRN {
   // Attributes
-  parent?: LRN;
+  child?: LRN;
   resource: string;
   id: string;
 
   // Constructor
-  constructor(resource: string, id: string, parent?: LRN) {
-    this.parent = parent;
+  constructor(resource: string, id: string, child?: LRN) {
+    this.child = child;
     this.resource = resource;
     this.id = id;
   }
@@ -49,9 +49,18 @@ class LRN {
   }
 
   // Methods
+  private part(): string {
+    let part = `${this.resource}:${this.id}`;
+
+    if (this.child) {
+      part += this.child.part();
+    }
+
+    return part;
+  }
+
   public toString(): string {
-    const base = this.parent?.toString() || 'lrn';
-    return `${base}::${this.resource}:${this.id}`;
+    return `lrn::${this.part()}`;
   }
 }
 
