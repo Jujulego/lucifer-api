@@ -1,8 +1,10 @@
 import bcrypt from 'bcryptjs';
-import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Resource } from 'bases/resource';
 import { LRN } from 'bases/lrn';
+
+import { Token } from './token.entity';
 
 // Methods
 @Entity()
@@ -11,6 +13,10 @@ export class User implements Resource {
   @PrimaryGeneratedColumn('uuid') id: string;
   @Column('varchar', { length: 128, unique: true }) email: string;
   @Column('varchar', { length: 128 }) password: string;
+
+  // Relations
+  @OneToMany(type => Token, token => token.user)
+  tokens: Token[];
 
   // Attributes
   private _password: string;
