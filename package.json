@@ -18,8 +18,10 @@
     "moment": "^2.24.0",
     "mongoose": "^5.9.2",
     "morgan": "^1.9.1",
+    "pg": "^8.0.3",
     "reflect-metadata": "^0.1.13",
     "simple-git": "^1.132.0",
+    "typeorm": "^0.2.24",
     "validator": "^12.2.0"
   },
   "devDependencies": {
@@ -47,6 +49,9 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.prod.json",
+    "typeorm": "ts-node --files -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "yarn run typeorm migration:generate",
+    "migration:run": "yarn run typeorm migration:run",
     "start": "nodemon --exec ts-node --files -r tsconfig-paths/register src/server.ts",
     "test": "jest",
     "wizard": "snyk wizard"

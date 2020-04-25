@@ -7,5 +7,11 @@
       <jdbc-driver>com.dbschema.MongoJdbcDriver</jdbc-driver>
       <jdbc-url>mongodb://localhost:27017</jdbc-url>
     </data-source>
+    <data-source source="LOCAL" name="PostgreSQL - postgres@docker" uuid="62bdfedf-a406-40f2-b92a-36748fbba155">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://192.168.99.100:5432/postgres</jdbc-url>
+    </data-source>
   </component>
 </project>
