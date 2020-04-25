@@ -19,7 +19,7 @@ export function isLogLevel(value: string): value is keyof typeof LogLevel {
 
 // Service
 @Service(LoggerService)
-class LoggerService {
+export class LoggerService {
   // Attributes
   private _level = LogLevel.DEBUG;
   private readonly stream = process.stdout;
@@ -104,5 +104,3 @@ export class LoggerStream {
     this.logger.log(this.level, msg);
   }
 }
-
-export default LoggerService;

@@ -6,15 +6,19 @@ import * as db from 'db';
 import env from 'env';
 import DIContainer, { loadServices } from 'inversify.config';
 
-import LoggerService from 'services/logger.service';
+import { DatabaseService } from 'db.service';
+import { LoggerService } from 'logger.service';
 
 // Starter
 (async () => {
-  // Load modules
+  // Load services
   loadServices();
+
   const logger = DIContainer.get(LoggerService);
+  const database = DIContainer.get(DatabaseService);
 
   // Connect to database
+  await database.connect();
   await db.connect();
 
   // Configure server

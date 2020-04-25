@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 import env from 'env';
 import DIContainer from './inversify.config';
 
-import LoggerService from './services/logger.service';
+import { LoggerService } from 'logger.service';
 
 // Mongoose config
 mongoose.Promise = global.Promise;
