@@ -14,6 +14,5 @@ export class Token {
 
   // - metadata
   @CreateDateColumn() date: Date;
-  @Column('inet') ip: string;
   @Column('varchar', { array: true, length: 64 }) tags: string[];
 }

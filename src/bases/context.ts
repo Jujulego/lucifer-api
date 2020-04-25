@@ -18,7 +18,7 @@ interface ContextAttrs {
 }
 
 // Class
-abstract class Context {
+export abstract class Context {
   // Attributes
   readonly user?:   Awaitable<User>;
   readonly daemon?: Awaitable<Daemon>;

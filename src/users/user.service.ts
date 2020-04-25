@@ -1,9 +1,10 @@
+import validator from 'validator';
+
 import { DatabaseService } from 'db.service';
+import { HttpError } from 'middlewares/errors';
 import { Service } from 'utils';
 
 import { User } from './user.entity';
-import { HttpError } from 'middlewares/errors';
-import validator from 'validator';
 
 // Types
 export type UserCreate = Pick<User, 'email' | 'password'>;
@@ -44,7 +45,11 @@ export class UserService {
 
   async get(id: string): Promise<User> {
     // Get user
-    const user = await this.repository.findOne(id);
+    const user = await this.repository.findOne(id, {
+      relations: ['token']
+    });
+
+    // Throw if not found
     if (!user) throw HttpError.NotFound(`User ${id} not found`);
 
     return user;

@@ -1,5 +1,5 @@
 // Constants
-const PART_RE = /([a-z0-9-]+):([a-f0-9]{24})/i
+const PART_RE = /([a-z0-9-]+):([a-f0-9-]+)/i
 
 // Class
 export class LRN {
