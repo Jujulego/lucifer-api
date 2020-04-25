@@ -1,9 +1,7 @@
-import LRN from './lrn';
+import { LRN } from './lrn';
 
-// Interface
-interface Resource {
+// Interfaces
+export interface Resource {
   // Attributes
   readonly lrn: LRN;
 }
-
-export default Resource;

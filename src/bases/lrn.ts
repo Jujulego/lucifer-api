@@ -2,7 +2,7 @@
 const PART_RE = /([a-z0-9-]+):([a-f0-9]{24})/i
 
 // Class
-class LRN {
+export class LRN {
   // Attributes
   child?: LRN;
   resource: string;
@@ -63,5 +63,3 @@ class LRN {
     return `lrn::${this.part()}`;
   }
 }
-
-export default LRN;
