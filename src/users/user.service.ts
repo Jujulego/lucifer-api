@@ -1,3 +1,4 @@
+import bcrypt from 'bcryptjs';
 import validator from 'validator';
 
 import { DatabaseService } from 'db.service';
@@ -5,6 +6,7 @@ import { HttpError } from 'middlewares/errors';
 import { Service } from 'utils';
 
 import { User } from './user.entity';
+import { TokenService } from './token.service';
 
 // Types
 export type UserCreate = Pick<User, 'email' | 'password'>;
@@ -15,7 +17,8 @@ export type UserUpdate = Partial<Pick<User, 'email' | 'password'>>;
 export class UserService {
   // Constructor
   constructor(
-    private database: DatabaseService
+    private database: DatabaseService,
+    private tokens: TokenService
   ) {}
 
   // Methods
@@ -72,6 +75,22 @@ export class UserService {
 
   async delete(id: string) {
     await this.repository.delete(id);
+  }
+
+  async login(email: string, password: string): Promise<string> {
+    // Get user and check credentials
+    const user = await this.repository.findOne({
+      where: { email }
+    });
+
+    if (!user) throw HttpError.Unauthorized();
+    if (!await bcrypt.compare(password, user.password)) {
+      throw HttpError.Unauthorized();
+    }
+
+    // Generate token
+    const token = await this.tokens.create(user);
+    return this.tokens.encrypt(token);
   }
 
   // Properties
