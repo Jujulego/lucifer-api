@@ -32,22 +32,13 @@ export class TokenService {
     return jwt.sign(token, env.JWT_KEY, { expiresIn: '7 days' });
   }
 
-  async verify(token: string): Promise<User> {
-    let content: Token;
-
-    // Decrypt token
-    try {
-      content = jwt.verify(token, env.JWT_KEY) as Token;
-    } catch (error) {
-      throw HttpError.Unauthorized(error.message);
-    }
-
+  async verify(token: Token): Promise<User> {
     // Check in database
     const tk = await this.repository.findOne({
       relations: ['user'],
       where: {
-        id: content.id,
-        user: { id: content.user.id }
+        id: token.id,
+        user: { id: token.user.id }
       }
     });
 
