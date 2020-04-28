@@ -49,7 +49,7 @@ export class UserService {
   async get(id: string): Promise<User> {
     // Get user
     const user = await this.repository.findOne(id, {
-      relations: ['token']
+      relations: ['tokens']
     });
 
     // Throw if not found

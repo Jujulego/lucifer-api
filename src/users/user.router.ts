@@ -2,7 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import { DIContainer } from 'inversify.config';
-import { HttpError } from 'middlewares/errors';
+import { checkParam } from 'middlewares/required';
 import { aroute } from 'utils';
 
 import { UserService } from 'users/user.service';
@@ -11,10 +11,7 @@ import { UserService } from 'users/user.service';
 export const router = Router();
 
 // Middleware
-router.param('id', (req, res, next, value) => {
-  if (validator.isUUID(value)) throw HttpError.NotFound(`User ${value} not found`);
-  next();
-})
+router.param('id', checkParam(validator.isUUID))
 
 // Endpoints
 router.get('/', aroute(async (req, res) => {
