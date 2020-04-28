@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { omit } from 'lodash';
 import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Resource } from 'bases/resource';
@@ -33,6 +34,14 @@ export class User implements Resource {
     if (!this._password && this.password !== this._password) {
       this.password = await bcrypt.hash(this.password, await bcrypt.genSalt());
     }
+  }
+
+  // Methods
+  toJSON() {
+    const obj: any = omit(this, ['password', '_password']);
+    obj.lrn = this.lrn.toString();
+
+    return obj;
   }
 
   // Properties
