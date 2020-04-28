@@ -4,11 +4,11 @@ import express from 'express';
 import helmet from 'helmet';
 import morgan from 'morgan';
 
-import api from 'routes/api';
+import { router as api } from 'api.router';
 import { LoggerStream, LogLevel } from 'logger.service';
 
 // Application
-const app = express();
+export const app = express();
 
 // Options
 app.set('trust poxy', true);
@@ -21,7 +21,5 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-// Routes
+// Endpoints
 app.use('/api', api);
-
-export default app;

@@ -1,8 +1,7 @@
-import "reflect-metadata";
+import 'reflect-metadata';
 import http from 'http';
 
-import app from 'app';
-import * as db from 'db';
+import { app } from 'app';
 import env from 'env';
 import DIContainer, { loadServices } from 'inversify.config';
 
@@ -19,7 +18,6 @@ import { LoggerService } from 'logger.service';
 
   // Connect to database
   await database.connect();
-  await db.connect();
 
   // Configure server
   const server = http.createServer(app);
