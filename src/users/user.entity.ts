@@ -1,8 +1,18 @@
 import bcrypt from 'bcryptjs';
-import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  AfterInsert,
+  AfterLoad, AfterUpdate,
+  BeforeInsert,
+  BeforeUpdate,
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn
+} from 'typeorm';
 
 import { Resource } from 'bases/resource';
 import { LRN } from 'bases/lrn';
+import { lowercase } from 'utils/transformers';
 
 import { IToken, Token } from './token.entity';
 
@@ -19,7 +29,7 @@ export interface IUser {
 export class User implements Resource {
   // Columns
   @PrimaryGeneratedColumn('uuid') id: string;
-  @Column('varchar', { length: 128, unique: true }) email: string;
+  @Column('varchar', { length: 128, unique: true, transformer: [lowercase] }) email: string;
   @Column('varchar', { length: 128 }) password: string;
 
   // Relations
@@ -31,6 +41,8 @@ export class User implements Resource {
 
   // Listeners
   @AfterLoad()
+  @AfterInsert()
+  @AfterUpdate()
   keepPassword() {
     this._password = this.password;
   }
@@ -38,8 +50,9 @@ export class User implements Resource {
   @BeforeInsert()
   @BeforeUpdate()
   async hashPassword() {
-    if (!this._password && this.password !== this._password) {
+    if (this.password !== this._password) {
       this.password = await bcrypt.hash(this.password, await bcrypt.genSalt());
+      this._password = this.password;
     }
   }
 
