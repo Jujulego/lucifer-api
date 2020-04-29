@@ -43,7 +43,7 @@ export class TokenService {
     });
 
     if (!tk) throw HttpError.Unauthorized();
-    return tk.user;
+    return tk.user!;
   }
 
   // Properties
