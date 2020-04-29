@@ -10,6 +10,7 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
+import { json, toJSON } from 'utils/json';
 import { LRN } from 'bases/lrn';
 import { Resource } from 'bases/resource';
 import { lowercase } from 'utils/transformers';
@@ -31,16 +32,21 @@ export interface IUser {
 @Entity()
 export class User implements Resource {
   // Columns
-  @PrimaryGeneratedColumn('uuid') id: string;
-  @Column('varchar', { length: 128, unique: true, transformer: [lowercase] }) email: string;
-  @Column('varchar', { length: 128 }) password: string;
+  @PrimaryGeneratedColumn('uuid')
+  @json() id: string;
+
+  @Column('varchar', { length: 128, unique: true, transformer: [lowercase] })
+  @json() email: string;
+
+  @Column('varchar', { length: 128 })
+  password: string;
 
   // - relations
   @OneToMany(type => Daemon, daemon => daemon.owner)
-  daemons?: Daemon[];
+  @json() daemons?: Daemon[];
 
   @OneToMany(type => Token, token => token.user)
-  tokens?: Token[];
+  @json() tokens?: Token[];
 
   // Attributes
   private _password: string;
@@ -64,24 +70,11 @@ export class User implements Resource {
 
   // Methods
   toJSON(): IUser {
-    const obj: IUser = {
-      id: this.id,
-      lrn: this.lrn.toString(),
-      email: this.email,
-    };
-
-    if (this.daemons) {
-      obj.daemons = this.daemons.map(dmn => dmn.toJSON());
-    }
-
-    if (this.tokens) {
-      obj.tokens = this.tokens.map(tk => tk.toJSON());
-    }
-
-    return obj;
+    return toJSON(this);
   }
 
   // Properties
+  @json<LRN>({ transform: lrn => lrn.toString() })
   get lrn() {
     return new LRN('users', this.id);
   }

@@ -51,7 +51,7 @@ describe('users/user.service', () => {
       // Create a token
       token = await tknRepo.save(tknRepo.create({ user: users[0], tags: ['test'] }));
 
-      users[0].tokens.push(token);
+      users[0].tokens!.push(token);
       delete token.user;
     });
   });
