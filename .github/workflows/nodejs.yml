@@ -11,6 +11,13 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_USER: 'root'
+          POSTGRES_PASSWORD: 'root'
+
     steps:
       - uses: actions/checkout@v2
 
@@ -33,10 +40,20 @@ jobs:
         run: yarn install --pure-lockfile
 
       - name: Tests
+        run: yarn test
         env:
           CI: true
-          LOG_LEVEL: WARNING
-        run: yarn test
+          LOG_LEVEL: 'WARNING'
+
+          TYPEORM_CONNECTION: 'postgres'
+          TYPEORM_HOST: 'postgres'
+          TYPEORM_PORT: 5432
+          TYPEORM_USERNAME: 'root'
+          TYPEORM_PASSWORD: 'root'
+          TYPEORM_ENTITIES: 'src/**/*entity.ts'
+          TYPEORM_MIGRATIONS: 'db/migrations/*.ts'
+          TYPEORM_MIGRATIONS_DIR: 'db/migrations'
+          TYPEORM_LOGGING: false
 
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
