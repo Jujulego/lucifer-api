@@ -25,13 +25,13 @@ export class UserService {
   async create(data: UserCreate): Promise<User> {
     const repo = this.repository;
 
-    // Validate
+    // Validate data
     const missing: string[] = [];
     if (!data.email)    missing.push('email');
     if (!data.password) missing.push('password');
-    if (missing.length > 0) throw HttpError.BadRequest(`Missing parameters ${missing.join(', ')}`);
+    if (missing.length > 0) throw HttpError.BadRequest(`Missing required parameters: ${missing.join(', ')}`);
 
-    if (validator.isEmail(data.email)) throw HttpError.BadRequest(`Invalid value for email`);
+    if (!validator.isEmail(data.email)) throw HttpError.BadRequest(`Invalid value for email`);
 
     // Create user
     const user = repo.create();
@@ -63,7 +63,7 @@ export class UserService {
     const user = await this.get(id);
 
     // Validate
-    if (update.email && validator.isEmail(update.email)) throw HttpError.BadRequest(`Invalid value for email`);
+    if (update.email && !validator.isEmail(update.email)) throw HttpError.BadRequest(`Invalid value for email`);
 
     // Apply update
     if (update.email)    user.email    = update.email;

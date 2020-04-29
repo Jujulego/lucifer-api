@@ -1,30 +1,38 @@
-import mongoose from 'mongoose';
+import 'reflect-metadata';
+import { omit } from 'lodash';
 import supertest from 'supertest';
 import validator from 'validator';
-import 'reflect-metadata';
 
-import app from 'app';
-import * as db from 'db';
-import { loadServices } from 'inversify.config';
+import { app } from 'app';
+import { DatabaseService } from 'db.service';
+import DIContainer, { loadServices } from 'inversify.config';
 import { should } from 'utils';
 
-import { PLvl } from 'data/permission/permission.enums';
-import UserModel from 'data/user/user.model';
-import { User } from 'data/user/user';
-import { LoginToken } from 'services/users.service';
+import { LRN } from 'bases/lrn';
+import { User } from 'users/user.entity';
 
 import { login } from '../utils';
 
 // Tests
 describe('api/users', () => {
   // Server setup
+  let database: DatabaseService;
   let request: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
+    // Load services
     loadServices();
-    await db.connect();
 
+    database = DIContainer.get(DatabaseService);
+    await database.connect();
+
+    // Start server
     request = supertest(app);
+  });
+
+  // Disconnect
+  afterAll(async () => {
+    await database.disconnect();
   });
 
   // Fill database
@@ -33,65 +41,66 @@ describe('api/users', () => {
   let user: User;
 
   let tokenA: string;
-  let tokenS: LoginToken;
+  let tokenS: string;
 
   beforeEach(async () => {
+    const repo = database.connection.getRepository(User);
+
     // Create some users
-    [admin, self, user] = await Promise.all([
-      new UserModel({
-        email: 'admin@api.users.com', password: 'test',
-        admin: true,
-      }).save(),
-      new UserModel({
-        email: 'self@api.users.com', password: 'test', admin: false,
-        permissions: [{ name: 'daemons', level: PLvl.READ }],
-      }).save(),
-      new UserModel({
-        email: 'user@api.users.com', password: 'test', admin: false
-      }).save(),
+    [admin, self, user] = await repo.save([
+      repo.create({ email: 'admin@api.users.com', password: 'test' }),
+      repo.create({ email: 'self@api.users.com',  password: 'test' }),
+      repo.create({ email: 'user@api.users.com',  password: 'test' }),
     ]);
 
     // Get tokens
-    tokenA = (await login({ email: 'admin@api.users.com', password: 'test' }, '1.2.3.4')).token;
-    tokenS = await login({ email: 'self@api.users.com', password: 'test' }, '1.2.3.4');
+    tokenA = await login('admin@api.users.com', 'test', '1.2.3.4');
+    tokenS = await login('self@api.users.com',  'test', '1.2.3.4');
   });
 
   // Empty database
   afterEach(async () => {
-    await Promise.all([
-      admin.remove(),
-      self.remove(),
-      user.remove(),
-    ])
-  });
-
-  // Disconnect
-  afterAll(async () => {
-    await mongoose.disconnect();
+    const repo = database.connection.getRepository(User);
+    await repo.delete([admin.id, self.id, user.id]);
   });
 
   // Tests
   // - create user
   test('POST /api/users', async () => {
-    const rep = await request.post('/api/users')
-      .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'test@api.users.com', password: 'test' })
-      .expect(200)
-      .expect('Content-Type', /json/);
+    try {
+      const rep = await request.post('/api/users')
+        .set('Authorization', `Bearer ${tokenA}`)
+        .send({ email: 'test@api.users.com', password: 'test' })
+        .expect(200)
+        .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual(should.user({ lastConnexion: undefined }));
+      expect(rep.body).toEqual({
+        id: should.validate(validator.isUUID),
+        lrn: should.validate(LRN.isLRN),
+        email: 'test@api.users.com'
+      });
+    } finally {
+      const repo = database.connection.getRepository(User);
+      await repo.delete({ email: 'test@api.users.com' });
+    }
   });
 
   test('POST /api/users (invalid email)', async () => {
-    const rep = await request.post('/api/users')
-      .set('Authorization', `Bearer ${tokenA}`)
-      .send({ email: 'test', password: 'test' })
-      .expect(400)
-      .expect('Content-Type', /json/);
+    try {
+      const rep = await request.post('/api/users')
+        .set('Authorization', `Bearer ${tokenA}`)
+        .send({ email: 'test', password: 'test' })
+        .expect(400)
+        .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({
-      code: 400, error: 'Invalid value for email'
-    });
+      expect(rep.body).toEqual({
+        code: 400,
+        error: 'Invalid value for email'
+      });
+    } finally {
+      const repo = database.connection.getRepository(User);
+      await repo.delete({ email: 'test' });
+    }
   });
 
   test('POST /api/users (no parameters)', async () => {
@@ -127,11 +136,16 @@ describe('api/users', () => {
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual(should.user({
-      _id: self.id.toString(),
-      permissions: [should.permission('daemons', PLvl.READ)],
-      tokens: [should.token(['Tests'])]
-    }));
+    expect(rep.body).toEqual({
+      id: self.id,
+      lrn: self.lrn.toString(),
+      email: self.email,
+      tokens: [{
+        id: should.validate(validator.isUUID),
+        date: should.validate(validator.isISO8601),
+        tags: []
+      }]
+    });
   });
 
   // - get all users
@@ -142,9 +156,9 @@ describe('api/users', () => {
       .expect('Content-Type', /json/);
 
     expect(rep.body).toEqual(expect.arrayContaining([
-      should.simpleUser({ _id: admin.id.toString() }),
-      should.simpleUser({ _id: self.id.toString() }),
-      should.simpleUser({ _id: user.id.toString(), lastConnexion: undefined })
+      omit(admin.toJSON(), ['tokens']),
+      omit(self.toJSON(),  ['tokens']),
+      omit(user.toJSON(),  ['tokens'])
     ]));
   });
 
@@ -156,11 +170,9 @@ describe('api/users', () => {
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual(should.user({
-      _id: self.id.toString(),
-      email: 'myself@api.users.com',
-      permissions: [should.permission('daemons', PLvl.READ)],
-      tokens: [should.token(['Tests'])]
+    expect(rep.body).toEqual(expect.objectContaining({
+      id: self.id,
+      email: 'myself@api.users.com'
     }));
   });
 
@@ -171,9 +183,8 @@ describe('api/users', () => {
       .expect(200)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual(should.user({
-      _id: self.id.toString(),
-      permissions: [should.permission('daemons', PLvl.READ)],
+    expect(rep.body).toEqual(expect.objectContaining({
+      id: self.id,
       tokens: []
     }));
   });
@@ -200,7 +211,6 @@ describe('api/users', () => {
 
     expect(rep.body).toEqual(should.user({
       _id: self.id.toString(),
-      permissions: [should.permission('daemons', PLvl.UPDATE)],
       tokens: [should.token(['Tests'])]
     }));
   });
@@ -239,7 +249,6 @@ describe('api/users', () => {
     expect(rep.body).toEqual(should.user({
       _id: self.id.toString(),
       admin: true,
-      permissions: [should.permission('daemons', PLvl.READ)],
       tokens: [should.token(['Tests'])]
     }));
   });
@@ -284,14 +293,13 @@ describe('api/users', () => {
 
   // - delete a user token
   test('DELETE /api/users/:id/token/:token', async () => {
-    const rep = await request.delete(`/api/users/${self.id}/token/${tokenS._id}`)
+    const rep = await request.delete(`/api/users/${self.id}/token/${tokenS}`)
       .set('Authorization', `Bearer ${tokenA}`)
       .expect(200)
       .expect('Content-Type', /json/);
 
     expect(rep.body).toEqual(should.user({
       _id: self.id.toString(),
-      permissions: [should.permission('daemons', PLvl.READ)],
       tokens: []
     }));
   });
@@ -300,13 +308,8 @@ describe('api/users', () => {
   test('DELETE /api/users/:id', async () => {
     const rep = await request.delete(`/api/users/${self.id}`)
       .set('Authorization', `Bearer ${tokenA}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
+      .expect(200);
 
-    expect(rep.body).toEqual(should.user({
-      _id: self.id.toString(),
-      permissions: [should.permission('daemons', PLvl.READ)],
-      tokens: [should.token(['Tests'])]
-    }));
+    expect(rep.body).toEqual({});
   });
 });
