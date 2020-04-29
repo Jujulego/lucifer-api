@@ -17,7 +17,7 @@ export class Token {
   @PrimaryGeneratedColumn('uuid') id: string;
 
   // - relations
-  @ManyToOne(type => User, user => user.tokens, { onDelete: 'CASCADE' })
+  @ManyToOne(type => User, user => user.tokens, { nullable: false, onDelete: 'CASCADE' })
   user: User;
 
   // - metadata

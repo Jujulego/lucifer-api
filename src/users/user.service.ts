@@ -6,6 +6,7 @@ import { HttpError } from 'middlewares/errors';
 import { Service } from 'utils';
 
 import { User } from './user.entity';
+import { Token } from './token.entity';
 import { TokenService } from './token.service';
 
 // Types
@@ -68,15 +69,23 @@ export class UserService {
     // Validate
     if (update.email && !validator.isEmail(update.email)) throw HttpError.BadRequest(`Invalid value for email`);
 
-    // Apply update
-    if (update.email) user.email = update.email;
-    if (update.password) {
-      user.password = update.password;
-      user.tokens = [];
-    }
+    return await this.database.connection.transaction(async manager => {
+      const usrRepo = manager.getRepository(User);
+      const tknRepo = manager.getRepository(Token);
 
-    // Save
-    return await this.repository.save(user);
+      // Apply update
+      if (update.email) user.email = update.email;
+      if (update.password) {
+        user.password = update.password;
+
+        // Delete all tokens
+        await tknRepo.delete({ user });
+        user.tokens = [];
+      }
+
+      // Save
+      return await usrRepo.save(user);
+    });
   }
 
   async delete(id: string) {

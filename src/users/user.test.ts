@@ -10,7 +10,7 @@ import { UserService } from './user.service';
 import { HttpError } from '../middlewares/errors';
 
 // Tests
-describe('data/user', () => {
+describe('users/user.service', () => {
   // Load services
   let database: DatabaseService;
   let service: UserService;
@@ -36,19 +36,24 @@ describe('data/user', () => {
   let token: Token;
 
   beforeEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
-    const tknRepo = database.connection.getRepository(Token);
+    await database.connection.transaction(async manager => {
+      const usrRepo = manager.getRepository(User);
+      const tknRepo = manager.getRepository(Token);
 
-    // Create a token
-    token = await tknRepo.save(tknRepo.create({ tags: ['test'] }));
+      // Create some users
+      users = await usrRepo.save([
+        usrRepo.create({ email: 'test1@user.com', password: 'test1', tokens: [] }),
+        usrRepo.create({ email: 'test2@user.com', password: 'test2', tokens: [] }),
+        usrRepo.create({ email: 'test3@user.com', password: 'test3', tokens: [] }),
+        usrRepo.create({ email: 'test4@user.com', password: 'test4', tokens: [] }),
+      ]);
 
-    // Create some users
-    users = await usrRepo.save([
-      usrRepo.create({ email: 'test1@user.com', password: 'test1', tokens: [token] }),
-      usrRepo.create({ email: 'test2@user.com', password: 'test2', tokens: [] }),
-      usrRepo.create({ email: 'test3@user.com', password: 'test3', tokens: [] }),
-      usrRepo.create({ email: 'test4@user.com', password: 'test4', tokens: [] }),
-    ]);
+      // Create a token
+      token = await tknRepo.save(tknRepo.create({ user: users[0], tags: ['test'] }));
+
+      users[0].tokens.push(token);
+      delete token.user;
+    });
   });
 
   // Empty database
@@ -161,7 +166,6 @@ describe('data/user', () => {
   test('UserService.update: change password', async () => {
     const user = users[0];
 
-    console.log('update');
     expect(await service.update(user.id, { password: 'tomato' }))
       .toEqual(expect.objectContaining({
         id: user.id,
