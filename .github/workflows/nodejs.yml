@@ -11,9 +11,12 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    container:
+      image: node:14-alpine
+
     services:
       postgres:
-        image: postgres
+        image: postgres:12-alpine
         env:
           POSTGRES_USER: 'root'
           POSTGRES_PASSWORD: 'root'
@@ -37,10 +40,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
+#      - name: Use Node.js 12.x
+#        uses: actions/setup-node@v1
+#        with:
+#          node-version: 12.x
 
       - name: Setup
         id: setup
