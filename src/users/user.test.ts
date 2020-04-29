@@ -2,12 +2,12 @@ import validator from 'validator';
 
 import { DatabaseService } from 'db.service';
 import DIContainer, { loadServices } from 'inversify.config';
+import { HttpError } from 'middlewares/errors';
 import { should } from 'utils';
 
 import { Token } from './token.entity';
 import { User } from './user.entity';
 import { UserService } from './user.service';
-import { HttpError } from '../middlewares/errors';
 
 // Tests
 describe('users/user.service', () => {
@@ -32,7 +32,7 @@ describe('users/user.service', () => {
   });
 
   // Fill database
-  let users: User[] = [];
+  let users: User[];
   let token: Token;
 
   beforeEach(async () => {
