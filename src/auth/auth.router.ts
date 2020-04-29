@@ -6,6 +6,8 @@ import { aroute } from 'utils';
 import { UserService } from 'users/user.service';
 import { required } from 'middlewares/required';
 
+import './jwt.strategy';
+
 // Router
 export const router = Router();
 
@@ -19,6 +21,8 @@ router.post('/login',
     const { email, password } = req.body;
 
     // Login
-    res.send(await users.login(email, password));
+    res.send({
+      token: await users.login(email, password)
+    });
   })
 );

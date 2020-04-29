@@ -4,7 +4,7 @@ import { DatabaseService } from 'db.service';
 import env from 'env';
 import { Service } from 'utils';
 
-import { Token } from './token.entity';
+import { IToken, Token } from './token.entity';
 import { User } from './user.entity';
 import { HttpError } from 'middlewares/errors';
 
@@ -29,16 +29,16 @@ export class TokenService {
   }
 
   encrypt(token: Token): string {
-    return jwt.sign(token, env.JWT_KEY, { expiresIn: '7 days' });
+    return jwt.sign(token.toJSON(), env.JWT_KEY, { expiresIn: '7 days' });
   }
 
-  async verify(token: Token): Promise<User> {
+  async verify(token: IToken): Promise<User> {
     // Check in database
     const tk = await this.repository.findOne({
       relations: ['user'],
       where: {
         id: token.id,
-        user: { id: token.user.id }
+        user: { id: token.user!.id }
       }
     });
 

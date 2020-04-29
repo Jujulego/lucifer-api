@@ -1,6 +1,14 @@
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { User } from './user.entity';
+import { IUser, User } from './user.entity';
+
+// Interface
+export interface IToken {
+  id: string;
+  user?: IUser;
+  date: Date;
+  tags: string[];
+}
 
 // Entity
 @Entity()
@@ -15,4 +23,19 @@ export class Token {
   // - metadata
   @CreateDateColumn() date: Date;
   @Column('varchar', { array: true, length: 64 }) tags: string[];
+
+  // Methods
+  toJSON(): IToken {
+    const obj: IToken = {
+      id: this.id,
+      date: this.date,
+      tags: this.tags
+    };
+
+    if (this.user) {
+      obj.user = this.user.toJSON();
+    }
+
+    return obj;
+  }
 }

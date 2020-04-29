@@ -1,11 +1,18 @@
 import bcrypt from 'bcryptjs';
-import { omit } from 'lodash';
 import { AfterLoad, BeforeInsert, BeforeUpdate, Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Resource } from 'bases/resource';
 import { LRN } from 'bases/lrn';
 
-import { Token } from './token.entity';
+import { IToken, Token } from './token.entity';
+
+// Interface
+export interface IUser {
+  id: string;
+  lrn: string;
+  email: string;
+  tokens?: IToken[];
+}
 
 // Methods
 @Entity()
@@ -37,9 +44,16 @@ export class User implements Resource {
   }
 
   // Methods
-  toJSON() {
-    const obj: any = omit(this, ['password', '_password']);
-    obj.lrn = this.lrn.toString();
+  toJSON(): IUser {
+    const obj: IUser = {
+      id: this.id,
+      lrn: this.lrn.toString(),
+      email: this.email,
+    };
+
+    if (this.tokens) {
+      obj.tokens = this.tokens.map(tk => tk.toJSON());
+    }
 
     return obj;
   }

@@ -5,13 +5,15 @@ import { DIContainer } from 'inversify.config';
 import { checkParam } from 'middlewares/required';
 import { aroute } from 'utils';
 
+import { auth } from 'auth/auth.middleware';
 import { UserService } from 'users/user.service';
 
 // Router
 export const router = Router();
 
-// Middleware
-router.param('id', checkParam(validator.isUUID))
+// Middlewares
+router.param('id', checkParam(validator.isUUID));
+router.use(auth);
 
 // Endpoints
 router.get('/', aroute(async (req, res) => {

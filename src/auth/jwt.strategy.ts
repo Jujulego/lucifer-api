@@ -4,17 +4,23 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import env from 'env';
 import { DIContainer } from 'inversify.config';
 
-import { Token } from 'users/token.entity';
+import { IToken } from 'users/token.entity';
 import { TokenService } from 'users/token.service';
 
 // Strategy
-passport.use(new JwtStrategy(
+passport.use('jwt', new JwtStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: env.JWT_KEY
   },
-  async (payload: Token) => {
-    const tokens = DIContainer.get(TokenService);
-    return await tokens.verify(payload);
+  async (payload: IToken, done) => {
+    try {
+      const tokens = DIContainer.get(TokenService);
+      const user = await tokens.verify(payload);
+
+      done(null, user);
+    } catch (error) {
+      done(error, null);
+    }
   }
 ));
