@@ -13,7 +13,7 @@ import UserModel from 'data/user/user.model';
 import { User } from 'data/user/user';
 import { LoginToken } from 'services/users.service';
 
-import { userLogin } from '../utils';
+import { login } from '../utils';
 
 // Tests
 describe('api/users', () => {
@@ -52,8 +52,8 @@ describe('api/users', () => {
     ]);
 
     // Get tokens
-    tokenA = (await userLogin({ email: 'admin@api.users.com', password: 'test' }, '1.2.3.4')).token;
-    tokenS = await userLogin({ email: 'self@api.users.com', password: 'test' }, '1.2.3.4');
+    tokenA = (await login({ email: 'admin@api.users.com', password: 'test' }, '1.2.3.4')).token;
+    tokenS = await login({ email: 'self@api.users.com', password: 'test' }, '1.2.3.4');
   });
 
   // Empty database

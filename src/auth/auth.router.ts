@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import validator from 'validator';
 
 import { DIContainer } from 'inversify.config';
 import { aroute } from 'utils';
@@ -13,7 +14,7 @@ export const router = Router();
 
 // Endpoints
 router.post('/login',
-  required({ body: ['email', 'password'] }),
+  required({ body: { email: validator.isEmail, password: true }}),
   aroute(async (req, res) => {
     const users = DIContainer.get(UserService);
 
