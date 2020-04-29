@@ -18,11 +18,11 @@ export class Token {
 
   // - relations
   @ManyToOne(type => User, user => user.tokens, { nullable: false, onDelete: 'CASCADE' })
-  user: User;
+  user?: User;
 
   // - metadata
   @CreateDateColumn() date: Date;
-  @Column('varchar', { array: true, length: 64 }) tags: string[];
+  @Column('varchar', { array: true }) tags: string[];
 
   // Methods
   toJSON(): IToken {

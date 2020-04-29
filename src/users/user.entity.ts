@@ -10,9 +10,11 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
-import { Resource } from 'bases/resource';
 import { LRN } from 'bases/lrn';
+import { Resource } from 'bases/resource';
 import { lowercase } from 'utils/transformers';
+
+import { Daemon, IDaemon } from 'daemons/daemon.entity';
 
 import { IToken, Token } from './token.entity';
 
@@ -21,6 +23,7 @@ export interface IUser {
   id: string;
   lrn: string;
   email: string;
+  daemons?: IDaemon[];
   tokens?: IToken[];
 }
 
@@ -32,9 +35,12 @@ export class User implements Resource {
   @Column('varchar', { length: 128, unique: true, transformer: [lowercase] }) email: string;
   @Column('varchar', { length: 128 }) password: string;
 
-  // Relations
+  // - relations
+  @OneToMany(type => Daemon, daemon => daemon.owner)
+  daemons?: Daemon[];
+
   @OneToMany(type => Token, token => token.user)
-  tokens: Token[];
+  tokens?: Token[];
 
   // Attributes
   private _password: string;
@@ -63,6 +69,10 @@ export class User implements Resource {
       lrn: this.lrn.toString(),
       email: this.email,
     };
+
+    if (this.daemons) {
+      obj.daemons = this.daemons.map(dmn => dmn.toJSON());
+    }
 
     if (this.tokens) {
       obj.tokens = this.tokens.map(tk => tk.toJSON());
