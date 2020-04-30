@@ -33,7 +33,7 @@ export class DaemonService {
       const daemon = repo.create();
 
       if (data.ownerId) {
-        daemon.owner = await this.users.get(data.ownerId);
+        daemon.owner = await this.users.get(data.ownerId, { full: false });
       }
 
       return await repo.save(daemon);
@@ -75,7 +75,7 @@ export class DaemonService {
     try {
       // Apply update
       if (update.ownerId) {
-        daemon.owner = await this.users.get(update.ownerId);
+        daemon.owner = await this.users.get(update.ownerId, { full: false });
       }
 
       return await this.repository.save(daemon);

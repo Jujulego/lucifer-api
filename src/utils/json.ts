@@ -39,8 +39,6 @@ export function toJSON(target: any): any {
   let fields = Reflect.getMetadata(JSON_METADATA, target) as Field[];
   if (!fields) return target;
 
-  console.log(fields);
-
   // Build object
   const obj: any = {};
   fields.forEach(field => {

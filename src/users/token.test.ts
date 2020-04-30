@@ -63,7 +63,7 @@ describe('users/token.service', () => {
     expect(token.toJSON())
       .toEqual({
         id: token.id,
-        date: expect.any(Date),
+        date: token.date.toISOString(),
         tags: ['test'],
         user: user.toJSON()
       });

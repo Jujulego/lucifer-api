@@ -48,12 +48,12 @@ export class UserService {
     return await this.repository.find();
   }
 
-  async get(id: string): Promise<User> {
+  async get(id: string, opts = { full: true }): Promise<User> {
     if (!validator.isUUID(id)) throw HttpError.NotFound();
 
     // Get user
     const user = await this.repository.findOne(id, {
-      relations: ['tokens']
+      relations: opts.full ? ['tokens'] : []
     });
 
     // Throw if not found

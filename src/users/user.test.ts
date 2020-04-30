@@ -76,13 +76,15 @@ describe('users/user.service', () => {
 
   // - User.toJSON
   test('User.toJSON', () => {
-    const user = users[0].toJSON();
+    const user = users[0];
 
-    expect(user).toHaveProperty('id');
-    expect(user).toHaveProperty('email');
-    expect(user).not.toHaveProperty('password');
-
-    expect(user).toHaveProperty('tokens');
+    expect(user.toJSON())
+      .toEqual({
+        id: user.id,
+        lrn: user.lrn.toString(),
+        email: user.email,
+        tokens: [token.toJSON()]
+      });
   });
 
   // - UserService.create
