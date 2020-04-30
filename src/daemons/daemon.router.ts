@@ -23,10 +23,29 @@ router.get('/', aroute(async (req, res) => {
   res.send(await daemons.list());
 }));
 
+router.post('/', aroute(async (req, res) => {
+  const daemons = DIContainer.get(DaemonService);
+
+  res.send(await daemons.create(req.body));
+}));
+
 router.get('/:id', aroute(async (req, res) => {
   const daemons = DIContainer.get(DaemonService);
 
   const { id } = req.params;
-
   res.send(await daemons.get(id));
+}));
+
+router.put('/:id', aroute(async (req, res) => {
+  const daemons = DIContainer.get(DaemonService);
+
+  const { id } = req.params;
+  res.send(await daemons.update(id, req.body));
+}));
+
+router.delete('/:id', aroute(async (req, res) => {
+  const daemons = DIContainer.get(DaemonService);
+
+  const { id } = req.params;
+  res.send(await daemons.delete(id));
 }));
