@@ -7,10 +7,8 @@ import { DatabaseService } from 'db.service';
 import { UserService } from 'users/user.service';
 
 import { Daemon } from './daemon.entity';
-
-// Types
-export type DaemonCreate = { ownerId?: string };
-export type DaemonUpdate = { ownerId?: string };
+import { daemonCreate, DaemonCreate } from './daemon.schema';
+import { daemonUpdate, DaemonUpdate } from './daemon.schema';
 
 // Service
 @Service()
@@ -26,7 +24,10 @@ export class DaemonService {
     const repo = this.repository;
 
     // Validate data
-    if (data.ownerId && !validator.isUUID(data.ownerId)) throw HttpError.BadRequest('Invalid value for ownerId');
+    const result = daemonCreate.validate(data);
+    if (result.error) throw HttpError.BadRequest(result.error.message);
+
+    data = result.value;
 
     try {
       // Create daemon
@@ -70,12 +71,19 @@ export class DaemonService {
     const daemon = await this.get(id);
 
     // Validate data
-    if (update.ownerId && !validator.isUUID(update.ownerId)) throw HttpError.BadRequest('Invalid value for ownerId');
+    const result = daemonUpdate.validate(update);
+    if (result.error) throw HttpError.BadRequest(result.error.message);
+
+    update = result.value;
 
     try {
       // Apply update
-      if (update.ownerId) {
-        daemon.owner = await this.users.get(update.ownerId, { full: false });
+      if ('ownerId' in update) {
+        if (!update.ownerId) {
+          daemon.owner = undefined;
+        } else {
+          daemon.owner = await this.users.get(update.ownerId, { full: false });
+        }
       }
 
       return await this.repository.save(daemon);
