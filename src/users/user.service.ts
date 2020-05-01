@@ -1,9 +1,10 @@
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 
+import { Service } from 'utils';
+
 import { DatabaseService } from 'db.service';
 import { HttpError } from 'middlewares/errors';
-import { Service } from 'utils';
 
 import { User } from './user.entity';
 import { Token } from './token.entity';

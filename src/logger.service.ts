@@ -1,5 +1,5 @@
-import env from 'env';
-import DIContainer from 'inversify.config';
+import { env } from 'env';
+import { DIContainer } from 'inversify.config';
 
 import { Service } from 'utils';
 
@@ -28,6 +28,7 @@ export class LoggerService {
   constructor() {
     // Start level based on env
     const level = env.LOG_LEVEL.toUpperCase();
+
     if (isLogLevel(level)) {
       this._level = LogLevel[level];
     } else if (env.PRODUCTION) {

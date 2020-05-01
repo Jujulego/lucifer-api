@@ -1,6 +1,6 @@
 import validator from 'validator';
 
-import DIContainer, { loadServices } from 'inversify.config';
+import { DIContainer, loadServices } from 'inversify.config';
 import { HttpError } from 'middlewares/errors';
 import { should } from 'utils';
 

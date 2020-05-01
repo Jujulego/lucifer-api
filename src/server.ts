@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import http from 'http';
 
 import { app } from 'app';
-import env from 'env';
-import DIContainer, { loadServices } from 'inversify.config';
+import { env } from 'env';
+import { DIContainer, loadServices } from 'inversify.config';
 
 import { DatabaseService } from 'db.service';
 import { LoggerService } from 'logger.service';

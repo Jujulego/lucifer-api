@@ -8,5 +8,3 @@ export const DIContainer = new Container();
 export function loadServices() {
   DIContainer.load(buildProviderModule())
 }
-
-export default DIContainer;

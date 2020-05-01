@@ -5,7 +5,7 @@ import validator from 'validator';
 
 import { app } from 'app';
 import { DatabaseService } from 'db.service';
-import DIContainer, { loadServices } from 'inversify.config';
+import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
 import { LRN } from 'bases/lrn';

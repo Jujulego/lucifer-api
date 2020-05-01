@@ -3,7 +3,7 @@ import supertest from 'supertest';
 
 import { app } from 'app';
 import { DatabaseService } from 'db.service';
-import DIContainer, { loadServices } from 'inversify.config';
+import { DIContainer, loadServices } from 'inversify.config';
 
 // Tests
 describe('api', () => {

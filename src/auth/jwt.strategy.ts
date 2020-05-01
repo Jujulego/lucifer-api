@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
-import env from 'env';
+import { env } from 'env';
 import { DIContainer } from 'inversify.config';
 
 import { IToken } from 'users/token.entity';
