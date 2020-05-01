@@ -1,7 +1,7 @@
 // For a detailed explanation regarding each configuration property, visit:
 // https://jestjs.io/docs/en/configuration.html
 
-module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
+module.exports = { //...require('@shelf/jest-mongodb/jest-preset'),
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 

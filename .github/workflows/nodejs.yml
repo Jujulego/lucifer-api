@@ -12,9 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: node:14
+      image: node:14-alpine
 
     services:
+      mongo:
+        image: mongo:4
+
       postgres:
         image: postgres:12-alpine
         env:
@@ -27,6 +30,8 @@ jobs:
           --health-retries 5
 
     env:
+      MONGO_URL: 'mongodb://mongo:27017/lucifer'
+
       TYPEORM_CONNECTION: 'postgres'
       TYPEORM_HOST: 'postgres'
       TYPEORM_PORT: 5432
@@ -39,11 +44,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-
-#      - name: Use Node.js 12.x
-#        uses: actions/setup-node@v1
-#        with:
-#          node-version: 12.x
 
       - name: Setup
         id: setup
