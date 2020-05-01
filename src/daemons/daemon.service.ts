@@ -13,7 +13,7 @@ export type DaemonCreate = { ownerId?: string };
 export type DaemonUpdate = { ownerId?: string };
 
 // Service
-@Service(DaemonService)
+@Service()
 export class DaemonService {
   // Constructor
   constructor(

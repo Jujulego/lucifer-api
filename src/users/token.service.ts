@@ -10,7 +10,7 @@ import { IToken, Token } from './token.entity';
 import { User } from './user.entity';
 
 // Service
-@Service(TokenService)
+@Service()
 export class TokenService {
   // Constructor
   constructor(

@@ -1,10 +1,11 @@
 import { Container } from 'inversify';
-import { buildProviderModule } from 'inversify-binding-decorators';
+
+import { servicesModule } from 'utils';
 
 // Container
 export const DIContainer = new Container();
 
 // Utils
 export function loadServices() {
-  DIContainer.load(buildProviderModule())
+  DIContainer.load(servicesModule());
 }

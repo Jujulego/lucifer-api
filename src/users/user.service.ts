@@ -15,7 +15,7 @@ export type UserCreate = Pick<User, 'email' | 'password'>;
 export type UserUpdate = Partial<Pick<User, 'email' | 'password'>>;
 
 // Service
-@Service(UserService)
+@Service()
 export class UserService {
   // Constructor
   constructor(

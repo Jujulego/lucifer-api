@@ -5,7 +5,7 @@ import { Service } from 'utils';
 import { LoggerService } from 'logger.service';
 
 // Service
-@Service(DatabaseService)
+@Service({ singleton: true })
 export class DatabaseService {
   // Attributes
   private _connection?: Connection;

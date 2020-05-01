@@ -18,7 +18,7 @@ export function isLogLevel(value: string): value is keyof typeof LogLevel {
 }
 
 // Service
-@Service(LoggerService)
+@Service()
 export class LoggerService {
   // Attributes
   private _level = LogLevel.DEBUG;
