@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 
 // Utils
 export async function shouldNotBeFound<T>(prom: Promise<T>) {

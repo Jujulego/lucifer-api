@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 
 // Middleware
 export function auth(req: Request, res: Response, next: NextFunction) {

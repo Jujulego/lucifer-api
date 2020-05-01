@@ -4,7 +4,7 @@ import validator from 'validator';
 import { Service } from 'utils';
 
 import { DatabaseService } from 'db.service';
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 
 import { User } from './user.entity';
 import { Token } from './token.entity';

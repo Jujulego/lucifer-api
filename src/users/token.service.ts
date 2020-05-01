@@ -4,7 +4,7 @@ import { env } from 'env';
 import { Service } from 'utils';
 
 import { DatabaseService } from 'db.service';
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 
 import { IToken, Token } from './token.entity';
 import { User } from './user.entity';

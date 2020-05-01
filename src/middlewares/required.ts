@@ -3,7 +3,7 @@ import {
   NextFunction, RequestParamHandler
 } from 'express';
 
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 
 // Types
 type Blocks = 'params' | 'query' | 'body';

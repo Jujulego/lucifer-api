@@ -2,7 +2,7 @@ import validator from 'validator';
 
 import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
-import { HttpError } from 'middlewares/errors';
+import { HttpError } from 'errors/errors.model';
 import { should } from 'utils';
 
 import { Token } from './token.entity';
