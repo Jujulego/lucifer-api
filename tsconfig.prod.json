@@ -4,6 +4,7 @@
     "src/**/*"
   ],
   "exclude": [
+    "tests",
     "src/**/*.test.ts"
   ],
   "compilerOptions": {

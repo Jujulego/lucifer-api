@@ -49,10 +49,10 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.prod.json",
-    "typeorm": "ts-node --files -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "yarn run typeorm migration:generate",
     "migration:run": "yarn run typeorm migration:run",
-    "start": "nodemon --exec ts-node --files -r tsconfig-paths/register src/server.ts",
+    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
     "test": "jest",
     "wizard": "snyk wizard"
   }

@@ -94,10 +94,8 @@ describe('api/users', () => {
         .expect(400)
         .expect('Content-Type', /json/);
 
-      expect(rep.body).toEqual({
-        code: 400,
-        error: 'Invalid value for email'
-      });
+      expect(rep.body)
+        .toEqual(should.be.badRequest('Invalid value for email'));
     } finally {
       const repo = database.connection.getRepository(User);
       await repo.delete({ email: 'test' });
@@ -110,25 +108,9 @@ describe('api/users', () => {
       .expect(400)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({
-      code: 400,
-      error: expect.stringMatching(/Missing required parameters: (?:email|password), (?:email|password)/)
-    });
+    expect(rep.body)
+      .toEqual(should.be.badRequest(expect.stringMatching(/Missing required parameters: (?:email|password), (?:email|password)/)));
   });
-
-  // - create token
-  // test('POST /api/users/:id/token', async () => {
-  //   const rep = await request.post(`/api/users/${self.id}/token`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .send({ tags: ['Tests'] })
-  //     .expect(200)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual({
-  //     ...should.token(['Tests']),
-  //     token: should.validate(validator.isJWT)
-  //   });
-  // });
 
   // - get a user
   test('GET /api/users/:id', async () => {
@@ -197,113 +179,9 @@ describe('api/users', () => {
       .expect(400)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({
-      code: 400, error: 'Invalid value for email'
-    });
+    expect(rep.body)
+      .toEqual(should.be.badRequest('Invalid value for email'));
   });
-
-  // - grant a user
-  // test('PUT /api/users/:id/grant', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/grant`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .send({ name: 'daemons', level: 'UPDATE' })
-  //     .expect(200)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual(should.user({
-  //     _id: self.id.toString(),
-  //     tokens: [should.token(['Tests'])]
-  //   }));
-  // });
-  //
-  // test('PUT /api/users/:id/grant (invalid name)', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/grant`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .send({ name: '', level: 'UPDATE' })
-  //     .expect(400)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual({
-  //     code: 400, error: 'Invalid value for name'
-  //   });
-  // });
-  //
-  // test('PUT /api/users/:id/grant (no parameters)', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/grant`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .expect(400)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual({
-  //     code: 400,
-  //     error: expect.stringMatching(/Missing required parameters: (?:name|level), (?:name|level)/)
-  //   });
-  // });
-  //
-  // // - elevate a user
-  // test('PUT /api/users/:id/elevate', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/elevate`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .expect(200)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual(should.user({
-  //     _id: self.id.toString(),
-  //     admin: true,
-  //     tokens: [should.token(['Tests'])]
-  //   }));
-  // });
-  //
-  // // - revoke a user
-  // test('PUT /api/users/:id/revoke', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/revoke`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .send({ name: 'daemons' })
-  //     .expect(200)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual(should.user({
-  //     _id: self.id.toString(),
-  //     permissions: [],
-  //     tokens: [should.token(['Tests'])]
-  //   }));
-  // });
-  //
-  // test('PUT /api/users/:id/revoke (invalid name)', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/revoke`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .send({ name: '' })
-  //     .expect(400)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual({
-  //     code: 400, error: 'Invalid value for name'
-  //   });
-  // });
-  //
-  // test('PUT /api/users/:id/revoke (no parameters)', async () => {
-  //   const rep = await request.put(`/api/users/${self.id}/revoke`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .expect(400)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual({
-  //     code: 400, error: 'Missing required parameters: name'
-  //   });
-  // });
-  //
-  // // - delete a user token
-  // test('DELETE /api/users/:id/token/:token', async () => {
-  //   const rep = await request.delete(`/api/users/${self.id}/token/${tokenS}`)
-  //     .set('Authorization', `Bearer ${tokenA}`)
-  //     .expect(200)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body).toEqual(should.user({
-  //     _id: self.id.toString(),
-  //     tokens: []
-  //   }));
-  // });
 
   // - delete a user
   test('DELETE /api/users/:id', async () => {

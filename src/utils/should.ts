@@ -1,19 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-import { HttpError } from 'errors/errors.model';
-
-// Utils
-export async function shouldNotBeFound<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toRespect(HttpError.NotFound(expect.any(String)));
-}
-
-export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toEqual(HttpError.Forbidden('Not allowed'));
-}
-
-export async function shouldBeUnauthorized<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toRespect(HttpError.Unauthorized(expect.any(String)));
-}
+import { HTTP_ERRORS } from 'errors/errors.constants';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
@@ -107,9 +94,6 @@ class Validator<T = any> implements jest.AsymmetricMatcher {
 
 // Namespace
 const should = {
-  // Utils
-  beUnauthorized: shouldBeUnauthorized,
-
   // Logic
   all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
   any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
@@ -120,12 +104,25 @@ const should = {
   haveLength: (length: number) => new HaveLength(length),
   validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator),
 
+  // Schemas
+  be: {
+    httpError(status: keyof typeof HTTP_ERRORS, message: string) {
+      return {
+        status,
+        error: HTTP_ERRORS[status],
+        message: message
+      }
+    },
+
+    badRequest(  message?: string) { return this.httpError(400, message || HTTP_ERRORS[400])},
+    unauthorized(message?: string) { return this.httpError(401, message || HTTP_ERRORS[401])},
+    forbidden(   message?: string) { return this.httpError(403, message || HTTP_ERRORS[403])},
+    notFound(    message?: string) { return this.httpError(404, message || HTTP_ERRORS[404])},
+    serverError( message?: string) { return this.httpError(500, message || HTTP_ERRORS[500])}
+  },
+
   // Inverted
   not: {
-    // Utils
-    beAllowed: shouldNotBeAllowed,
-    beFound: shouldNotBeFound,
-
     // Matchers
     hashOf: (hash: string) => new HashOf(hash, true),
     hashTo: (hash: string) => new HashTo(hash, true),

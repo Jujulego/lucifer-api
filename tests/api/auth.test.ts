@@ -3,16 +3,16 @@ import supertest from 'supertest';
 import validator from 'validator';
 
 import { app } from 'app';
-import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
+import { should } from 'utils';
 
+import { DatabaseService } from 'db.service';
 import { User } from 'users/user.entity';
 
 import { login } from '../utils';
-import { should } from '../../src/utils';
 
 // Tests
-describe('api/auth', () => {
+describe('/api (auth)', () => {
   // Server setup
   let database: DatabaseService;
   let request: ReturnType<typeof supertest>;
@@ -74,7 +74,8 @@ describe('api/auth', () => {
       .expect(401)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
+    expect(rep.body)
+      .toEqual(should.be.unauthorized());
   });
 
   test('POST /api/login (invalid email)', async () => {
@@ -83,7 +84,8 @@ describe('api/auth', () => {
       .expect(400)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
+    expect(rep.body)
+      .toEqual(should.be.badRequest('Invalid value for email'));
   });
 
   test('POST /api/login (missing credentials)', async () => {
@@ -91,7 +93,8 @@ describe('api/auth', () => {
       .expect(400)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
+    expect(rep.body)
+      .toEqual(should.be.badRequest('Missing required parameters: email, password'));
   });
 
   // - connexion check
@@ -107,6 +110,7 @@ describe('api/auth', () => {
       .expect(401)
       .expect('Content-Type', /json/);
 
-    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
+    expect(rep.body)
+      .toEqual(should.be.unauthorized());
   });
 });

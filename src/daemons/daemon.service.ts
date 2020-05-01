@@ -39,7 +39,7 @@ export class DaemonService {
       return await repo.save(daemon);
     } catch (error) {
       if (error instanceof HttpError) {
-        if (error.code === 404) throw HttpError.BadRequest(error.message);
+        if (error.status === 404) throw HttpError.BadRequest(error.message);
       }
 
       throw error;
@@ -81,7 +81,7 @@ export class DaemonService {
       return await this.repository.save(daemon);
     } catch (error) {
       if (error instanceof HttpError) {
-        if (error.code === 404) throw HttpError.BadRequest(error.message);
+        if (error.status === 404) throw HttpError.BadRequest(error.message);
       }
 
       throw error;
