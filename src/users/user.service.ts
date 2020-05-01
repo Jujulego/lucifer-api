@@ -7,12 +7,10 @@ import { DatabaseService } from 'db.service';
 import { HttpError } from 'errors/errors.model';
 
 import { User } from './user.entity';
+import { userCreate, UserCreate } from 'users/user.schema';
+import { userUpdate, UserUpdate } from 'users/user.schema';
 import { Token } from './token.entity';
 import { TokenService } from './token.service';
-
-// Types
-export type UserCreate = Pick<User, 'email' | 'password'>;
-export type UserUpdate = Partial<Pick<User, 'email' | 'password'>>;
 
 // Service
 @Service()
@@ -28,17 +26,16 @@ export class UserService {
     const repo = this.repository;
 
     // Validate data
-    const missing: string[] = [];
-    if (!data.email)    missing.push('email');
-    if (!data.password) missing.push('password');
-    if (missing.length > 0) throw HttpError.BadRequest(`Missing required parameters: ${missing.join(', ')}`);
+    const res = userCreate.validate(data);
+    if (res.error) throw HttpError.BadRequest(res.error.message);
 
-    if (!validator.isEmail(data.email)) throw HttpError.BadRequest(`Invalid value for email`);
+    data = res.value;
 
     // Create user
     const user = repo.create();
     user.email = data.email.toLowerCase();
     user.password = data.password;
+    user.daemons = [];
     user.tokens = [];
 
     return await repo.save(user);
@@ -68,7 +65,9 @@ export class UserService {
     const user = await this.get(id);
 
     // Validate
-    if (update.email && !validator.isEmail(update.email)) throw HttpError.BadRequest(`Invalid value for email`);
+    const res = userUpdate.validate(update);
+    if (res.error) throw HttpError.BadRequest(res.error.message);
+    update = res.value;
 
     return await this.database.connection.transaction(async manager => {
       const usrRepo = manager.getRepository(User);

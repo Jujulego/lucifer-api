@@ -14,7 +14,7 @@ import { User } from 'users/user.entity';
 import { login } from '../utils';
 
 // Tests
-describe('api/users', () => {
+describe('/api/users', () => {
   // Server setup
   let database: DatabaseService;
   let request: ReturnType<typeof supertest>;
@@ -78,27 +78,12 @@ describe('api/users', () => {
         id: should.validate(validator.isUUID),
         lrn: should.validate(LRN.isLRN),
         email: 'test@api.users.com',
+        daemons: [],
         tokens: []
       });
     } finally {
       const repo = database.connection.getRepository(User);
       await repo.delete({ email: 'test@api.users.com' });
-    }
-  });
-
-  test('POST /api/users (invalid email)', async () => {
-    try {
-      const rep = await request.post('/api/users')
-        .set('Authorization', `Bearer ${tokenA}`)
-        .send({ email: 'test', password: 'test' })
-        .expect(400)
-        .expect('Content-Type', /json/);
-
-      expect(rep.body)
-        .toEqual(should.be.badRequest('Invalid value for email'));
-    } finally {
-      const repo = database.connection.getRepository(User);
-      await repo.delete({ email: 'test' });
     }
   });
 
@@ -109,7 +94,7 @@ describe('api/users', () => {
       .expect('Content-Type', /json/);
 
     expect(rep.body)
-      .toEqual(should.be.badRequest(expect.stringMatching(/Missing required parameters: (?:email|password), (?:email|password)/)));
+      .toEqual(should.be.badRequest(expect.stringMatching(/"(?:email|password)" is required/)));
   });
 
   // - get a user
@@ -180,7 +165,7 @@ describe('api/users', () => {
       .expect('Content-Type', /json/);
 
     expect(rep.body)
-      .toEqual(should.be.badRequest('Invalid value for email'));
+      .toEqual(should.be.badRequest('"email" must be a valid email'));
   });
 
   // - delete a user

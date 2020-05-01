@@ -92,11 +92,15 @@ describe('users/user.service', () => {
     const user = await service.create({ email: 'test@user.com', password: 'test' });
 
     try {
-      expect(user.id).toEqual(should.validate(validator.isUUID));
-      expect(user.email).toEqual('test@user.com');
-      expect(user.password).toEqual(should.hashOf('test'));
+      expect(user)
+        .toEqual(expect.objectContaining({
+          id: should.validate(validator.isUUID),
+          email: 'test@user.com',
+          password: should.hashOf('test'),
 
-      expect(user.tokens).toEqual([]);
+          daemons: [],
+          tokens: []
+        }));
 
     } finally {
       const usrRepo = database.connection.getRepository(User);
@@ -121,6 +125,20 @@ describe('users/user.service', () => {
       .rejects.toThrow();
   });
 
+  test('UserService.create: invalid data', async () => {
+    // Empty email
+    await expect(service.create({ email: '', password: 'test' }))
+      .rejects.toEqual(HttpError.BadRequest('"email" is not allowed to be empty'));
+
+    // Invalid email
+    await expect(service.create({ email: 'test', password: 'test' }))
+      .rejects.toEqual(HttpError.BadRequest('"email" must be a valid email'));
+
+    // Empty password
+    await expect(service.create({ email: 'test@test.com', password: '' }))
+      .rejects.toEqual(HttpError.BadRequest('"password" is not allowed to be empty'));
+  });
+
   // - UserService.list
   test('UserService.list', async () => {
     const res = await service.list();
@@ -130,10 +148,20 @@ describe('users/user.service', () => {
   });
 
   // - UserService.get
-  test('UserService.get: existing user', async () => {
+  test('UserService.get: full user', async () => {
     const user = users[0];
 
     const res = await service.get(user.id);
+    expect(res).toEqual(user);
+  });
+
+  test('UserService.get: simple user', async () => {
+    const user = users[0];
+
+    const res = await service.get(user.id, { full: false });
+
+    delete user.daemons;
+    delete user.tokens;
     expect(res).toEqual(user);
   });
 
@@ -174,6 +202,22 @@ describe('users/user.service', () => {
         password: should.hashOf('tomato'),
         tokens: []
       }));
+  });
+
+  test('UserService.update: invalid data', async () => {
+    const user = users[0];
+
+    // Empty email
+    await expect(service.update(user.id, { email: '' }))
+      .rejects.toEqual(HttpError.BadRequest('"email" is not allowed to be empty'));
+
+    // Invalid email
+    await expect(service.update(user.id, { email: 'test' }))
+      .rejects.toEqual(HttpError.BadRequest('"email" must be a valid email'));
+
+    // Empty password
+    await expect(service.update(user.id, { password: '' }))
+      .rejects.toEqual(HttpError.BadRequest('"password" is not allowed to be empty'));
   });
 
   // - UserService.delete
