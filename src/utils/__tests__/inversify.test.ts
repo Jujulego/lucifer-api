@@ -10,7 +10,7 @@ class TestService {}
 class TestSingletonService {}
 
 // Test suite
-describe('utils.inversify', () => {
+describe('utils/inversify', () => {
   // Setup container
   const container = new Container();
 
