@@ -25,7 +25,7 @@ export function Service(opts: ServiceOpts = {}) {
 
     // Prepare binding
     const cb = (bind: interfaces.Bind) => {
-      const binding = bind(target).to(target);
+      const binding = bind(target).toSelf();
 
       if (singleton) binding.inSingletonScope();
     }
