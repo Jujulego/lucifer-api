@@ -5,7 +5,8 @@ import { DIContainer } from 'inversify.config';
 import { aroute, check } from 'utils';
 
 import { auth } from 'auth/auth.middleware';
-import { UserService } from 'users/user.service';
+
+import { UserService } from './user.service';
 
 // Router
 export const router = Router();

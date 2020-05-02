@@ -74,7 +74,7 @@ export class User implements Resource {
   }
 
   // Properties
-  @json<LRN>({ transform: lrn => lrn.toString() })
+  @json<LRN>(lrn => lrn.toString())
   get lrn() {
     return new LRN('users', this.id);
   }

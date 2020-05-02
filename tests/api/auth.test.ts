@@ -81,20 +81,20 @@ describe('/api (auth)', () => {
   test('POST /api/login (invalid email)', async () => {
     const rep = await request.post('/api/login')
       .send({ email: 'wrong', password: 'test', tags: ['Tests'] })
-      .expect(400)
+      .expect(401)
       .expect('Content-Type', /json/);
 
     expect(rep.body)
-      .toEqual(should.be.badRequest('Invalid value for email'));
+      .toEqual(should.be.unauthorized());
   });
 
   test('POST /api/login (missing credentials)', async () => {
     const rep = await request.post('/api/login')
-      .expect(400)
+      .expect(401)
       .expect('Content-Type', /json/);
 
     expect(rep.body)
-      .toEqual(should.be.badRequest('Missing required parameters: email, password'));
+      .toEqual(should.be.unauthorized());
   });
 
   // - connexion check

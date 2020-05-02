@@ -18,7 +18,7 @@ router.post('/login', aroute(async (req, res) => {
 
     // Parse request
     const { email, password } = req.body;
-    if (!validator.isEmail(email)) throw HttpError.Unauthorized();
+    if (!email || !validator.isEmail(email)) throw HttpError.Unauthorized();
 
     // Login
     res.send({

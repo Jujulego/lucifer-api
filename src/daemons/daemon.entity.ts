@@ -2,7 +2,7 @@ import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 import { Resource } from 'bases/resource';
 import { LRN } from 'bases/lrn';
-import { json, toJSON } from 'utils/json';
+import { json, toJSON } from 'utils';
 
 import { IUser, User } from 'users/user.entity';
 
@@ -25,12 +25,10 @@ export class Daemon implements Resource {
   @json() owner?: User;
 
   // Methods
-  toJSON(): IDaemon {
-    return toJSON(this);
-  }
+  toJSON() { return toJSON<IDaemon>(this) }
 
   // Properties
-  @json<LRN>({ transform: val => val.toString() })
+  @json<LRN>(val => val.toString())
   get lrn() {
     return new LRN('daemons', this.id);
   }
