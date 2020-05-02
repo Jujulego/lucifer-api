@@ -1,9 +1,9 @@
 export * from './aroute';
+export * from './check';
 export * from './inversify';
-export * from './lrn';
-export * from './query';
+export * from './json';
 export * from './should';
 export * from './string';
+export * from './transformers';
+export * from './types';
 export * from './version';
-
-export { default as should } from './should';

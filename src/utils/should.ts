@@ -93,7 +93,7 @@ class Validator<T = any> implements jest.AsymmetricMatcher {
 }
 
 // Namespace
-const should = {
+export const should = {
   // Logic
   all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
   any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
@@ -130,5 +130,3 @@ const should = {
     validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator, true),
   }
 };
-
-export default should;

@@ -2,8 +2,7 @@ import { Router } from 'express';
 import validator from 'validator';
 
 import { DIContainer } from 'inversify.config';
-import { checkParam } from 'middlewares/required';
-import { aroute } from 'utils';
+import { aroute, check } from 'utils';
 
 import { auth } from 'auth/auth.middleware';
 
@@ -13,7 +12,7 @@ import { DaemonService } from './daemon.service';
 export const router = Router();
 
 // Middlewares
-router.param('id', checkParam(validator.isUUID))
+router.param('id', check(validator.isUUID))
 router.use(auth);
 
 // Endpoints

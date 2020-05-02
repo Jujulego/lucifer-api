@@ -4,8 +4,8 @@ import validator from 'validator';
 import { DIContainer } from 'inversify.config';
 import { aroute } from 'utils';
 
+import { HttpError } from 'errors/errors.model';
 import { UserService } from 'users/user.service';
-import { required } from 'middlewares/required';
 
 import './jwt.strategy';
 
@@ -13,13 +13,12 @@ import './jwt.strategy';
 export const router = Router();
 
 // Endpoints
-router.post('/login',
-  required({ body: { email: validator.isEmail, password: true }}),
-  aroute(async (req, res) => {
+router.post('/login', aroute(async (req, res) => {
     const users = DIContainer.get(UserService);
 
     // Parse request
     const { email, password } = req.body;
+    if (!validator.isEmail(email)) throw HttpError.Unauthorized();
 
     // Login
     res.send({
