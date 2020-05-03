@@ -29,6 +29,12 @@ export class TokenService {
     return await repo.save(token);
   }
 
+  async list(user: User): Promise<Token[]> {
+    return await this.repository.find({
+      where: { user }
+    });
+  }
+
   encrypt(token: Token): string {
     return jwt.sign(token.toJSON(), env.JWT_KEY, { expiresIn: '7 days' });
   }

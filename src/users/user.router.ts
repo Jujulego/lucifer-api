@@ -7,55 +7,59 @@ import { aroute, check } from 'utils';
 import { auth } from 'auth/auth.middleware';
 
 import { UserService } from './user.service';
+import { router as tokens } from './token.router';
 
 // Router
 export const router = Router();
 
 // Middlewares
-router.param('id', check(validator.isUUID));
+router.param('userId', check(validator.isUUID));
 router.use(auth);
+
+// Routers
+router.use('/:userId/tokens', tokens);
 
 // Endpoints
 router.get('/', aroute(async (req, res) => {
-  const service = DIContainer.get(UserService);
+  const users = DIContainer.get(UserService);
 
   // Get list
-  res.send(await service.list());
+  res.send(await users.list());
 }));
 
 router.post('/', aroute(async (req, res) => {
-  const service = DIContainer.get(UserService);
+  const users = DIContainer.get(UserService);
 
   // Create user
-  res.send(await service.create(req.body));
+  res.send(await users.create(req.body));
 }));
 
-router.get('/:id', aroute(async (req, res) => {
-  const service = DIContainer.get(UserService);
+router.get('/:userId', aroute(async (req, res) => {
+  const users = DIContainer.get(UserService);
 
   // Parse request
-  const { id } = req.params;
+  const { userId } = req.params;
 
   // Get user
-  res.send(await service.get(id));
+  res.send(await users.get(userId));
 }));
 
-router.put('/:id', aroute(async (req, res) => {
-  const service = DIContainer.get(UserService);
+router.put('/:userId', aroute(async (req, res) => {
+  const users = DIContainer.get(UserService);
 
   // Parse request
-  const { id } = req.params;
+  const { userId } = req.params;
 
   // Update user
-  res.send(await service.update(id, req.body));
+  res.send(await users.update(userId, req.body));
 }));
 
-router.delete('/:id', aroute(async (req, res) => {
-  const service = DIContainer.get(UserService);
+router.delete('/:userId', aroute(async (req, res) => {
+  const users = DIContainer.get(UserService);
 
   // Parse request
-  const { id } = req.params;
+  const { userId } = req.params;
 
   // Delete user
-  res.send(await service.delete(id));
+  res.send(await users.delete(userId));
 }));
