@@ -110,6 +110,7 @@ describe('/api/users', () => {
       email: self.email,
       tokens: [{
         id: should.validate(validator.isUUID),
+        lrn: should.validate(LRN.isLRN),
         date: should.validate(validator.isISO8601),
         tags: []
       }]

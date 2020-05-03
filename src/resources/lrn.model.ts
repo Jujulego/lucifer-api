@@ -1,16 +1,32 @@
+import { json, toJSON } from 'utils';
+
 // Constants
 const PART_RE = /([a-z0-9-]+):([a-f0-9-]+)/i
 
-// Class
-export class LRN {
-  // Attributes
-  parent?: LRN;
+// Interface
+export interface ILRN {
+  parent?: ILRN;
   resource: string;
   id: string;
+}
+
+// Class
+export class LRN implements ILRN {
+  // Attributes
+  @json() parent?: LRN;
+  @json() resource: string;
+  @json() id: string;
 
   // Constructor
-  constructor(resource: string, id: string, parent?: LRN) {
-    this.parent = parent;
+  constructor(resource: string, id: string, parent?: ILRN) {
+    if (parent) {
+      if (parent instanceof LRN) {
+        this.parent = parent;
+      } else {
+        this.parent = new LRN(parent.resource, parent.id, parent.parent);
+      }
+    }
+
     this.resource = resource;
     this.id = id;
   }
@@ -62,7 +78,11 @@ export class LRN {
     }
   }
 
-  public toString(): string {
+  toString(): string {
     return `lrn::${this.parts().join('::')}`;
+  }
+
+  toJSON(): ILRN {
+    return toJSON<ILRN>(this);
   }
 }

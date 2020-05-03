@@ -75,7 +75,7 @@ describe('users/user.service', () => {
 
     expect(daemon.lrn.id).toEqual(daemon.id);
     expect(daemon.lrn.resource).toEqual('daemons');
-    expect(daemon.lrn.child).toBeUndefined();
+    expect(daemon.lrn.parent).toBeUndefined();
   });
 
   // - Daemon.toJSON

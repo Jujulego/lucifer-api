@@ -71,7 +71,7 @@ describe('users/user.service', () => {
 
     expect(user.lrn.id).toEqual(user.id);
     expect(user.lrn.resource).toEqual('users');
-    expect(user.lrn.child).toBeUndefined();
+    expect(user.lrn.parent).toBeUndefined();
   });
 
   // - User.toJSON

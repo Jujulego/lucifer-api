@@ -1,9 +1,11 @@
 import validator from 'validator';
 
-import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
-import { HttpError } from 'errors/errors.model';
 import { should } from 'utils';
+
+import { DatabaseService } from 'db.service';
+import { HttpError } from 'errors/errors.model';
+import { LRN } from 'resources/lrn.model';
 
 import { User } from './user.entity';
 import { Token } from './token.entity';
@@ -58,11 +60,22 @@ describe('users/token.service', () => {
   });
 
   // Tests
+  // - Token.lrn
+  test('Token.lrn', () => {
+    expect(token.lrn.id).toEqual(token.id);
+    expect(token.lrn.resource).toEqual('tokens');
+
+    expect(token.lrn.parent).toBeDefined();
+    expect(token.lrn.parent!.id).toEqual(user.id);
+    expect(token.lrn.parent!.resource).toEqual('users');
+  });
+
   // - Token.toJSON
   test('Token.toJSON', () => {
     expect(token.toJSON())
       .toEqual({
         id: token.id,
+        lrn: token.lrn.toString(),
         date: token.date.toISOString(),
         tags: ['test'],
         user: user.toJSON()
@@ -72,12 +85,12 @@ describe('users/token.service', () => {
   // - TokenService.create
   test('TokenService.create', async () => {
     expect(await service.create(user))
-      .toEqual({
+      .toEqual(expect.objectContaining({
         id: should.validate(validator.isUUID),
         date: expect.any(Date),
         user: user,
         tags: []
-      });
+      }));
   });
 
   // - TokenService.encrypt
