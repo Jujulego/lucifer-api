@@ -1,4 +1,4 @@
-import { LRN } from './lrn';
+import { LRN } from 'resources/lrn.model';
 
 // Interfaces
 export interface Resource {

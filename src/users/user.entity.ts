@@ -10,11 +10,10 @@ import {
   PrimaryGeneratedColumn
 } from 'typeorm';
 
-import { json, toJSON } from 'utils/json';
-import { LRN } from 'bases/lrn';
-import { Resource } from 'bases/resource';
-import { lowercase } from 'utils/transformers';
+import { lowercase, json, toJSON } from 'utils';
 
+import { LRN } from 'resources/lrn.model';
+import { Resource } from 'resources/resource.model';
 import { Daemon, IDaemon } from 'daemons/daemon.entity';
 
 import { IToken, Token } from './token.entity';

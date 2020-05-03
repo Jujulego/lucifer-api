@@ -4,13 +4,13 @@ const PART_RE = /([a-z0-9-]+):([a-f0-9-]+)/i
 // Class
 export class LRN {
   // Attributes
-  child?: LRN;
+  parent?: LRN;
   resource: string;
   id: string;
 
   // Constructor
-  constructor(resource: string, id: string, child?: LRN) {
-    this.child = child;
+  constructor(resource: string, id: string, parent?: LRN) {
+    this.parent = parent;
     this.resource = resource;
     this.id = id;
   }
@@ -38,28 +38,31 @@ export class LRN {
     return this.build(parts);
   }
 
-  private static build(parts: string[]): LRN {
+  private static build(parts: string[], parent?: LRN): LRN {
     const [resource, id] = parts[0].split(':');
 
     if (parts.length === 1) {
-      return new LRN(resource, id);
+      return new LRN(resource, id, parent);
     } else {
-      return new LRN(resource, id, this.build(parts.slice(1)));
+      return this.build(parts.slice(1), new LRN(resource, id, parent));
     }
   }
 
   // Methods
-  private part(): string {
+  private parts(): string[] {
     let part = `${this.resource}:${this.id}`;
 
-    if (this.child) {
-      part += this.child.part();
-    }
+    if (this.parent) {
+      const parts = this.parent.parts();
+      parts.push(part);
 
-    return part;
+      return parts;
+    } else {
+      return [part];
+    }
   }
 
   public toString(): string {
-    return `lrn::${this.part()}`;
+    return `lrn::${this.parts().join('::')}`;
   }
 }

@@ -8,7 +8,7 @@ import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
-import { LRN } from 'bases/lrn';
+import { LRN } from 'resources/lrn.model';
 import { User } from 'users/user.entity';
 
 import { login } from '../utils';

@@ -1,7 +1,7 @@
 import { Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
-import { Resource } from 'bases/resource';
-import { LRN } from 'bases/lrn';
+import { Resource } from 'resources/resource.model';
+import { LRN } from 'resources/lrn.model';
 import { json, toJSON } from 'utils';
 
 import { IUser, User } from 'users/user.entity';
