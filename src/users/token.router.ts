@@ -27,3 +27,15 @@ router.get('/', aroute(async (req, res) => {
   const user = await users.get(userId, { full: false });
   res.send(await tokens.list(user));
 }));
+
+router.get('/:tokenId', aroute(async (req, res) => {
+  const users = DIContainer.get(UserService);
+  const tokens = DIContainer.get(TokenService);
+
+  // Parse request
+  const { userId, tokenId } = req.params;
+
+  // Get user
+  const user = await users.get(userId, { full: false });
+  res.send(await tokens.get(user, tokenId));
+}));

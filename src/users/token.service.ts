@@ -8,6 +8,7 @@ import { HttpError } from 'errors/errors.model';
 
 import { IToken, Token } from './token.entity';
 import { User } from './user.entity';
+import validator from 'validator';
 
 // Service
 @Service()
@@ -27,6 +28,20 @@ export class TokenService {
     token.tags = [];
 
     return await repo.save(token);
+  }
+
+  async get(user: User, id: string): Promise<Token> {
+    if (!validator.isUUID(id)) throw HttpError.NotFound();
+
+    // Get token
+    const token = await this.repository.findOne(id,{
+      where: { user }
+    });
+
+    // Throw if not found
+    if (!token) throw HttpError.NotFound(`Token ${id} not found`);
+
+    return token;
   }
 
   async list(user: User): Promise<Token[]> {

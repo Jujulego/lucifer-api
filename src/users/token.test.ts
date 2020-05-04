@@ -5,7 +5,6 @@ import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
 import { HttpError } from 'errors/errors.model';
-import { LRN } from 'resources/lrn.model';
 
 import { User } from './user.entity';
 import { Token } from './token.entity';
@@ -91,6 +90,16 @@ describe('users/token.service', () => {
         user: user,
         tags: []
       }));
+  });
+
+  // - TokenService.list
+  test('TokenService.list', async () => {
+    expect(await service.list(user))
+      .toEqual([
+        expect.objectContaining({
+          id: token.id
+        })
+      ]);
   });
 
   // - TokenService.encrypt
