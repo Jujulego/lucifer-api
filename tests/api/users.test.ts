@@ -10,6 +10,7 @@ import { should } from 'utils';
 
 import { LRN } from 'resources/lrn.model';
 import { User } from 'users/user.entity';
+import { TokenService } from 'users/token.service';
 
 import { login } from '../utils';
 
@@ -176,5 +177,87 @@ describe('/api/users', () => {
       .expect(200);
 
     expect(rep.body).toEqual({});
+  });
+});
+
+describe('/api/users/:userId/tokens', () => {
+  // Server setup
+  let database: DatabaseService;
+  let tokens: TokenService;
+  let request: ReturnType<typeof supertest>;
+
+  beforeAll(async () => {
+    // Load services
+    loadServices();
+
+    database = DIContainer.get(DatabaseService);
+    tokens = DIContainer.get(TokenService);
+    await database.connect();
+
+    // Start server
+    request = supertest(app);
+  });
+
+  // Disconnect
+  afterAll(async () => {
+    await database.disconnect();
+  });
+
+  // Fill database
+  let admin: User;
+  let self: User;
+  let user: User;
+
+  let tokenA: string;
+  let tokenS: string;
+
+  beforeEach(async () => {
+    const repo = database.connection.getRepository(User);
+
+    // Create some users
+    [admin, self, user] = await repo.save([
+      repo.create({ email: 'admin@api.users.tks', password: 'test' }),
+      repo.create({ email: 'self@api.users.tks',  password: 'test' }),
+      repo.create({ email: 'user@api.users.tks',  password: 'test' }),
+    ]);
+
+    // Get tokens
+    tokenA = await login('admin@api.users.tks', 'test', '1.2.3.4');
+    tokenS = await login('self@api.users.tks',  'test', '1.2.3.4');
+  });
+
+  // Empty database
+  afterEach(async () => {
+    const repo = database.connection.getRepository(User);
+    await repo.delete([admin.id, self.id, user.id]);
+  });
+
+  // Tests
+  // - get a token
+  test('GET /api/users/:userId/tokens/:tokenId', async () => {
+    const token = tokens.decrypt(tokenS);
+    const rep = await request.get(`/api/users/${self.id}/tokens/${token.id}`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body).toEqual(expect.objectContaining({
+      id: token.id,
+    }));
+  });
+
+  // - get all tokens
+  test('GET /api/users/:userId/tokens', async () => {
+    const token = tokens.decrypt(tokenS);
+    const rep = await request.get(`/api/users/${self.id}/tokens/`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: token.id,
+      })
+    ]));
   });
 });

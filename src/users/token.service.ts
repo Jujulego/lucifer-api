@@ -54,6 +54,10 @@ export class TokenService {
     return jwt.sign(token.toJSON(), env.JWT_KEY, { expiresIn: '7 days' });
   }
 
+  decrypt(token: string): IToken {
+    return jwt.verify(token, env.JWT_KEY) as IToken;
+  }
+
   async verify(token: IToken): Promise<User> {
     // Check in database
     const tk = await this.repository.findOne({
