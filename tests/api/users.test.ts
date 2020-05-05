@@ -233,19 +233,6 @@ describe('/api/users/:userId/tokens', () => {
   });
 
   // Tests
-  // - get a token
-  test('GET /api/users/:userId/tokens/:tokenId', async () => {
-    const token = tokens.decrypt(tokenS);
-    const rep = await request.get(`/api/users/${self.id}/tokens/${token.id}`)
-      .set('Authorization', `Bearer ${tokenA}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual(expect.objectContaining({
-      id: token.id,
-    }));
-  });
-
   // - get all tokens
   test('GET /api/users/:userId/tokens', async () => {
     const token = tokens.decrypt(tokenS);
@@ -259,5 +246,13 @@ describe('/api/users/:userId/tokens', () => {
         id: token.id,
       })
     ]));
+  });
+
+  // - delete a token
+  test('DELETE /api/users/:userId/tokens/:tokenId', async () => {
+    const token = tokens.decrypt(tokenS);
+    await request.delete(`/api/users/${self.id}/tokens/${token.id}`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .expect(200);
   });
 });

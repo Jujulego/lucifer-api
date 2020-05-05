@@ -24,18 +24,23 @@ router.get('/', aroute(async (req, res) => {
   const { userId } = req.params;
 
   // Get user
-  const user = await users.get(userId, { full: false });
-  res.send(await tokens.list(user));
+  res.send(await tokens.list(
+    await users.get(userId, { full: false })
+  ));
 }));
 
-router.get('/:tokenId', aroute(async (req, res) => {
+router.delete('/:tokenId', aroute(async (req, res) => {
   const users = DIContainer.get(UserService);
   const tokens = DIContainer.get(TokenService);
 
   // Parse request
   const { userId, tokenId } = req.params;
 
-  // Get user
-  const user = await users.get(userId, { full: false });
-  res.send(await tokens.get(user, tokenId));
+  // Delete token
+  await tokens.delete(
+    await users.get(userId, { full: false }),
+    tokenId
+  );
+
+  res.send();
 }));

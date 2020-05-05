@@ -30,24 +30,14 @@ export class TokenService {
     return await repo.save(token);
   }
 
-  async get(user: User, id: string): Promise<Token> {
-    if (!validator.isUUID(id)) throw HttpError.NotFound();
-
-    // Get token
-    const token = await this.repository.findOne(id,{
-      where: { user }
-    });
-
-    // Throw if not found
-    if (!token) throw HttpError.NotFound(`Token ${id} not found`);
-
-    return token;
-  }
-
   async list(user: User): Promise<Token[]> {
     return await this.repository.find({
       where: { user }
     });
+  }
+
+  async delete(user: User, id: string) {
+    await this.repository.delete(id);
   }
 
   encrypt(token: Token): string {

@@ -102,6 +102,16 @@ describe('users/token.service', () => {
       ]);
   });
 
+  // - TokenService.delete
+  test('TokenService.delete', async () => {
+    await expect(service.delete(user, token.id))
+      .resolves.toBeUndefined();
+
+    const tknRepo = database.connection.getRepository(Token);
+    expect(await tknRepo.findOne(token.id))
+      .toBeUndefined();
+  });
+
   // - TokenService.encrypt
   test('TokenService.encrypt', async () => {
     expect(service.encrypt(token))
