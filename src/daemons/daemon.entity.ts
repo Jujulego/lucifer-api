@@ -30,6 +30,6 @@ export class Daemon implements Resource {
   // Properties
   @json<LRN>(val => val.toString())
   get lrn() {
-    return new LRN('daemons', this.id);
+    return new LRN('daemon', this.id);
   }
 }

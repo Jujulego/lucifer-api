@@ -45,6 +45,6 @@ export class Token implements Resource {
   // Properties
   @json<LRN>(lrn => lrn.toString())
   get lrn() {
-    return new LRN('tokens', this.id, { resource: 'users', id: this.userId });
+    return new LRN('token', this.id, { resource: 'user', id: this.userId });
   }
 }

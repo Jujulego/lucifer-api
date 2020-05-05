@@ -70,7 +70,7 @@ describe('users/user.service', () => {
     const user = users[0];
 
     expect(user.lrn.id).toEqual(user.id);
-    expect(user.lrn.resource).toEqual('users');
+    expect(user.lrn.resource).toEqual('user');
     expect(user.lrn.parent).toBeUndefined();
   });
 

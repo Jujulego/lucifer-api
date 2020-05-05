@@ -68,13 +68,13 @@ export class User implements Resource {
   }
 
   // Methods
-  toJSON(): IUser {
-    return toJSON(this);
+  toJSON() {
+    return toJSON<IUser>(this);
   }
 
   // Properties
   @json<LRN>(lrn => lrn.toString())
   get lrn() {
-    return new LRN('users', this.id);
+    return new LRN('user', this.id);
   }
 }

@@ -62,11 +62,11 @@ describe('users/token.service', () => {
   // - Token.lrn
   test('Token.lrn', () => {
     expect(token.lrn.id).toEqual(token.id);
-    expect(token.lrn.resource).toEqual('tokens');
+    expect(token.lrn.resource).toEqual('token');
 
     expect(token.lrn.parent).toBeDefined();
     expect(token.lrn.parent!.id).toEqual(user.id);
-    expect(token.lrn.parent!.resource).toEqual('users');
+    expect(token.lrn.parent!.resource).toEqual('user');
   });
 
   // - Token.toJSON
