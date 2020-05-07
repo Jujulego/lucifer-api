@@ -26,6 +26,12 @@ export class Rule {
   @Column('uuid', { nullable: true })
   @json() target: string;
 
+  // - default rights
+  @Column('boolean', { default: false }) @json() create: boolean;
+  @Column('boolean', { default: false }) @json() read:   boolean;
+  @Column('boolean', { default: false }) @json() write:  boolean;
+  @Column('boolean', { default: false }) @json() delete: boolean;
+
   // - relations
   @ManyToOne(type => Role, role => role.rules, { onDelete: 'CASCADE' })
   role: Role;

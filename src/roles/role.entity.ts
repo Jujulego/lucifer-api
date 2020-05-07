@@ -24,6 +24,12 @@ export class Role implements Resource {
   @Column('varchar', { nullable: true, length: 128 })
   @json() name: string;
 
+  // - default rights
+  @Column('boolean', { default: false }) @json() create: boolean;
+  @Column('boolean', { default: false }) @json() read:   boolean;
+  @Column('boolean', { default: false }) @json() write:  boolean;
+  @Column('boolean', { default: false }) @json() delete: boolean;
+
   // - relations
   @OneToMany(type => Rule, rule => rule.role)
   @json() rules: Rule[];
