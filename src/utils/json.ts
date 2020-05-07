@@ -55,7 +55,7 @@ export function toJSON<R = any>(target: any): R {
       val = field.transform(val);
     } else if (Array.isArray(val)) {
       val = val.map(v => v.toJSON ? v.toJSON() : toJSON(v));
-    } else if (val.toJSON) {
+    } else if (val && val.toJSON) {
       val = val.toJSON ? val.toJSON() : toJSON(val);
     }
 

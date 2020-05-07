@@ -4,11 +4,12 @@ import supertest from 'supertest';
 import validator from 'validator';
 
 import { app } from 'app';
-import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
+import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
+import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 import { TokenService } from 'users/token.service';
 
@@ -45,14 +46,17 @@ describe('/api/users', () => {
   let tokenS: string;
 
   beforeEach(async () => {
-    const repo = database.connection.getRepository(User);
+    await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
+      const usrRepo = manager.getRepository(User);
 
-    // Create some users
-    [admin, self, user] = await repo.save([
-      repo.create({ email: 'admin@api.users.com', password: 'test' }),
-      repo.create({ email: 'self@api.users.com',  password: 'test' }),
-      repo.create({ email: 'user@api.users.com',  password: 'test' }),
-    ]);
+      // Create some users
+      [admin, self, user] = await usrRepo.save([
+        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.users.com', password: 'test' }),
+        usrRepo.create({ role: rolRepo.create(), email: 'self@api.users.com',  password: 'test' }),
+        usrRepo.create({ role: rolRepo.create(), email: 'user@api.users.com',  password: 'test' }),
+      ]);
+    });
 
     // Get tokens
     tokenA = await login('admin@api.users.com', 'test', '1.2.3.4');
@@ -61,8 +65,8 @@ describe('/api/users', () => {
 
   // Empty database
   afterEach(async () => {
-    const repo = database.connection.getRepository(User);
-    await repo.delete([admin.id, self.id, user.id]);
+    const rolRepo = database.connection.getRepository(Role);
+    await rolRepo.delete([admin.id, self.id, user.id]);
   });
 
   // Tests
@@ -212,14 +216,17 @@ describe('/api/users/:userId/tokens', () => {
   let tokenS: string;
 
   beforeEach(async () => {
-    const repo = database.connection.getRepository(User);
+    await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
+      const usrRepo = manager.getRepository(User);
 
-    // Create some users
-    [admin, self, user] = await repo.save([
-      repo.create({ email: 'admin@api.users.tks', password: 'test' }),
-      repo.create({ email: 'self@api.users.tks',  password: 'test' }),
-      repo.create({ email: 'user@api.users.tks',  password: 'test' }),
-    ]);
+      // Create some users
+      [admin, self, user] = await usrRepo.save([
+        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.users.tks', password: 'test' }),
+        usrRepo.create({ role: rolRepo.create(), email: 'self@api.users.tks',  password: 'test' }),
+        usrRepo.create({ role: rolRepo.create(), email: 'user@api.users.tks',  password: 'test' }),
+      ]);
+    });
 
     // Get tokens
     tokenA = await login('admin@api.users.tks', 'test', '1.2.3.4');
@@ -228,8 +235,8 @@ describe('/api/users/:userId/tokens', () => {
 
   // Empty database
   afterEach(async () => {
-    const repo = database.connection.getRepository(User);
-    await repo.delete([admin.id, self.id, user.id]);
+    const rolRepo = database.connection.getRepository(Role);
+    await rolRepo.delete([admin.id, self.id, user.id]);
   });
 
   // Tests

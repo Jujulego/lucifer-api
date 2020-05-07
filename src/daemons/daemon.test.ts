@@ -1,10 +1,11 @@
 import validator from 'validator';
 
 import { DIContainer, loadServices } from 'inversify.config';
-import { HttpError } from 'errors/errors.model';
 import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
+import { HttpError } from 'errors/errors.model';
+import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 
 import { Daemon } from './daemon.entity';
@@ -38,12 +39,13 @@ describe('users/user.service', () => {
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
       const dmnRepo = manager.getRepository(Daemon);
 
       // Create a user
       user = await usrRepo.save(
-        usrRepo.create({ email: 'test@daemon.com', password: 'test' })
+        usrRepo.create({ role: rolRepo.create(), email: 'test@daemon.com', password: 'test' })
       );
 
       user = (await usrRepo.findOne(user.id))!;
@@ -60,11 +62,11 @@ describe('users/user.service', () => {
 
   // Empty database
   afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
+    const rolRepo = database.connection.getRepository(Role);
     const dmnRepo = database.connection.getRepository(Daemon);
 
     // Delete created entities
-    await usrRepo.delete(user.id);
+    await rolRepo.delete(user.id);
     await dmnRepo.delete(daemons.map(dmn => dmn.id));
   });
 

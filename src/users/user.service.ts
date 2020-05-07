@@ -5,6 +5,7 @@ import { Service } from 'utils';
 
 import { DatabaseService } from 'db.service';
 import { HttpError } from 'errors/errors.model';
+import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';
 import { userCreate, UserCreate } from 'users/user.schema';
@@ -23,7 +24,8 @@ export class UserService {
 
   // Methods
   async create(data: UserCreate): Promise<User> {
-    const repo = this.repository;
+    const rolRepo = this.database.connection.getRepository(Role);
+    const usrRepo = this.repository;
 
     // Validate data
     const res = userCreate.validate(data);
@@ -32,18 +34,22 @@ export class UserService {
     data = res.value;
 
     // Create user
-    const user = repo.create();
+    const user = usrRepo.create();
+    user.role = rolRepo.create();
     user.email = data.email.toLowerCase();
     user.password = data.password;
     user.daemons = [];
     user.tokens = [];
+    user.rules = [];
 
-    return await repo.save(user);
+    return await usrRepo.save(user);
   }
 
   async list(): Promise<User[]> {
     // Get user list
-    return await this.repository.find();
+    return await this.repository.find({
+      relations: ['role']
+    });
   }
 
   async get(id: string, opts = { full: true }): Promise<User> {
@@ -51,7 +57,7 @@ export class UserService {
 
     // Get user
     const user = await this.repository.findOne(id, {
-      relations: opts.full ? ['tokens'] : []
+      relations: opts.full ? ['role', 'tokens'] : []
     });
 
     // Throw if not found

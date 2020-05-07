@@ -5,6 +5,7 @@ import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
 import { HttpError } from 'errors/errors.model';
+import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';
 import { Token } from './token.entity';
@@ -38,12 +39,13 @@ describe('users/token.service', () => {
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
       const tknRepo = manager.getRepository(Token);
 
       // Create a user
       user = await usrRepo.save(
-        usrRepo.create({ email: 'test@token.com', password: 'test' })
+        usrRepo.create({ role: rolRepo.create(), email: 'test@token.com', password: 'test' })
       );
 
       // Create a token
@@ -54,8 +56,8 @@ describe('users/token.service', () => {
   });
 
   afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
-    await usrRepo.delete(user.id);
+    const rolRepo = database.connection.getRepository(Role);
+    await rolRepo.delete(user.id);
   });
 
   // Tests

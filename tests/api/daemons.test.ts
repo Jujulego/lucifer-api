@@ -6,6 +6,7 @@ import { DatabaseService } from 'db.service';
 import { DIContainer, loadServices } from 'inversify.config';
 
 import { Daemon } from 'daemons/daemon.entity';
+import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 
 import { login } from '../utils';
@@ -39,12 +40,13 @@ describe('api/daemons', () => {
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
       const dmnRepo = manager.getRepository(Daemon);
 
       // Create a user
       user = await usrRepo.save(
-        usrRepo.create({ email: 'user@api.daemons.com',  password: 'test' }),
+        usrRepo.create({ role: rolRepo.create(), email: 'user@api.daemons.com',  password: 'test' }),
       );
 
       // Create a daemon
@@ -60,12 +62,12 @@ describe('api/daemons', () => {
   // Empty database
   afterEach(async () => {
     await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
+      const rolRepo = manager.getRepository(Role);
       const dmnRepo = manager.getRepository(Daemon);
 
       // Delete all
       await dmnRepo.delete(daemon.id);
-      await usrRepo.delete(user.id);
+      await rolRepo.delete(user.id);
     });
   });
 

@@ -7,6 +7,7 @@ import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
+import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 
 import { login } from '../utils';
@@ -38,12 +39,15 @@ describe('/api (auth)', () => {
   let token: string;
 
   beforeEach(async () => {
-    const repo = database.connection.getRepository(User);
+    await database.connection.transaction(async manager => {
+      const rolRepo = manager.getRepository(Role);
+      const usrRepo = manager.getRepository(User);
 
-    // Create some users
-    [admin] = await repo.save([
-      repo.create({ email: 'admin@api.auth.com', password: 'test' })
-    ]);
+      // Create some users
+      [admin] = await usrRepo.save([
+        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.auth.com', password: 'test' })
+      ]);
+    });
 
     // Get tokens
     token = await login('admin@api.auth.com', 'test', '1.2.3.4');
@@ -51,8 +55,8 @@ describe('/api (auth)', () => {
 
   // Empty database
   afterEach(async () => {
-    const repo = database.connection.getRepository(User);
-    await repo.delete([admin.id]);
+    const rolRepo = database.connection.getRepository(Role);
+    await rolRepo.delete([admin.id]);
   });
 
   // Tests

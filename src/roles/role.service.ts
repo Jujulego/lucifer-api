@@ -48,7 +48,7 @@ export class RoleService {
 
   async get(id: string): Promise<Role> {
     // Get role
-    const role = await this.roles.findOne(id, {
+    const role = await this.repository.findOne(id, {
       relations: ['rules', 'rules.parent']
     });
 
@@ -59,11 +59,11 @@ export class RoleService {
   }
 
   async list(): Promise<Role[]> {
-    return await this.roles.find();
+    return await this.repository.find();
   }
 
   // Properties
-  get roles() {
+  get repository() {
     return this.database.connection.getRepository(Role);
   }
 
