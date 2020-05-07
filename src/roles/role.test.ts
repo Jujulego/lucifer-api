@@ -79,21 +79,25 @@ describe('roles/role.service', () => {
       .resolves.toEqual({
         id: role.id,
         name: 'role',
+        create: false, read: false, write: false, delete: false,
         rules: expect.arrayContaining([
           {
             id: should.validate(validator.isUUID),
             resource: 'test',
             target: null,
+            create: false, read: false, write: false, delete: false,
             children: expect.arrayContaining([
               {
                 id: should.validate(validator.isUUID),
                 resource: 'child',
                 target: null,
+                create: false, read: false, write: false, delete: false,
                 children: [
                   {
                     id: should.validate(validator.isUUID),
                     resource: 'child',
                     target: null,
+                    create: false, read: false, write: false, delete: false,
                     children: []
                   }
                 ]
@@ -102,6 +106,7 @@ describe('roles/role.service', () => {
                 id: should.validate(validator.isUUID),
                 resource: 'child',
                 target: '12345678-1234-1234-1234-123456789abc',
+                create: false, read: false, write: false, delete: false,
                 children: []
               }
             ])
@@ -110,6 +115,7 @@ describe('roles/role.service', () => {
             id: should.validate(validator.isUUID),
             resource: 'test',
             target: '12345678-1234-1234-1234-123456789abc',
+            create: false, read: false, write: false, delete: false,
             children: []
           }
         ])

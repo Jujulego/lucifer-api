@@ -58,6 +58,10 @@ export class RoleService {
     return this.ruleTree(role);
   }
 
+  async list(): Promise<Role[]> {
+    return await this.roles.find();
+  }
+
   // Properties
   get roles() {
     return this.database.connection.getRepository(Role);
