@@ -3,9 +3,9 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { json, toJSON } from 'utils';
 
 import { Resource } from 'resources/resource.model';
+import { LRN } from 'resources/lrn.model';
 
 import { IRule, Rule } from './rule.entity';
-import { LRN } from '../resources/lrn.model';
 
 // Interface
 export interface IRole {
