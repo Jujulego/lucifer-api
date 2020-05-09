@@ -232,4 +232,22 @@ describe('roles/role.service', () => {
         delete: true
       });
   });
+
+  // - RoleService.rulesQb
+  test('RoleService.rulesQb', async () => {
+    let qb = service.rules.createQueryBuilder('rule');
+    qb.innerJoin(
+      qb => service.rulesQb(qb, role.id, 'child', new LRN('test', '12345678-1234-1234-1234-123456789abc')),
+      'r', 'r.id = rule.id'
+    );
+    await expect(qb.getMany())
+      .resolves.toEqual([
+        {
+          id: should.validate(validator.isUUID),
+          resource: 'child',
+          target: '12345678-1234-1234-1234-123456789abc',
+          create: false, read: true, write: false, delete: true
+        }
+      ])
+  });
 });
