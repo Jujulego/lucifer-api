@@ -2,9 +2,18 @@ import { HttpError } from 'errors/errors.model';
 import { Service } from 'utils';
 
 import { DatabaseService } from 'db.service';
+import { LRN } from 'resources/lrn.model';
 
 import { Role } from './role.entity';
 import { Rule } from './rule.entity';
+
+// Types
+export interface Rights {
+  create: boolean,
+  read: boolean,
+  write: boolean,
+  delete: boolean
+}
 
 // Service
 @Service()
@@ -46,6 +55,15 @@ export class RoleService {
     return role;
   }
 
+  private getRights(r: Rule | Role): Rights {
+    return {
+      create: r.create,
+      read: r.read,
+      write: r.write,
+      delete: r.delete
+    };
+  }
+
   async get(id: string): Promise<Role> {
     // Get role
     const role = await this.repository.findOne(id, {
@@ -60,6 +78,53 @@ export class RoleService {
 
   async list(): Promise<Role[]> {
     return await this.repository.find();
+  }
+
+  async rights(id: string, lrn?: LRN): Promise<Rights> {
+    // Get role rights
+    const role = await this.get(id);
+    let rights = this.getRights(role);
+
+    // Ask for global rights
+    if (!lrn) return rights;
+
+    // Get resources
+    const resources = [lrn];
+    while (resources[0].parent) {
+      resources.unshift(resources[0].parent);
+    }
+
+    // Search in rules
+    let rules = role.rules;
+    for (let res of resources) {
+      let rule: Rule | null = null;
+
+      // Search for applicable rule
+      for (let r of rules) {
+        if (r.resource === res.resource) {
+          // Exact rule
+          if (r.target === res.id) {
+            rule = r;
+            break;
+          }
+
+          // Global rule
+          if (!r.target) {
+            rule = r;
+          }
+        }
+      }
+
+      // Apply rule !
+      if (rule) {
+        rights = this.getRights(rule);
+        rules = rule.children;
+      } else {
+        break;
+      }
+    }
+
+    return rights;
   }
 
   // Properties

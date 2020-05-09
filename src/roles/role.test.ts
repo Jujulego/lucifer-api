@@ -4,6 +4,7 @@ import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
+import { LRN } from 'resources/lrn.model';
 
 import { Role } from './role.entity';
 import { Rule } from './rule.entity';
@@ -43,13 +44,29 @@ describe('roles/role.service', () => {
 
       // Create rules
       rules = await ruleRepo.save([
-        ruleRepo.create({ resource: 'test' }),
-        ruleRepo.create({ resource: 'test', target: '12345678-1234-1234-1234-123456789abc' }),
+        ruleRepo.create({
+          resource: 'test',
+          read: true
+        }),
+        ruleRepo.create({
+          resource: 'test', target: '12345678-1234-1234-1234-123456789abc',
+          read: true, write: true
+        }),
       ]);
 
       rules.push(...await ruleRepo.save([
-        ruleRepo.create({ parent: rules[0], resource: 'child' }),
-        ruleRepo.create({ parent: rules[0], resource: 'child', target: '12345678-1234-1234-1234-123456789abc' })
+        ruleRepo.create({
+          parent: rules[0], resource: 'child',
+          create: true
+        }),
+        ruleRepo.create({
+          parent: rules[0], resource: 'child', target: '12345678-1234-1234-1234-123456789abc',
+          delete: true
+        }),
+        ruleRepo.create({
+          parent: rules[1], resource: 'child', target: '12345678-1234-1234-1234-123456789abc',
+          read: true, delete: true
+        })
       ]));
 
       rules.push(...await ruleRepo.save([
@@ -74,6 +91,7 @@ describe('roles/role.service', () => {
   });
 
   // Tests
+  // - RoleService.get
   test('RoleService.get', async () => {
     await expect(service.get(role.id))
       .resolves.toEqual({
@@ -85,13 +103,13 @@ describe('roles/role.service', () => {
             id: should.validate(validator.isUUID),
             resource: 'test',
             target: null,
-            create: false, read: false, write: false, delete: false,
+            create: false, read: true, write: false, delete: false,
             children: expect.arrayContaining([
               {
                 id: should.validate(validator.isUUID),
                 resource: 'child',
                 target: null,
-                create: false, read: false, write: false, delete: false,
+                create: true, read: false, write: false, delete: false,
                 children: [
                   {
                     id: should.validate(validator.isUUID),
@@ -106,7 +124,7 @@ describe('roles/role.service', () => {
                 id: should.validate(validator.isUUID),
                 resource: 'child',
                 target: '12345678-1234-1234-1234-123456789abc',
-                create: false, read: false, write: false, delete: false,
+                create: false, read: false, write: false, delete: true,
                 children: []
               }
             ])
@@ -115,10 +133,103 @@ describe('roles/role.service', () => {
             id: should.validate(validator.isUUID),
             resource: 'test',
             target: '12345678-1234-1234-1234-123456789abc',
-            create: false, read: false, write: false, delete: false,
-            children: []
+            create: false, read: true, write: true, delete: false,
+            children: [
+              {
+                id: should.validate(validator.isUUID),
+                resource: 'child',
+                target: '12345678-1234-1234-1234-123456789abc',
+                create: false, read: true, write: false, delete: true,
+                children: []
+              }
+            ]
           }
         ])
+      });
+  });
+
+  // - RoleService.rights
+  test('RoleService.rights: role global', async () => {
+    const lrn = LRN.parse('lrn::child:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: false,
+        write: false,
+        delete: false
+      });
+  });
+
+  test('RoleService.rights: global', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: true,
+        write: false,
+        delete: false
+      });
+  });
+
+  test('RoleService.rights: exact', async () => {
+    const lrn = LRN.parse('lrn::test:12345678-1234-1234-1234-123456789abc');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: true,
+        write: true,
+        delete: false
+      });
+  });
+
+  test('RoleService.rights: global => global', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000::child:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: true,
+        read: false,
+        write: false,
+        delete: false
+      });
+  });
+
+  test('RoleService.rights: global => exact', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000::child:12345678-1234-1234-1234-123456789abc');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: false,
+        write: false,
+        delete: true
+      });
+  });
+
+  test('RoleService.rights: exact => global', async () => {
+    const lrn = LRN.parse('lrn::test:12345678-1234-1234-1234-123456789abc::child:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: true,
+        write: true,
+        delete: false
+      });
+  });
+
+  test('RoleService.rights: exact => exact', async () => {
+    const lrn = LRN.parse('lrn::test:12345678-1234-1234-1234-123456789abc::child:12345678-1234-1234-1234-123456789abc');
+
+    await expect(service.rights(role.id, lrn))
+      .resolves.toEqual({
+        create: false,
+        read: true,
+        write: false,
+        delete: true
       });
   });
 });

@@ -14,7 +14,7 @@ export interface IRule {
 
 // Entity
 @Entity()
-@Index(['role', 'resource', 'target'], { unique: true })
+@Index(['role', 'parent', 'resource', 'target'], { unique: true })
 export class Rule {
   // Columns
   @PrimaryGeneratedColumn('uuid')
