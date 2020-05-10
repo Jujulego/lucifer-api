@@ -25,4 +25,10 @@ import { LoggerService } from 'logger.service';
   server.listen(env.PORT, () => {
     logger.info(`Server listening at http://localhost:${env.PORT}/`);
   });
+
+  // Stop server
+  process.on('SIGINT', async () => {
+    await new Promise(resolve => server.close(resolve));
+    await database.disconnect();
+  });
 })();
