@@ -1,12 +1,13 @@
-import { HttpError } from 'errors/errors.model';
+import { SelectQueryBuilder } from 'typeorm';
+
 import { Service } from 'utils';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
 
 import { Role } from './role.entity';
 import { Rule } from './rule.entity';
-import { QueryBuilder, SelectQueryBuilder } from 'typeorm';
 
 // Types
 export interface Rights {

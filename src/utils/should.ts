@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-import { HTTP_ERRORS } from 'errors/errors.constants';
+import { HTTP_ERRORS } from './errors';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {

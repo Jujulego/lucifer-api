@@ -2,9 +2,9 @@ import validator from 'validator';
 
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
-import { HttpError } from 'errors/errors.model';
 import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';

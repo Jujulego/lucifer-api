@@ -1,9 +1,9 @@
 import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 
-import { HttpError } from './errors.model';
+import { HttpError } from 'utils/errors/errors.model';
 
 // Middleware
-const errors = (): ErrorRequestHandler => (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (): ErrorRequestHandler => (err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof HttpError) {
     return err.send(res);
   }
@@ -15,4 +15,3 @@ const errors = (): ErrorRequestHandler => (err: any, req: Request, res: Response
 
   next(err);
 };
-export default errors;

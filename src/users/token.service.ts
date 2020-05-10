@@ -2,13 +2,12 @@ import jwt from 'jsonwebtoken';
 
 import { env } from 'env';
 import { Service } from 'utils';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
-import { HttpError } from 'errors/errors.model';
 
 import { IToken, Token } from './token.entity';
 import { User } from './user.entity';
-import validator from 'validator';
 
 // Service
 @Service()

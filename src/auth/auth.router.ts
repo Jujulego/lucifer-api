@@ -3,10 +3,11 @@ import validator from 'validator';
 
 import { DIContainer } from 'inversify.config';
 import { aroute } from 'utils';
+import { HttpError } from 'utils/errors';
 
-import { HttpError } from 'errors/errors.model';
 import { UserService } from 'users/user.service';
 
+// Strategies
 import './jwt.strategy';
 
 // Router

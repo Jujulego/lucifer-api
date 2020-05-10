@@ -1,12 +1,11 @@
 import { Router } from 'express';
 
-import { HttpError } from 'errors/errors.model';
 import { aroute, version } from 'utils';
+import { errorHandler, HttpError } from 'utils/errors';
 
 import { router as auth } from 'auth/auth.router';
 import { router as daemons } from 'daemons/daemon.router';
 import { router as users } from 'users/user.router';
-import errors from 'errors/errors.middleware';
 
 // Router
 export const router = Router();
@@ -25,4 +24,4 @@ router.use((req, res, next) => {
 });
 
 // Errors
-router.use(errors());
+router.use(errorHandler());

@@ -1,8 +1,6 @@
 import { RequestParamHandler } from 'express';
 
-import { HTTP_ERRORS } from 'errors/errors.constants';
-import { HttpError } from 'errors/errors.model';
-
+import { HTTP_ERRORS, HttpError } from './errors';
 import { Validator } from './types';
 
 // Types

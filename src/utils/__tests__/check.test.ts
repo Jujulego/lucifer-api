@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import validator from 'validator';
 
-import { HttpError } from 'errors/errors.model';
+import { HttpError } from 'utils/errors/errors.model';
 
 import { check } from '../check';
 

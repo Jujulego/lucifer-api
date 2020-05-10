@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { HTTP_ERRORS } from 'errors/errors.constants';
+import { HTTP_ERRORS } from 'utils/errors/errors.constants';
 
 // Class
 export class HttpError implements Error {

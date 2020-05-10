@@ -2,9 +2,9 @@ import bcrypt from 'bcryptjs';
 import validator from 'validator';
 
 import { Service } from 'utils';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
-import { HttpError } from 'errors/errors.model';
 import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';

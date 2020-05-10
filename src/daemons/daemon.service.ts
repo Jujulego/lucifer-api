@@ -1,7 +1,7 @@
 import validator from 'validator';
 
-import { HttpError } from 'errors/errors.model';
 import { Service } from 'utils';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
 import { UserService } from 'users/user.service';
