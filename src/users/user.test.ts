@@ -1,5 +1,6 @@
 import validator from 'validator';
 
+import { TestContext } from 'context/test.context';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 import { HttpError } from 'utils/errors';
@@ -34,6 +35,7 @@ describe('users/user.service', () => {
   });
 
   // Fill database
+  let admin: User;
   let users: User[];
   let token: Token;
 
@@ -42,6 +44,15 @@ describe('users/user.service', () => {
       const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
       const tknRepo = manager.getRepository(Token);
+
+      // Create a admin
+      admin = await usrRepo.save(
+        usrRepo.create({
+          role: rolRepo.create({ create: true, read: true, write: true, delete: true }),
+          email: 'admin@user.com',
+          password: 'admin'
+        })
+      );
 
       // Create some users
       users = await usrRepo.save([
@@ -65,6 +76,7 @@ describe('users/user.service', () => {
 
     // Delete created users
     await rolRepo.delete(users.map(usr => usr.id));
+    await rolRepo.delete(admin.id);
   });
 
   // Tests
@@ -231,9 +243,10 @@ describe('users/user.service', () => {
   // - UserService.delete
   test('UserService.delete', async () => {
     const usrRepo = database.connection.getRepository(User);
+    const ctx = new TestContext({}, admin);
     const user = users[0];
 
-    await service.delete(user.id);
+    await service.delete(ctx, user.id);
 
     expect(await usrRepo.findOne(user.id))
       .toBeUndefined();

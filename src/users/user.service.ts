@@ -1,10 +1,12 @@
 import bcrypt from 'bcryptjs';
 import validator from 'validator';
 
+import { Context } from 'context';
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
+import { RightsService } from 'roles/rights.service';
 import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';
@@ -12,6 +14,7 @@ import { userCreate, UserCreate } from 'users/user.schema';
 import { userUpdate, UserUpdate } from 'users/user.schema';
 import { Token } from './token.entity';
 import { TokenService } from './token.service';
+import { LRN } from 'resources/lrn.model';
 
 // Service
 @Service()
@@ -19,7 +22,8 @@ export class UserService {
   // Constructor
   constructor(
     private database: DatabaseService,
-    private tokens: TokenService
+    private tokens: TokenService,
+    private rights: RightsService
   ) {}
 
   // Methods
@@ -94,7 +98,8 @@ export class UserService {
     });
   }
 
-  async delete(id: string) {
+  async delete(ctx: Context, id: string) {
+    await this.rights.allow(ctx.user.id, new LRN('user', id), { delete: true });
     await this.repository.delete(id);
   }
 

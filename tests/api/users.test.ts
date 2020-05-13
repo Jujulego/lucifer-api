@@ -13,7 +13,7 @@ import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 import { TokenService } from 'users/token.service';
 
-import { login } from '../utils';
+import { createAdmin, login } from '../utils';
 
 // Tests
 describe('/api/users', () => {
@@ -52,14 +52,14 @@ describe('/api/users', () => {
 
       // Create some users
       [admin, self, user] = await usrRepo.save([
-        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.users.com', password: 'test' }),
+        createAdmin('admin@api.users.com'),
         usrRepo.create({ role: rolRepo.create(), email: 'self@api.users.com',  password: 'test' }),
         usrRepo.create({ role: rolRepo.create(), email: 'user@api.users.com',  password: 'test' }),
       ]);
     });
 
     // Get tokens
-    tokenA = await login('admin@api.users.com', 'test', '1.2.3.4');
+    tokenA = await login('admin@api.users.com', 'admin', '1.2.3.4');
     tokenS = await login('self@api.users.com',  'test', '1.2.3.4');
   });
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import validator from 'validator';
 
+import { buildContext } from 'context';
 import { DIContainer } from 'inversify.config';
 import { aroute, check } from 'utils';
 
@@ -55,11 +56,12 @@ router.put('/:userId', aroute(async (req, res) => {
 }));
 
 router.delete('/:userId', aroute(async (req, res) => {
+  const ctx = buildContext('express', req);
   const users = DIContainer.get(UserService);
 
   // Parse request
   const { userId } = req.params;
 
   // Delete user
-  res.send(await users.delete(userId));
+  res.send(await users.delete(ctx, userId));
 }));
