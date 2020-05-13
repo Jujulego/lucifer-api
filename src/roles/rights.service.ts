@@ -72,4 +72,22 @@ export class RightsService {
     return rights;
   }
 
+  async allowed(role: string, lrn: LRN, need: Partial<Rights>): Promise<boolean> {
+    // Get role's rights on resource
+    const rights = await this.rights(role, lrn);
+
+    // Match rights with needs
+    let allowed = true;
+    if (need.create) allowed = rights.create;
+    if (need.read)   allowed = allowed && rights.read;
+    if (need.write)  allowed = allowed && rights.write;
+    if (need.delete) allowed = allowed && rights.delete;
+
+    return allowed;
+  }
+
+  async allow(role: string, lrn: LRN, need: Partial<Rights>) {
+    const allowed = await this.allowed(role, lrn, need);
+    if (!allowed) throw HttpError.Forbidden();
+  }
 }

@@ -1,4 +1,5 @@
 import { DIContainer, loadServices } from 'inversify.config';
+import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
@@ -171,5 +172,35 @@ describe('roles/rights.service', () => {
         write: false,
         delete: true
       });
+  });
+
+  // - RightsService.allowed
+  test('RightsService.allowed: allowed', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.allowed(role.id, lrn, { read: true }))
+      .resolves.toBeTruthy();
+  });
+
+  test('RightsService.allowed: not allowed', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.allowed(role.id, lrn, { write: true }))
+      .resolves.toBeFalsy();
+  });
+
+  // - RightsService.allow
+  test('RightsService.allow: allowed', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.allow(role.id, lrn, { read: true }))
+      .resolves.toBeUndefined();
+  });
+
+  test('RightsService.allow: not allowed', async () => {
+    const lrn = LRN.parse('lrn::test:00000000-0000-0000-0000-000000000000');
+
+    await expect(service.allow(role.id, lrn, { write: true }))
+      .rejects.toEqual(HttpError.Forbidden());
   });
 });
