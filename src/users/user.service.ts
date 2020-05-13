@@ -99,7 +99,7 @@ export class UserService {
   }
 
   async delete(ctx: Context, id: string) {
-    await this.rights.allow(ctx.user.id, new LRN('user', id), { delete: true });
+    await this.rights.allow(ctx.user!.id, new LRN('user', id), { delete: true });
     await this.repository.delete(id);
   }
 

@@ -8,7 +8,7 @@ import { RoleService } from './role.service';
 import { Rule } from './rule.entity';
 
 // Service
-@Service()
+@Service({ singleton: true })
 export class RightsService {
   // Constructor
   constructor(
