@@ -6,6 +6,8 @@ import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
+import { LRN } from 'resources/lrn.model';
+import { Rights } from 'roles/rights.model';
 import { RightsService } from 'roles/rights.service';
 import { Role } from 'roles/role.entity';
 
@@ -14,7 +16,6 @@ import { userCreate, UserCreate } from 'users/user.schema';
 import { userUpdate, UserUpdate } from 'users/user.schema';
 import { Token } from './token.entity';
 import { TokenService } from './token.service';
-import { LRN } from 'resources/lrn.model';
 
 // Service
 @Service()
@@ -27,6 +28,14 @@ export class UserService {
   ) {}
 
   // Methods
+  static lrn(id: string): LRN {
+    return new LRN('user', id);
+  }
+
+  private async allow(ctx: Context, user: string, need: Partial<Rights>) {
+    await this.rights.allow(ctx.user!.id, UserService.lrn(user), need);
+  }
+
   async create(data: UserCreate): Promise<User> {
     const rolRepo = this.database.connection.getRepository(Role);
     const usrRepo = this.repository;
@@ -99,7 +108,7 @@ export class UserService {
   }
 
   async delete(ctx: Context, id: string) {
-    await this.rights.allow(ctx.user!.id, new LRN('user', id), { delete: true });
+    await this.allow(ctx, id, { delete: true });
     await this.repository.delete(id);
   }
 

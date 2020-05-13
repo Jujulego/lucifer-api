@@ -18,6 +18,7 @@ import { Rule } from 'roles/rule.entity';
 import { Daemon, IDaemon } from 'daemons/daemon.entity';
 
 import { IToken, Token } from './token.entity';
+import { UserService } from './user.service';
 
 // Interface
 export interface IUser {
@@ -79,7 +80,7 @@ export class User implements Resource {
   // Properties
   @json<LRN>(lrn => lrn.toString())
   get lrn() {
-    return new LRN('user', this.id);
+    return UserService.lrn(this.id);
   }
 
   get rules(): Rule[] {
