@@ -4,7 +4,7 @@ import { User } from 'users/user.entity';
 export abstract class Context<T = any> {
   // Attributes
   readonly request: T;
-  readonly abstract user: User;
+  readonly abstract user?: User;
 
   // Constructor
   constructor(request: T) {

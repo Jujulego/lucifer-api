@@ -5,10 +5,10 @@ import { Context } from './context.model';
 // Context
 export class TestContext<T> extends Context<T> {
   // Attributes
-  readonly user: User;
+  readonly user?: User;
 
   // Constructor
-  constructor(request: T, user: User) {
+  constructor(request: T, user?: User) {
     super(request);
 
     this.user = user;
