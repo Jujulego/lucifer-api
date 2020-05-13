@@ -3,9 +3,10 @@ import { Column, Entity, Index, ManyToOne, OneToMany, PrimaryGeneratedColumn } f
 import { json, toJSON } from 'utils';
 
 import { Role } from './role.entity';
+import { Rights } from './rights.model';
 
 // Interface
-export interface IRule {
+export interface IRule extends Rights {
   id: string;
   resource: string;
   target: string;
@@ -15,7 +16,7 @@ export interface IRule {
 // Entity
 @Entity()
 @Index(['role', 'parent', 'resource', 'target'], { unique: true })
-export class Rule {
+export class Rule implements Rights {
   // Columns
   @PrimaryGeneratedColumn('uuid')
   @json() id: string;

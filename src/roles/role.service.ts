@@ -9,14 +9,6 @@ import { LRN } from 'resources/lrn.model';
 import { Role } from './role.entity';
 import { Rule } from './rule.entity';
 
-// Types
-export interface Rights {
-  create: boolean,
-  read: boolean,
-  write: boolean,
-  delete: boolean
-}
-
 // Service
 @Service()
 export class RoleService {
@@ -57,15 +49,6 @@ export class RoleService {
     return role;
   }
 
-  private getRights(r: Rule | Role): Rights {
-    return {
-      create: r.create,
-      read: r.read,
-      write: r.write,
-      delete: r.delete
-    };
-  }
-
   async get(id: string): Promise<Role> {
     // Get role
     const role = await this.repository.findOne(id, {
@@ -89,7 +72,7 @@ export class RoleService {
     if (lrn) {
       // Get direct children
       qb.innerJoin(qb => this.rulesQb(qb, id, lrn.resource, lrn.parent, n + 1), 'parent', 'rule.parent = parent.id');
-      qb.where(`parent.target = :target${n}`, { [`target${n}`]: lrn.id })
+      qb.where(`parent.target = :target${n}`, { [`target${n}`]: lrn.id });
     } else {
       // Get only roots
       qb.where('"parentId" IS NULL');
@@ -100,53 +83,6 @@ export class RoleService {
     qb.andWhere(`rule.resource = :resource${n}`, { [`resource${n}`]: resource });
 
     return qb;
-  }
-
-  async rights(id: string, lrn?: LRN): Promise<Rights> {
-    // Get role rights
-    const role = await this.get(id);
-    let rights = this.getRights(role);
-
-    // Ask for global rights
-    if (!lrn) return rights;
-
-    // Get resources
-    const resources = [lrn];
-    while (resources[0].parent) {
-      resources.unshift(resources[0].parent);
-    }
-
-    // Search in rules
-    let rules = role.rules;
-    for (let res of resources) {
-      let rule: Rule | null = null;
-
-      // Search for applicable rule
-      for (let r of rules) {
-        if (r.resource === res.resource) {
-          // Exact rule
-          if (r.target === res.id) {
-            rule = r;
-            break;
-          }
-
-          // Global rule
-          if (!r.target) {
-            rule = r;
-          }
-        }
-      }
-
-      // Apply rule !
-      if (rule) {
-        rights = this.getRights(rule);
-        rules = rule.children;
-      } else {
-        break;
-      }
-    }
-
-    return rights;
   }
 
   // Properties

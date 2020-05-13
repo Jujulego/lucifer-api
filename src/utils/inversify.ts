@@ -20,7 +20,7 @@ export function Service(opts: ServiceOpts = {}) {
   const { singleton = false } = opts;
 
   // Decorator
-  return (target: Newable<any>) => {
+  return <T extends Newable<any>> (target: T) => {
     decorate(injectable(), target);
 
     // Prepare binding

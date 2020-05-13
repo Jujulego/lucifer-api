@@ -5,10 +5,11 @@ import { json, toJSON } from 'utils';
 import { Resource } from 'resources/resource.model';
 import { LRN } from 'resources/lrn.model';
 
+import { Rights } from './rights.model';
 import { IRule, Rule } from './rule.entity';
 
 // Interface
-export interface IRole {
+export interface IRole extends Rights {
   id: string;
   lrn: string;
   rules?: IRule[];
@@ -16,7 +17,7 @@ export interface IRole {
 
 // Entity
 @Entity()
-export class Role implements Resource {
+export class Role implements Resource, Rights {
   // Columns
   @PrimaryGeneratedColumn('uuid')
   @json() id: string;
