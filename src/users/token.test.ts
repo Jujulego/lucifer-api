@@ -49,7 +49,7 @@ describe('users/token.service', () => {
 
       // Create a token
       token = await tknRepo.save(
-        tknRepo.create({ user, tags: ['test'] })
+        tknRepo.create({ user, ip: '1.2.3.4', tags: ['test'] })
       );
     });
   });
@@ -76,9 +76,10 @@ describe('users/token.service', () => {
       .toEqual({
         id: token.id,
         lrn: token.lrn.toString(),
+        user: user.toJSON(),
         date: token.date.toISOString(),
-        tags: ['test'],
-        user: user.toJSON()
+        ip: '1.2.3.4',
+        tags: ['test']
       });
   });
 

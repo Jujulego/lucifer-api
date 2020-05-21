@@ -57,7 +57,7 @@ describe('/api/users', () => {
     });
 
     // Get tokens
-    tokenA = await login('admin@api.users.com', 'admin', '1.2.3.4');
+    tokenA = await login('admin@api.users.com', 'test', '1.2.3.4');
     tokenS = await login('self@api.users.com',  'test', '1.2.3.4');
   });
 
@@ -116,6 +116,7 @@ describe('/api/users', () => {
         id: should.validate(validator.isUUID),
         lrn: should.validate(LRN.isLRN),
         date: should.validate(validator.isISO8601),
+        ip: '1.2.3.4',
         tags: []
       }]
     });
