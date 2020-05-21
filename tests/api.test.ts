@@ -1,26 +1,30 @@
-import mongoose from 'mongoose';
-import supertest from 'supertest';
 import 'reflect-metadata';
+import supertest from 'supertest';
 
-import app from 'app';
-import * as db from 'db';
-import { loadServices } from 'inversify.config';
+import { app } from 'app';
+import { DatabaseService } from 'db.service';
+import { DIContainer, loadServices } from 'inversify.config';
 
 // Tests
 describe('api', () => {
   // Server setup
+  let database: DatabaseService;
   let request: ReturnType<typeof supertest>;
 
   beforeAll(async () => {
+    // Load services
     loadServices();
-    await db.connect();
 
+    database = DIContainer.get(DatabaseService);
+    await database.connect();
+
+    // Start server
     request = supertest(app);
   });
 
   // Disconnect
   afterAll(async () => {
-    await mongoose.disconnect();
+    await database.disconnect();
   });
 
   // Tests

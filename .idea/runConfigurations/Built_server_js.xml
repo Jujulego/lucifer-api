@@ -1,8 +1,0 @@
-<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Built server.js" type="NodeJSConfigurationType" path-to-js-file="src/server.js" working-dir="$PROJECT_DIR$/build">
-    <envs>
-      <env name="NODE_PATH" value="src" />
-    </envs>
-    <method v="2" />
-  </configuration>
-</component>

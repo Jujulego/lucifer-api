@@ -1,14 +1,12 @@
-import DIContainer from 'inversify.config';
+import { buildContext } from 'context';
+import { DIContainer } from 'inversify.config';
 
-import { Credentials } from 'data/user/user';
-
-import UsersService, { LoginToken } from 'services/users.service';
-import { TestContext } from 'bases/context';
+import { UserService } from 'users/user.service';
 
 // Utils
-export async function userLogin(cred: Credentials, from: string): Promise<LoginToken> {
-  const users = DIContainer.get(UsersService);
-  const ctx = TestContext.notConnected(from);
+export async function login(email: string, password: string, from: string): Promise<string> {
+  const ctx = buildContext('test', { clientIp: from });
+  const users = DIContainer.get(UserService);
 
-  return await users.login(ctx, cred, ['Tests']);
+  return await users.login(ctx, email, password);
 }

@@ -9,14 +9,17 @@ services:
     build: ./
     networks:
       - back
-    environment:
-      MONGO_URL: mongodb://mongo:27017/lucifer
     ports:
     - 8001:8000
 
-  mongo:
-    image: mongo
+  postgres:
+    image: postgres:12-alpine
     networks:
       back:
         aliases:
-          - mongo
+          - postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root

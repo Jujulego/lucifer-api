@@ -1,7 +1,7 @@
 // For a detailed explanation regarding each configuration property, visit:
 // https://jestjs.io/docs/en/configuration.html
 
-module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
+module.exports = {
   // All imported modules in your tests should be mocked automatically
   // automock: false,
 
@@ -21,7 +21,9 @@ module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
   collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
+  collectCoverageFrom: [
+    "src/**/*.ts",
+  ],
 
   // The directory where Jest should output its coverage files
   // coverageDirectory: undefined,
@@ -127,9 +129,7 @@ module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
   // setupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: [
-    "<rootDir>/src/jest.setup.js"
-  ],
+  // setupFilesAfterEnv: [],
 
   // A list of paths to snapshot serializer modules Jest should use for snapshot testing
   // snapshotSerializers: [],
@@ -181,7 +181,7 @@ module.exports = { ...require('@shelf/jest-mongodb/jest-preset'),
   // unmockedModulePathPatterns: undefined,
 
   // Indicates whether each individual test should be reported during the run
-  // verbose: undefined,
+  verbose: true,
 
   // An array of regexp patterns that are matched against all source file paths before re-running tests in watch mode
   // watchPathIgnorePatterns: [],

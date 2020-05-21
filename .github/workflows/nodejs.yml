@@ -11,18 +11,39 @@ jobs:
   tests:
     runs-on: ubuntu-latest
 
+    container:
+      image: node:14-alpine
+
+    services:
+      postgres:
+        image: postgres:12-alpine
+        env:
+          POSTGRES_USER: 'root'
+          POSTGRES_PASSWORD: 'root'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      TYPEORM_CONNECTION: 'postgres'
+      TYPEORM_HOST: 'postgres'
+      TYPEORM_PORT: 5432
+      TYPEORM_USERNAME: 'root'
+      TYPEORM_PASSWORD: 'root'
+      TYPEORM_ENTITIES: 'src/**/*entity.ts'
+      TYPEORM_MIGRATIONS: 'db/migrations/*.ts'
+      TYPEORM_MIGRATIONS_DIR: 'db/migrations'
+      TYPEORM_LOGGING: false
+
     steps:
       - uses: actions/checkout@v2
-
-      - name: Use Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
 
       - name: Setup
         id: setup
         run: echo "::set-output name=yarn-cache::$(yarn cache dir)"
-        
+
       - uses: actions/cache@v1
         with:
           path: ${{ steps.setup.outputs.yarn-cache }}
@@ -32,11 +53,17 @@ jobs:
       - name: Install dependencies
         run: yarn install --pure-lockfile
 
+      - name: Lint
+        run: yarn run lint
+
+      - name: Migrate
+        run: yarn run migration:run
+
       - name: Tests
+        run: yarn test
         env:
           CI: true
-          LOG_LEVEL: WARNING
-        run: yarn test
+          LOG_LEVEL: 'WARNING'
 
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
@@ -60,7 +87,7 @@ jobs:
       - name: Setup
         id: setup
         run: echo "::set-output name=yarn-cache::$(yarn cache dir)"
-        
+
       - uses: actions/cache@v1
         with:
           path: ${{ steps.setup.outputs.yarn-cache }}
@@ -69,7 +96,7 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --pure-lockfile
-        
+
       - name: Build
         run: yarn run build
 
