@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import { Repository } from 'typeorm';
 
 import { env } from 'env';
 import { Context } from 'context';
@@ -37,7 +38,7 @@ export class TokenService {
     });
   }
 
-  async delete(user: User, id: string) {
+  async delete(user: User, id: string): Promise<void> {
     await this.repository.delete(id);
   }
 
@@ -55,16 +56,16 @@ export class TokenService {
       relations: ['user'],
       where: {
         id: token.id,
-        user: { id: token.user!.id }
+        user: { id: token.user.id }
       }
     });
 
     if (!tk) throw HttpError.Unauthorized();
-    return tk.user!;
+    return tk.user;
   }
 
   // Properties
-  get repository() {
+  get repository(): Repository<Token> {
     return this.database.connection.getRepository(Token);
   }
 }

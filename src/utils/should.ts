@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-import { HTTP_ERRORS } from './errors';
+import { HTTP_ERRORS, IHttpError } from './errors';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
@@ -74,12 +74,12 @@ class HaveLength implements jest.AsymmetricMatcher {
   ) {}
 
   // Methods
-  asymmetricMatch(other: Array<any> | string): boolean {
+  asymmetricMatch(other: Array<unknown> | string): boolean {
     return this.not != (other.length === this.length);
   }
 }
 
-class Validator<T = any> implements jest.AsymmetricMatcher {
+class Validator<T> implements jest.AsymmetricMatcher {
   // Constructor
   constructor(
     private validator: (value: T) => boolean,
@@ -95,18 +95,18 @@ class Validator<T = any> implements jest.AsymmetricMatcher {
 // Namespace
 export const should = {
   // Logic
-  all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
-  any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
+  all: (...matchers: jest.AsymmetricMatcher[]): All => new All(matchers),
+  any: (...matchers: jest.AsymmetricMatcher[]): Any => new Any(matchers),
 
   // Matchers
-  hashOf: (value: string) => new HashOf(value),
-  hashTo: (hash: string) => new HashTo(hash),
-  haveLength: (length: number) => new HaveLength(length),
-  validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator),
+  hashOf: (value: string): HashOf => new HashOf(value),
+  hashTo: (hash: string): HashTo => new HashTo(hash),
+  haveLength: (length: number): HaveLength => new HaveLength(length),
+  validate: <T> (validator: (value: T) => boolean): Validator<T> => new Validator(validator),
 
   // Schemas
   be: {
-    httpError(status: keyof typeof HTTP_ERRORS, message: string) {
+    httpError(status: keyof typeof HTTP_ERRORS, message: string): IHttpError {
       return {
         status,
         error: HTTP_ERRORS[status],
@@ -114,19 +114,19 @@ export const should = {
       }
     },
 
-    badRequest(  message?: string) { return this.httpError(400, message || HTTP_ERRORS[400])},
-    unauthorized(message?: string) { return this.httpError(401, message || HTTP_ERRORS[401])},
-    forbidden(   message?: string) { return this.httpError(403, message || HTTP_ERRORS[403])},
-    notFound(    message?: string) { return this.httpError(404, message || HTTP_ERRORS[404])},
-    serverError( message?: string) { return this.httpError(500, message || HTTP_ERRORS[500])}
+    badRequest(  message?: string): IHttpError { return this.httpError(400, message || HTTP_ERRORS[400])},
+    unauthorized(message?: string): IHttpError { return this.httpError(401, message || HTTP_ERRORS[401])},
+    forbidden(   message?: string): IHttpError { return this.httpError(403, message || HTTP_ERRORS[403])},
+    notFound(    message?: string): IHttpError { return this.httpError(404, message || HTTP_ERRORS[404])},
+    serverError( message?: string): IHttpError { return this.httpError(500, message || HTTP_ERRORS[500])}
   },
 
   // Inverted
   not: {
     // Matchers
-    hashOf: (hash: string) => new HashOf(hash, true),
-    hashTo: (hash: string) => new HashTo(hash, true),
-    haveLength: (length: number) => new HaveLength(length, true),
-    validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator, true),
+    hashOf: (hash: string): HashOf => new HashOf(hash, true),
+    hashTo: (hash: string): HashTo => new HashTo(hash, true),
+    haveLength: (length: number): HaveLength => new HaveLength(length, true),
+    validate: <T> (validator: (value: T) => boolean): Validator<T> => new Validator(validator, true),
   }
 };

@@ -5,6 +5,16 @@
   "author": "Julien Capellari",
   "license": "MIT",
   "repository": "github:Jujulego/lucifer-api",
+  "scripts": {
+    "build": "tsc -p tsconfig.prod.json",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "migration:generate": "yarn run typeorm migration:generate",
+    "migration:run": "yarn run typeorm migration:run",
+    "test": "jest",
+    "lint": "eslint **/*.ts",
+    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
+    "wizard": "snyk wizard"
+  },
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "bcryptjs": "^2.4.3",
@@ -40,6 +50,9 @@
     "@types/passport-jwt": "^3.0.3",
     "@types/supertest": "^2.0.8",
     "@types/validator": "^12.0.1",
+    "@typescript-eslint/eslint-plugin": "^2.34.0",
+    "@typescript-eslint/parser": "^2.0.0",
+    "eslint": "^6.8.0",
     "jest": "^25.1.0",
     "nodemon": "^2.0.2",
     "snyk": "^1.305.0",
@@ -48,14 +61,5 @@
     "ts-node": "^8.6.2",
     "tsconfig-paths": "^3.9.0",
     "typescript": "^3.7.5"
-  },
-  "scripts": {
-    "build": "tsc -p tsconfig.prod.json",
-    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migration:generate": "yarn run typeorm migration:generate",
-    "migration:run": "yarn run typeorm migration:run",
-    "start": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
-    "test": "jest",
-    "wizard": "snyk wizard"
   }
 }

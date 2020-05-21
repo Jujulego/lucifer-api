@@ -66,7 +66,7 @@ export class LRN implements ILRN {
 
   // Methods
   private parts(): string[] {
-    let part = `${this.resource}:${this.id}`;
+    const part = `${this.resource}:${this.id}`;
 
     if (this.parent) {
       const parts = this.parent.parts();

@@ -46,8 +46,6 @@ describe('users/user.service', () => {
         usrRepo.create({ email: 'test@daemon.com', password: 'test' })
       );
 
-      user = (await usrRepo.findOne(user.id))!;
-
       // Create some daemons
       daemons = await dmnRepo.save([
         dmnRepo.create({ owner: user }),

@@ -13,12 +13,12 @@ type ContextType = 'express' | 'test';
 // Utils
 export function buildContext(type: 'test', request: TestRequest): TestContext;
 export function buildContext(type: 'express', request: Request): ExpressContext;
-export function buildContext(type: ContextType, request: any): Context {
+export function buildContext(type: ContextType, request: unknown): Context {
   switch (type) {
     case 'express':
-      return new ExpressContext(request);
+      return new ExpressContext(request as Request);
 
     case 'test':
-      return new TestContext(request);
+      return new TestContext(request as TestRequest);
   }
 }

@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { Repository } from 'typeorm';
 import validator from 'validator';
 
 import { Context } from 'context';
@@ -94,7 +95,7 @@ export class UserService {
     });
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }
 
@@ -115,7 +116,7 @@ export class UserService {
   }
 
   // Properties
-  get repository() {
+  get repository(): Repository<User> {
     return this.database.connection.getRepository(User);
   }
 }

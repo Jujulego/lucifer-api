@@ -66,8 +66,8 @@ describe('users/token.service', () => {
     expect(token.lrn.resource).toEqual('token');
 
     expect(token.lrn.parent).toBeDefined();
-    expect(token.lrn.parent!.id).toEqual(user.id);
-    expect(token.lrn.parent!.resource).toEqual('user');
+    expect(token.lrn.parent?.id).toEqual(user.id);
+    expect(token.lrn.parent?.resource).toEqual('user');
   });
 
   // - Token.toJSON
@@ -139,7 +139,7 @@ describe('users/token.service', () => {
       .rejects.toEqual(HttpError.Unauthorized());
 
     // Wrong user id
-    await expect(service.verify({ ...tk, user: { ...tk.user!, id: '00000000-0000-0000-0000-000000000000' }}))
+    await expect(service.verify({ ...tk, user: { ...tk.user, id: '00000000-0000-0000-0000-000000000000' }}))
       .rejects.toEqual(HttpError.Unauthorized());
   });
 });

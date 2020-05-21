@@ -9,7 +9,7 @@ import { DatabaseService } from 'db.service';
 import { LoggerService } from 'logger.service';
 
 // Starter
-(async () => {
+(async (): Promise<void> => {
   // Load services
   loadServices();
 

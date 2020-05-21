@@ -10,7 +10,7 @@ import { LRN } from 'resources/lrn.model';
 // Interface
 export interface IToken {
   id: string;
-  user?: IUser;
+  user: IUser;
   date: Date;
   origin: string;
   tags: string[];
@@ -26,7 +26,7 @@ export class Token implements Resource {
   // - relations
   @ManyToOne(type => User, user => user.tokens, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  @json() user?: User;
+  @json() user: User;
 
   @Column({ nullable: false })
   userId: string;
@@ -47,8 +47,8 @@ export class Token implements Resource {
   }
 
   // Properties
-  @json<LRN>(lrn => lrn.toString())
-  get lrn() {
+  @json((lrn: LRN) => lrn.toString())
+  get lrn(): LRN {
     return new LRN('token', this.id, { resource: 'user', id: this.userId });
   }
 }

@@ -1,7 +1,7 @@
 import { env } from 'env';
 import { DIContainer } from 'inversify.config';
 
-import { Service } from 'utils';
+import { Service, WritableStream } from 'utils';
 
 // Enum
 export enum LogLevel {
@@ -37,7 +37,7 @@ export class LoggerService {
   }
 
   // Methods
-  log(level: LogLevel, msg: string) {
+  log(level: LogLevel, msg: string): void {
     if (level >= this._level) {
       let line: string;
 
@@ -71,11 +71,11 @@ export class LoggerService {
     }
   }
 
-  debug(   msg: string) { return this.log(LogLevel.DEBUG,    msg); }
-  info(    msg: string) { return this.log(LogLevel.INFO,     msg); }
-  warning( msg: string) { return this.log(LogLevel.WARNING,  msg); }
-  error(   msg: string) { return this.log(LogLevel.ERROR,    msg); }
-  critical(msg: string) { return this.log(LogLevel.CRITICAL, msg); }
+  debug(   msg: string): void { this.log(LogLevel.DEBUG,    msg); }
+  info(    msg: string): void { this.log(LogLevel.INFO,     msg); }
+  warning( msg: string): void { this.log(LogLevel.WARNING,  msg); }
+  error(   msg: string): void { this.log(LogLevel.ERROR,    msg); }
+  critical(msg: string): void { this.log(LogLevel.CRITICAL, msg); }
 
   get level(): LogLevel {
     return this._level
@@ -87,7 +87,7 @@ export class LoggerService {
 }
 
 // Stream
-export class LoggerStream {
+export class LoggerStream implements WritableStream {
   // Attributes
   private logger: LoggerService | null = null;
 
@@ -97,7 +97,7 @@ export class LoggerStream {
   ) {}
 
   // Methods
-  write(msg: string) {
+  write(msg: string): void {
     if (!this.logger) {
       this.logger = DIContainer.get(LoggerService)
     }

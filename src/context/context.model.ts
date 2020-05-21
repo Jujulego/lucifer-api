@@ -1,7 +1,7 @@
 import { User } from 'users/user.entity';
 
 // Class
-export abstract class Context<T = any> {
+export abstract class Context<T = unknown> {
   // Attributes
   readonly request: T;
   readonly abstract user?: User;

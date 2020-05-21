@@ -1,30 +1,30 @@
 import 'reflect-metadata';
 import { ContainerModule, interfaces, decorate, injectable } from 'inversify';
 
-import { Newable } from './types';
+import { ClassDecorator, Newable } from './types';
 
 // Types
 export interface ServiceOpts {
-  singleton?: boolean
+  singleton?: boolean;
 }
 
 type BindCallback = (bind: interfaces.Bind) => void;
 
 // Constants
 const METADATA_KEY = Symbol('utils.inversify:bind');
-const services: Newable<any>[] = [];
+const services: Newable[] = [];
 
 // Decorator factory
-export function Service(opts: ServiceOpts = {}) {
+export function Service(opts: ServiceOpts = {}): ClassDecorator {
   // Options
   const { singleton = false } = opts;
 
   // Decorator
-  return <T extends Newable<any>> (target: T) => {
+  return <T extends Newable> (target: T): T => {
     decorate(injectable(), target);
 
     // Prepare binding
-    const cb = (bind: interfaces.Bind) => {
+    const cb = (bind: interfaces.Bind): void => {
       const binding = bind(target).toSelf();
 
       if (singleton) binding.inSingletonScope();

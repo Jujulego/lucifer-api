@@ -42,10 +42,10 @@ export class User implements Resource {
 
   // - relations
   @OneToMany(type => Daemon, daemon => daemon.owner)
-  @json() daemons?: Daemon[];
+  @json() daemons: Daemon[];
 
   @OneToMany(type => Token, token => token.user)
-  @json() tokens?: Token[];
+  @json() tokens: Token[];
 
   // Attributes
   private _password: string;
@@ -54,13 +54,13 @@ export class User implements Resource {
   @AfterLoad()
   @AfterInsert()
   @AfterUpdate()
-  keepPassword() {
+  keepPassword(): void {
     this._password = this.password;
   }
 
   @BeforeInsert()
   @BeforeUpdate()
-  async hashPassword() {
+  async hashPassword(): Promise<void> {
     if (this.password !== this._password) {
       this.password = await bcrypt.hash(this.password, await bcrypt.genSalt());
       this._password = this.password;
@@ -68,13 +68,13 @@ export class User implements Resource {
   }
 
   // Methods
-  toJSON() {
+  toJSON(): IUser {
     return toJSON<IUser>(this);
   }
 
   // Properties
-  @json<LRN>(lrn => lrn.toString())
-  get lrn() {
+  @json((lrn: LRN) => lrn.toString())
+  get lrn(): LRN {
     return UserService.lrn(this.id);
   }
 }

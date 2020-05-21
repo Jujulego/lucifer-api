@@ -1,16 +1,20 @@
-import { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
+import { ErrorRequestHandler } from 'express';
 
 import { HttpError } from 'utils/errors/errors.model';
 
 // Middleware
-export const errorHandler = (): ErrorRequestHandler => (err: any, req: Request, res: Response, next: NextFunction) => {
+export const errorHandler = (): ErrorRequestHandler => (err, req, res, next): void => {
   if (err instanceof HttpError) {
-    return err.send(res);
+    err.send(res);
+
+    return;
   }
 
   if (err instanceof Error) {
-    console.error(err.stack);
-    return HttpError.ServerError(err.message).send(res);
+    console.error(err);
+    HttpError.ServerError(err.message).send(res);
+
+    return;
   }
 
   next(err);

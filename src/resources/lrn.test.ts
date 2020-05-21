@@ -33,8 +33,8 @@ describe('resource/lrn.model', () => {
     expect(lrn.resource).toEqual('child');
     expect(lrn.id).toEqual('0123456789abcdef');
     expect(lrn.parent).toBeInstanceOf(LRN);
-    expect(lrn.parent!.resource).toEqual('res');
-    expect(lrn.parent!.id).toEqual('0123456789abcdef');
+    expect(lrn.parent?.resource).toEqual('res');
+    expect(lrn.parent?.id).toEqual('0123456789abcdef');
   });
 
   test('LRN.toString (no parent)', () => {

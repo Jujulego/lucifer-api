@@ -1,3 +1,4 @@
+import { Repository } from 'typeorm';
 import validator from 'validator';
 
 import { Service } from 'utils';
@@ -96,12 +97,12 @@ export class DaemonService {
     }
   }
 
-  async delete(id: string) {
+  async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }
 
   // Properties
-  get repository() {
+  get repository(): Repository<Daemon> {
     return this.database.connection.getRepository(Daemon);
   }
 }

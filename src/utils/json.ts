@@ -7,10 +7,10 @@ const FIELDS_METADATA = Symbol('utils.json:fields');
 interface Field {
   name: string | symbol;
   property: string | symbol;
-  transform?: (val: any) => any;
+  transform?: (val: any) => any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
-export type JSONTransform<T> = (val: T) => any;
+export type JSONTransform<T> = (val: T) => unknown;
 export interface JSONOptions<T> {
   name?: string | symbol;
   transform?: JSONTransform<T>;
@@ -34,18 +34,18 @@ function resolveOptions<T>(arg?: string | symbol | JSONTransform<T> | JSONOption
   }
 }
 
-export function toJSON<R = any>(target: any): R {
+export function toJSON<R>(target: any): R { // eslint-disable-line @typescript-eslint/no-explicit-any
   // Only for objects
   if (typeof target !== 'object') {
-    return target;
+    return target as R;
   }
 
   // get metadata
-  let fields = Reflect.getMetadata(FIELDS_METADATA, target) as Field[];
-  if (!fields) return target;
+  const fields = Reflect.getMetadata(FIELDS_METADATA, target) as Field[];
+  if (!fields) return target as R;
 
   // Build object
-  const obj: any = {};
+  const obj: any = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
   fields.forEach(field => {
     let val = target[field.property];
     if (val === undefined) return;
@@ -62,14 +62,14 @@ export function toJSON<R = any>(target: any): R {
     obj[field.name] = val;
   });
 
-  return obj;
+  return obj as R;
 }
 
 // Decorator
-export function json<T>(arg?: string | symbol | JSONTransform<T> | JSONOptions<T>) {
+export function json<T>(arg?: string | symbol | JSONTransform<T> | JSONOptions<T>): PropertyDecorator {
   const opts = resolveOptions<T>(arg);
 
-  return (target: object, propertyName: string | symbol, _?: TypedPropertyDescriptor<T>) => {
+  return (target: object, propertyName: string | symbol): void => {
     // get metadata
     let fields = Reflect.getMetadata(FIELDS_METADATA, target) as Field[];
     if (!fields) fields = [];

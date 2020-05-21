@@ -16,7 +16,7 @@ export class DatabaseService {
   ) {}
 
   // Methods
-  async connect() {
+  async connect(): Promise<void> {
     if (this._connection) return;
 
     // Connection
@@ -24,7 +24,7 @@ export class DatabaseService {
     this.logger.info('Connected to database');
   }
 
-  async disconnect() {
+  async disconnect(): Promise<void> {
     if (!this._connection) return;
 
     // Disconnect
@@ -35,7 +35,7 @@ export class DatabaseService {
   }
 
   // Properties
-  get connection() {
+  get connection(): Connection {
     if (!this._connection) {
       throw new Error('Not yet connected to database !');
     }

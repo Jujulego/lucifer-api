@@ -25,11 +25,11 @@ export class Daemon implements Resource {
   @json() owner?: User;
 
   // Methods
-  toJSON() { return toJSON<IDaemon>(this) }
+  toJSON(): IDaemon { return toJSON<IDaemon>(this) }
 
   // Properties
-  @json<LRN>(val => val.toString())
-  get lrn() {
+  @json((val: LRN) => val.toString())
+  get lrn(): LRN {
     return new LRN('daemon', this.id);
   }
 }

@@ -6,6 +6,6 @@ import { servicesModule } from 'utils';
 export const DIContainer = new Container();
 
 // Utils
-export function loadServices() {
+export function loadServices(): void {
   DIContainer.load(servicesModule());
 }

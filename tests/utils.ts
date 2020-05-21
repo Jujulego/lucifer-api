@@ -4,7 +4,7 @@ import { DIContainer } from 'inversify.config';
 import { UserService } from 'users/user.service';
 
 // Utils
-export async function login(email: string, password: string, from: string) {
+export async function login(email: string, password: string, from: string): Promise<string> {
   const ctx = buildContext('test', { clientIp: from });
   const users = DIContainer.get(UserService);
 

@@ -11,7 +11,7 @@ import { DaemonService } from './daemon.service';
 // Router
 export const router = Router();
 
-// Middlewares
+// Middleware
 router.param('id', check(validator.isUUID))
 router.use(auth);
 
