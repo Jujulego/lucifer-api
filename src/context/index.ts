@@ -1,22 +1,24 @@
-import express from 'express';
+import { Request } from 'express';
 
-import { Context } from 'context/context.model';
-import { ExpressContext } from 'context/express.context';
+import { Context } from './context.model';
+import { ExpressContext } from './express.context';
+import { TestContext, TestRequest } from './test.context';
 
 // Exports
 export { Context } from './context.model';
 
 // Types
-type ContextTypes = {
-  'express': express.Request
-};
+type ContextType = 'express' | 'test';
 
 // Utils
-export function buildContext<K extends keyof ContextTypes>(type: K, request: ContextTypes[K]): Context<ContextTypes[K]> {
+export function buildContext(type: 'test', request: TestRequest): TestContext;
+export function buildContext(type: 'express', request: Request): ExpressContext;
+export function buildContext(type: ContextType, request: any): Context {
   switch (type) {
     case 'express':
       return new ExpressContext(request);
-  }
 
-  throw Error(`Unknown type : ${type}`);
+    case 'test':
+      return new TestContext(request);
+  }
 }

@@ -1,6 +1,5 @@
 import validator from 'validator';
 
-import { TestContext } from 'context/test.context';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 import { HttpError } from 'utils/errors';
@@ -228,10 +227,9 @@ describe('users/user.service', () => {
   // - UserService.delete
   test('UserService.delete', async () => {
     const user = users[0];
-    const ctx = new TestContext({}, user);
     const usrRepo = database.connection.getRepository(User);
 
-    await service.delete(ctx, user.id);
+    await service.delete(user.id);
 
     expect(await usrRepo.findOne(user.id))
       .toBeUndefined();

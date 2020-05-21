@@ -94,11 +94,11 @@ export class UserService {
     });
   }
 
-  async delete(ctx: Context, id: string) {
+  async delete(id: string) {
     await this.repository.delete(id);
   }
 
-  async login(email: string, password: string): Promise<string> {
+  async login(ctx: Context, email: string, password: string): Promise<string> {
     // Get user and check credentials
     const user = await this.repository.findOne({
       where: { email }
@@ -110,7 +110,7 @@ export class UserService {
     }
 
     // Generate token
-    const token = await this.tokens.create(user);
+    const token = await this.tokens.create(ctx, user);
     return this.tokens.encrypt(token);
   }
 

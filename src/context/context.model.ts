@@ -5,6 +5,7 @@ export abstract class Context<T = any> {
   // Attributes
   readonly request: T;
   readonly abstract user?: User;
+  readonly abstract clientIp?: string;
 
   // Constructor
   constructor(request: T) {

@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 import { env } from 'env';
+import { Context } from 'context';
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
@@ -18,12 +19,13 @@ export class TokenService {
   ) {}
 
   // Methods
-  async create(user: User): Promise<Token> {
+  async create(ctx: Context, user: User): Promise<Token> {
     const repo = this.repository;
 
     // Create token
     const token = repo.create();
     token.user = user;
+    token.ip = ctx.clientIp;
     token.tags = [];
 
     return await repo.save(token);

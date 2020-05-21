@@ -1,5 +1,6 @@
 import validator from 'validator';
 
+import { buildContext } from 'context';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 import { HttpError } from 'utils/errors';
@@ -83,11 +84,14 @@ describe('users/token.service', () => {
 
   // - TokenService.create
   test('TokenService.create', async () => {
-    expect(await service.create(user))
+    const ctx = buildContext('test', { clientIp: '1.2.3.4' })
+
+    expect(await service.create(ctx, user))
       .toEqual(expect.objectContaining({
         id: should.validate(validator.isUUID),
-        date: expect.any(Date),
         user: user,
+        date: expect.any(Date),
+        ip: '1.2.3.4',
         tags: []
       }));
   });

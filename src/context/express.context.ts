@@ -10,4 +10,8 @@ export class ExpressContext extends Context<Request> {
   get user(): User {
     return this.request.user as User;
   }
+
+  get clientIp(): string {
+    return this.request.ip;
+  }
 }

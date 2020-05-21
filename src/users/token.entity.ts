@@ -12,6 +12,7 @@ export interface IToken {
   id: string;
   user?: IUser;
   date: Date;
+  origin: string;
   tags: string[];
 }
 
@@ -33,6 +34,9 @@ export class Token implements Resource {
   // - metadata
   @CreateDateColumn()
   @json() date: Date;
+
+  @Column('inet', { nullable: true })
+  @json() ip?: string;
 
   @Column('varchar', { array: true })
   @json() tags: string[];
