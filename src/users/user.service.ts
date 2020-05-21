@@ -7,9 +7,6 @@ import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
-import { Rights } from 'roles/rights.model';
-import { RightsService } from 'roles/rights.service';
-import { Role } from 'roles/role.entity';
 
 import { User } from './user.entity';
 import { userCreate, UserCreate } from 'users/user.schema';
@@ -23,8 +20,7 @@ export class UserService {
   // Constructor
   constructor(
     private database: DatabaseService,
-    private tokens: TokenService,
-    private rights: RightsService
+    private tokens: TokenService
   ) {}
 
   // Methods
@@ -32,12 +28,7 @@ export class UserService {
     return new LRN('user', id);
   }
 
-  private async allow(ctx: Context, user: string, need: Partial<Rights>) {
-    await this.rights.allow(ctx.user!.id, UserService.lrn(user), need);
-  }
-
   async create(data: UserCreate): Promise<User> {
-    const rolRepo = this.database.connection.getRepository(Role);
     const usrRepo = this.repository;
 
     // Validate data
@@ -48,21 +39,17 @@ export class UserService {
 
     // Create user
     const user = usrRepo.create();
-    user.role = rolRepo.create();
     user.email = data.email.toLowerCase();
     user.password = data.password;
     user.daemons = [];
     user.tokens = [];
-    user.rules = [];
 
     return await usrRepo.save(user);
   }
 
   async list(): Promise<User[]> {
     // Get user list
-    return await this.repository.find({
-      relations: ['role']
-    });
+    return await this.repository.find();
   }
 
   async get(id: string, opts = { full: true }): Promise<User> {
@@ -70,7 +57,7 @@ export class UserService {
 
     // Get user
     const user = await this.repository.findOne(id, {
-      relations: opts.full ? ['role', 'tokens'] : []
+      relations: opts.full ? ['tokens'] : []
     });
 
     // Throw if not found
@@ -108,7 +95,6 @@ export class UserService {
   }
 
   async delete(ctx: Context, id: string) {
-    await this.allow(ctx, id, { delete: true });
     await this.repository.delete(id);
   }
 

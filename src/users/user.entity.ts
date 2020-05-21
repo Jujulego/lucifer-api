@@ -5,16 +5,14 @@ import {
   BeforeInsert,
   BeforeUpdate,
   Column,
-  Entity, JoinColumn,
-  OneToMany, OneToOne, PrimaryColumn
+  Entity,
+  OneToMany, PrimaryGeneratedColumn
 } from 'typeorm';
 
 import { lowercase, json, toJSON } from 'utils';
 
 import { LRN } from 'resources/lrn.model';
 import { Resource } from 'resources/resource.model';
-import { Role } from 'roles/role.entity';
-import { Rule } from 'roles/rule.entity';
 import { Daemon, IDaemon } from 'daemons/daemon.entity';
 
 import { IToken, Token } from './token.entity';
@@ -33,7 +31,7 @@ export interface IUser {
 @Entity()
 export class User implements Resource {
   // Columns
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   @json() id: string;
 
   @Column('varchar', { length: 128, unique: true, transformer: [lowercase] })
@@ -43,9 +41,6 @@ export class User implements Resource {
   password: string;
 
   // - relations
-  @OneToOne(type => Role, { nullable: false, cascade: true, onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'id' }) role: Role;
-
   @OneToMany(type => Daemon, daemon => daemon.owner)
   @json() daemons?: Daemon[];
 
@@ -81,13 +76,5 @@ export class User implements Resource {
   @json<LRN>(lrn => lrn.toString())
   get lrn() {
     return UserService.lrn(this.id);
-  }
-
-  get rules(): Rule[] {
-    return this.role?.rules;
-  }
-
-  set rules(rules: Rule[]) {
-    this.role.rules = rules;
   }
 }

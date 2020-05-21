@@ -9,11 +9,10 @@ import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
-import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 import { TokenService } from 'users/token.service';
 
-import { createAdmin, login } from '../utils';
+import { login } from '../utils';
 
 // Tests
 describe('/api/users', () => {
@@ -47,14 +46,13 @@ describe('/api/users', () => {
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
 
       // Create some users
       [admin, self, user] = await usrRepo.save([
-        createAdmin('admin@api.users.com'),
-        usrRepo.create({ role: rolRepo.create(), email: 'self@api.users.com',  password: 'test' }),
-        usrRepo.create({ role: rolRepo.create(), email: 'user@api.users.com',  password: 'test' }),
+        usrRepo.create({ email: 'admin@api.users.com',  password: 'test' }),
+        usrRepo.create({ email: 'self@api.users.com',  password: 'test' }),
+        usrRepo.create({ email: 'user@api.users.com',  password: 'test' }),
       ]);
     });
 
@@ -65,8 +63,9 @@ describe('/api/users', () => {
 
   // Empty database
   afterEach(async () => {
-    const rolRepo = database.connection.getRepository(Role);
-    await rolRepo.delete([admin.id, self.id, user.id]);
+    const usrRepo = database.connection.getRepository(User);
+
+    await usrRepo.delete([admin.id, self.id, user.id]);
   });
 
   // Tests
@@ -217,14 +216,13 @@ describe('/api/users/:userId/tokens', () => {
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
 
       // Create some users
       [admin, self, user] = await usrRepo.save([
-        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.users.tks', password: 'test' }),
-        usrRepo.create({ role: rolRepo.create(), email: 'self@api.users.tks',  password: 'test' }),
-        usrRepo.create({ role: rolRepo.create(), email: 'user@api.users.tks',  password: 'test' }),
+        usrRepo.create({ email: 'admin@api.users.tks', password: 'test' }),
+        usrRepo.create({ email: 'self@api.users.tks',  password: 'test' }),
+        usrRepo.create({ email: 'user@api.users.tks',  password: 'test' }),
       ]);
     });
 
@@ -235,8 +233,8 @@ describe('/api/users/:userId/tokens', () => {
 
   // Empty database
   afterEach(async () => {
-    const rolRepo = database.connection.getRepository(Role);
-    await rolRepo.delete([admin.id, self.id, user.id]);
+    const usrRepo = database.connection.getRepository(User);
+    await usrRepo.delete([admin.id, self.id, user.id]);
   });
 
   // Tests

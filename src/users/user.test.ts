@@ -6,7 +6,6 @@ import { should } from 'utils';
 import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
-import { Role } from 'roles/role.entity';
 
 import { Token } from './token.entity';
 import { User } from './user.entity';
@@ -35,31 +34,20 @@ describe('users/user.service', () => {
   });
 
   // Fill database
-  let admin: User;
   let users: User[];
   let token: Token;
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
       const tknRepo = manager.getRepository(Token);
 
-      // Create a admin
-      admin = await usrRepo.save(
-        usrRepo.create({
-          role: rolRepo.create({ create: true, read: true, write: true, delete: true }),
-          email: 'admin@user.com',
-          password: 'admin'
-        })
-      );
-
       // Create some users
       users = await usrRepo.save([
-        usrRepo.create({ role: rolRepo.create(), email: 'test1@user.com', password: 'test1', tokens: [] }),
-        usrRepo.create({ role: rolRepo.create(), email: 'test2@user.com', password: 'test2', tokens: [] }),
-        usrRepo.create({ role: rolRepo.create(), email: 'test3@user.com', password: 'test3', tokens: [] }),
-        usrRepo.create({ role: rolRepo.create(), email: 'test4@user.com', password: 'test4', tokens: [] }),
+        usrRepo.create({ email: 'test1@user.com', password: 'test1', tokens: [] }),
+        usrRepo.create({ email: 'test2@user.com', password: 'test2', tokens: [] }),
+        usrRepo.create({ email: 'test3@user.com', password: 'test3', tokens: [] }),
+        usrRepo.create({ email: 'test4@user.com', password: 'test4', tokens: [] }),
       ]);
 
       // Create a token
@@ -72,11 +60,10 @@ describe('users/user.service', () => {
 
   // Empty database
   afterEach(async () => {
-    const rolRepo = database.connection.getRepository(Role);
+    const usrRepo = database.connection.getRepository(User);
 
     // Delete created users
-    await rolRepo.delete(users.map(usr => usr.id));
-    await rolRepo.delete(admin.id);
+    await usrRepo.delete(users.map(usr => usr.id));
   });
 
   // Tests
@@ -160,7 +147,6 @@ describe('users/user.service', () => {
     users.forEach(usr => {
       delete usr.daemons;
       delete usr.tokens;
-      usr.role = { id: usr.id, name: null, create: false, read: false, write: false, delete: false } as unknown as Role;
     });
 
     expect(res).toEqual(expect.arrayContaining(users));
@@ -181,7 +167,6 @@ describe('users/user.service', () => {
 
     delete user.daemons;
     delete user.tokens;
-    delete user.role;
     expect(res).toEqual(user);
   });
 
@@ -242,9 +227,9 @@ describe('users/user.service', () => {
 
   // - UserService.delete
   test('UserService.delete', async () => {
-    const usrRepo = database.connection.getRepository(User);
-    const ctx = new TestContext({}, admin);
     const user = users[0];
+    const ctx = new TestContext({}, user);
+    const usrRepo = database.connection.getRepository(User);
 
     await service.delete(ctx, user.id);
 

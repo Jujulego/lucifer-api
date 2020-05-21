@@ -7,7 +7,6 @@ import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
-import { Role } from 'roles/role.entity';
 import { User } from 'users/user.entity';
 
 import { login } from '../utils';
@@ -35,17 +34,16 @@ describe('/api (auth)', () => {
   });
 
   // Fill database
-  let admin: User;
+  let user: User;
   let token: string;
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const rolRepo = manager.getRepository(Role);
       const usrRepo = manager.getRepository(User);
 
       // Create some users
-      [admin] = await usrRepo.save([
-        usrRepo.create({ role: rolRepo.create(), email: 'admin@api.auth.com', password: 'test' })
+      [user] = await usrRepo.save([
+        usrRepo.create({ email: 'admin@api.auth.com', password: 'test' })
       ]);
     });
 
@@ -55,8 +53,8 @@ describe('/api (auth)', () => {
 
   // Empty database
   afterEach(async () => {
-    const rolRepo = database.connection.getRepository(Role);
-    await rolRepo.delete([admin.id]);
+    const usrRepo = database.connection.getRepository(User);
+    await usrRepo.delete([user.id]);
   });
 
   // Tests
@@ -103,14 +101,14 @@ describe('/api (auth)', () => {
 
   // - connexion check
   test('GET /api/users/:id (connected)', async () => {
-    await request.get(`/api/users/${admin.id}`)
+    await request.get(`/api/users/${user.id}`)
       .set('Authorization', `Bearer ${token}`)
       .expect(200)
       .expect('Content-Type', /json/);
   });
 
   test('GET /api/users/:id (not connected)', async () => {
-    const rep = await request.get(`/api/users/${admin.id}`)
+    const rep = await request.get(`/api/users/${user.id}`)
       .expect(401)
       .expect('Content-Type', /json/);
 
