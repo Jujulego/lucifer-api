@@ -21,6 +21,7 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
 // Add token to Request
 declare global {
   namespace Express {
+    // noinspection JSUnusedGlobalSymbols
     interface Request {
       token: Token
     }
