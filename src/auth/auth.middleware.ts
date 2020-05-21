@@ -2,16 +2,27 @@ import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 
 import { HttpError } from 'utils/errors';
+import { Token } from 'users/token.entity';
 
 // Middleware
 export function auth(req: Request, res: Response, next: NextFunction): void {
   passport.authenticate('jwt', { session: false },
-    (err, user) => {
+    (err, token) => {
       if (err) return next(err);
-      if (!user) return next(HttpError.Unauthorized());
+      if (!token) return next(HttpError.Unauthorized());
 
-      req.user = user;
+      req.token = token;
+      req.user = token.user;
       next();
     }
   )(req, res, next);
+}
+
+// Add token to Request
+declare global {
+  namespace Express {
+    interface Request {
+      token: Token
+    }
+  }
 }

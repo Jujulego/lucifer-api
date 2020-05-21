@@ -28,3 +28,12 @@ router.post('/login', aroute(async (req, res) => {
     token: await users.login(ctx, email, password)
   });
 }));
+
+router.delete('/logout', aroute(async (req, res) => {
+  const ctx = buildContext('express', req);
+  const users = DIContainer.get(UserService);
+
+  // Logout
+  await users.logout(ctx);
+  res.send();
+}));
