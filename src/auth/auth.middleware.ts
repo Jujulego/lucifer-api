@@ -20,10 +20,10 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
 
 // Add token to Request
 declare global {
-  namespace Express {
+  namespace Express { // eslint-disable-line @typescript-eslint/no-namespace
     // noinspection JSUnusedGlobalSymbols
     interface Request {
-      token: Token
+      token: Token;
     }
   }
 }

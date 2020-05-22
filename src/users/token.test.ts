@@ -127,7 +127,7 @@ describe('users/token.service', () => {
   test('TokenService.verify', async () => {
     expect(await service.verify(token.toJSON()))
       .toEqual(expect.objectContaining({
-        id: user.id
+        id: token.id
       }));
   });
 
