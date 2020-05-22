@@ -16,9 +16,9 @@ passport.use('jwt', new JwtStrategy(
   async (payload: IToken, done) => {
     try {
       const tokens = DIContainer.get(TokenService);
-      const user = await tokens.verify(payload);
+      const token = await tokens.verify(payload);
 
-      done(null, user);
+      done(null, token);
     } catch (error) {
       done(error, null);
     }

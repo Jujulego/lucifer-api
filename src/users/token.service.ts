@@ -50,7 +50,7 @@ export class TokenService {
     return jwt.verify(token, env.JWT_KEY) as IToken;
   }
 
-  async verify(token: IToken): Promise<User> {
+  async verify(token: IToken): Promise<Token> {
     // Check in database
     const tk = await this.repository.findOne({
       relations: ['user'],
@@ -61,7 +61,7 @@ export class TokenService {
     });
 
     if (!tk) throw HttpError.Unauthorized();
-    return tk.user;
+    return tk;
   }
 
   // Properties

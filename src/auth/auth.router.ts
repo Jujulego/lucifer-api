@@ -8,6 +8,8 @@ import { HttpError } from 'utils/errors';
 
 import { UserService } from 'users/user.service';
 
+import { auth } from './auth.middleware';
+
 // Strategies
 import './jwt.strategy';
 
@@ -27,4 +29,13 @@ router.post('/login', aroute(async (req, res) => {
   res.send({
     token: await users.login(ctx, email, password)
   });
+}));
+
+router.delete('/logout', auth, aroute(async (req, res) => {
+  const ctx = buildContext('express', req);
+  const users = DIContainer.get(UserService);
+
+  // Logout
+  await users.logout(ctx);
+  res.send();
 }));

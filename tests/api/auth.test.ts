@@ -115,4 +115,19 @@ describe('/api (auth)', () => {
     expect(rep.body)
       .toEqual(should.be.unauthorized());
   });
+
+  // - user logout
+  test('GET /api/logout', async () => {
+    await request.delete('/api/logout')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    const rep = await request.get(`/api/users/${user.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(401)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body)
+      .toEqual(should.be.unauthorized());
+  });
 });

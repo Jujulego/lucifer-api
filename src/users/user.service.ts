@@ -115,6 +115,12 @@ export class UserService {
     return this.tokens.encrypt(token);
   }
 
+  async logout(ctx: Context): Promise<void> {
+    if (ctx.token) {
+      await this.tokens.delete(ctx.token.user, ctx.token.id)
+    }
+  }
+
   // Properties
   get repository(): Repository<User> {
     return this.database.connection.getRepository(User);

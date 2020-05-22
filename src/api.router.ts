@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { aroute, version } from 'utils';
 import { errorHandler, HttpError } from 'utils/errors';
 
+import { LoggerStream, LogLevel } from 'logger.service';
 import { router as auth } from 'auth/auth.router';
 import { router as daemons } from 'daemons/daemon.router';
 import { router as users } from 'users/user.router';
@@ -24,4 +25,4 @@ router.use((req, res, next) => {
 });
 
 // Errors
-router.use(errorHandler());
+router.use(errorHandler(new LoggerStream(LogLevel.ERROR)));
