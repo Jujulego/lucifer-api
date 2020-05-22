@@ -39,35 +39,36 @@ export class LoggerService {
   // Methods
   log(level: LogLevel, msg: string): void {
     if (level >= this._level) {
-      let line: string;
+      let color: string;
 
       switch (level) {
         case LogLevel.CRITICAL:
-          line = `\x1b[m\x1b[31;1m${msg}\x1b[m`; // bold red
+          color = `\x1b[31;1m`; // bold red
           break;
 
         case LogLevel.ERROR:
-          line = `\x1b[m\x1b[31m${msg}\x1b[m`; // red
+          color = `\x1b[31m`; // red
           break;
 
         case LogLevel.WARNING:
-          line = `\x1b[m\x1b[33m${msg}\x1b[m`; // yellow
+          color = `\x1b[33m`; // yellow
           break;
 
         case LogLevel.DEBUG:
-          line = `\x1b[m\x1b[34m${msg}\x1b[m`; // blue
+          color = `\x1b[34m`; // blue
           break;
 
         case LogLevel.INFO:
         default:
-          line = msg;
+          color = '';
       }
 
-      if (!msg.endsWith('\n')) {
-        line += '\n';
-      }
-
-      this.stream.write(line);
+      const now = new Date().toISOString();
+      msg.trimRight()
+        .split('\n')
+        .forEach(part => {
+          this.stream.write(`\x1b[m${color}[lucifer] ${now} - ${part}\x1b[m\n`);
+        });
     }
   }
 
