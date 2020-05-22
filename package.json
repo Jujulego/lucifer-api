@@ -15,7 +15,7 @@
     "inversify-binding-decorators": "^4.0.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
-    "moment": "^2.24.0",
+    "moment": "^2.25.0",
     "mongoose": "^5.9.7",
     "morgan": "^1.9.1",
     "reflect-metadata": "^0.1.13",
