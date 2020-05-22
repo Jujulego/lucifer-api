@@ -19,9 +19,15 @@ export class DatabaseService {
   async connect(): Promise<void> {
     if (this._connection) return;
 
-    // Connection
-    this._connection = await createConnection();
-    this.logger.info('Connected to database');
+    try {
+      // Connection
+      this._connection = await createConnection();
+      this.logger.info('Connected to database');
+    } catch (error) {
+      this.logger.error('Failed to connect to database');
+      this.logger.error(error.stack);
+      process.exit(1);
+    }
   }
 
   async disconnect(): Promise<void> {

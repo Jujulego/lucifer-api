@@ -1,21 +1,30 @@
 import { ErrorRequestHandler } from 'express';
 
-import { HttpError } from 'utils/errors/errors.model';
+import { WritableStream } from 'utils/types';
+
+import { HttpError } from './errors.model';
 
 // Middleware
-export const errorHandler = (): ErrorRequestHandler => (err, req, res, next): void => {
-  if (err instanceof HttpError) {
-    err.send(res);
+export const errorHandler = (logger?: WritableStream): ErrorRequestHandler => {
+  return (err, req, res, next): void => {
+    if (err instanceof HttpError) {
+      err.send(res);
 
-    return;
-  }
+      return;
+    }
 
-  if (err instanceof Error) {
-    console.error(err);
-    HttpError.ServerError(err.message).send(res);
+    if (err instanceof Error) {
+      if (logger) {
+        logger.write(err.stack || `${err.name}: ${err.message}`);
+      } else {
+        console.log(err);
+      }
 
-    return;
-  }
+      HttpError.ServerError(err.message).send(res);
 
-  next(err);
-};
+      return;
+    }
+
+    next(err);
+  };
+}
