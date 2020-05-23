@@ -4,6 +4,10 @@ import passport from 'passport';
 import { HttpError } from 'utils/errors';
 import { Token } from 'users/token.entity';
 
+// Strategies
+import './auth0.strategy';
+import './jwt.strategy';
+
 // Middleware
 export function auth(req: Request, res: Response, next: NextFunction): void {
   passport.authenticate('jwt', { session: false },

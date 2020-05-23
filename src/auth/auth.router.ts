@@ -10,9 +10,6 @@ import { UserService } from 'users/user.service';
 
 import { auth } from './auth.middleware';
 
-// Strategies
-import './jwt.strategy';
-
 // Router
 export const router = Router();
 
