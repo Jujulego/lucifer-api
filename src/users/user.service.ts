@@ -6,6 +6,7 @@ import { Context } from 'context';
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
+import { Auth0Service } from 'auth0.service';
 import { DatabaseService } from 'db.service';
 import { LRN } from 'resources/lrn.model';
 
@@ -21,7 +22,8 @@ export class UserService {
   // Constructor
   constructor(
     private database: DatabaseService,
-    private tokens: TokenService
+    private tokens: TokenService,
+    private auth0: Auth0Service
   ) {}
 
   // Methods
@@ -51,6 +53,10 @@ export class UserService {
   async list(): Promise<User[]> {
     // Get user list
     return await this.repository.find();
+  }
+
+  async alist() {
+    return await this.auth0.mgmtClient.getUsers();
   }
 
   async get(id: string, opts = { full: true }): Promise<User> {

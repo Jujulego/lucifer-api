@@ -27,6 +27,13 @@ router.get('/', aroute(async (req, res) => {
   res.send(await users.list());
 }));
 
+router.get('/auth0', aroute(async (req, res) => {
+  const users = DIContainer.get(UserService);
+
+  // Get list
+  res.send(await users.alist());
+}));
+
 router.post('/', aroute(async (req, res) => {
   const users = DIContainer.get(UserService);
 
