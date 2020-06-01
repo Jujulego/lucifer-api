@@ -18,16 +18,16 @@ passport.use('auth0', new JwtStrategy(
       jwksRequestsPerMinute: 5,
       jwksUri: env.AUTH0_JWKS
     }),
-    audience: env.AUTH0_AUDIENCE,
     issuer: env.AUTH0_ISSUER,
+    audience: env.AUTH0_AUDIENCE,
     algorithms: ['RS256']
   },
   async (payload: IToken, done) => {
     try {
-      const tokens = DIContainer.get(TokenService);
-      const token = await tokens.verify(payload);
+      // const tokens = DIContainer.get(TokenService);
+      // const token = await tokens.verify(payload);
 
-      done(null, token);
+      done(null, payload);
     } catch (error) {
       done(error, null);
     }

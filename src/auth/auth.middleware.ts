@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
 
+import { env } from 'env';
 import { HttpError } from 'utils/errors';
 import { Token } from 'users/token.entity';
 
@@ -10,13 +11,13 @@ import './jwt.strategy';
 
 // Middleware
 export function auth(req: Request, res: Response, next: NextFunction): void {
-  passport.authenticate('jwt', { session: false },
+  passport.authenticate(env.AUTH_STRATEGY, { session: false },
     (err, token) => {
       if (err) return next(err);
       if (!token) return next(HttpError.Unauthorized());
 
       req.token = token;
-      req.user = token.user;
+      // req.user = token.user;
       next();
     }
   )(req, res, next);
