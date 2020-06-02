@@ -1,7 +1,6 @@
 import validator from 'validator';
 
 import { DIContainer, loadServices } from 'inversify.config';
-import { should } from 'utils';
 import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
@@ -40,10 +39,10 @@ describe('users/user.service', () => {
 
       // Create some users
       users = await usrRepo.save([
-        usrRepo.create({ id: 'tests|users-user-1' }),
-        usrRepo.create({ id: 'tests|users-user-2' }),
-        usrRepo.create({ id: 'tests|users-user-3' }),
-        usrRepo.create({ id: 'tests|users-user-4' }),
+        usrRepo.create({ id: 'tests|users-user-1', daemons: [] }),
+        usrRepo.create({ id: 'tests|users-user-2', daemons: [] }),
+        usrRepo.create({ id: 'tests|users-user-3', daemons: [] }),
+        usrRepo.create({ id: 'tests|users-user-4', daemons: [] }),
       ]);
     });
   });
@@ -63,7 +62,8 @@ describe('users/user.service', () => {
 
     expect(user.toJSON())
       .toEqual({
-        id: user.id
+        id: user.id,
+        daemons: []
       });
   });
 
@@ -92,11 +92,6 @@ describe('users/user.service', () => {
 
     delete user.daemons;
     expect(res).toEqual(user);
-  });
-
-  test('UserService.get: invalid uuid', async () => {
-    await expect(service.get('uuid'))
-      .rejects.toEqual(HttpError.NotFound());
   });
 
   test('UserService.get: unknown user', async () => {

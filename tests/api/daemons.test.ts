@@ -54,7 +54,7 @@ describe('api/daemons', () => {
     });
 
     // Get tokens
-    token = await login('tests|api-daemons-1', '1.2.3.4');
+    token = await login('tests|api-daemons-1');
   });
 
   // Empty database

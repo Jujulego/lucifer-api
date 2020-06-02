@@ -6,9 +6,9 @@ export type DaemonUpdate = { ownerId?: string };
 
 // Schemas
 export const daemonCreate = joi.object({
-  ownerId: joi.string().uuid()
+  ownerId: joi.string()
 });
 
 export const daemonUpdate = joi.object({
-  ownerId: joi.string().uuid().allow(null)
+  ownerId: joi.string().allow(null)
 });

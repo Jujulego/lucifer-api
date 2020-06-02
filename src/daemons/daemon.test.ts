@@ -98,10 +98,6 @@ describe('users/user.service', () => {
   });
 
   test('DaemonService.create (invalid owner)', async () => {
-    // Invalid value
-    await expect(service.create({ ownerId: 'test' }))
-      .rejects.toEqual(HttpError.BadRequest('"ownerId" must be a valid GUID'));
-
     // Unknown value
     await expect(service.create({ ownerId: '00000000-0000-0000-0000-000000000000' }))
       .rejects.toEqual(HttpError.BadRequest('User 00000000-0000-0000-0000-000000000000 not found'));
@@ -151,10 +147,6 @@ describe('users/user.service', () => {
 
   test('DaemonService.update (invalid owner)', async () => {
     const daemon = daemons[1];
-
-    // Invalid value
-    await expect(service.update(daemon.id, { ownerId: 'test' }))
-      .rejects.toEqual(HttpError.BadRequest('"ownerId" must be a valid GUID'));
 
     // Unknown value
     await expect(service.update(daemon.id, { ownerId: '00000000-0000-0000-0000-000000000000' }))

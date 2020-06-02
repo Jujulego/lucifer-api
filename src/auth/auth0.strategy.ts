@@ -4,6 +4,8 @@ import jwks from 'jwks-rsa';
 
 import { env } from 'env';
 
+import { Token } from './token.model';
+
 // Strategy
 passport.use('auth0', new JwtStrategy(
   {
@@ -18,7 +20,7 @@ passport.use('auth0', new JwtStrategy(
     audience: env.AUTH0_AUDIENCE,
     algorithms: ['RS256']
   },
-  async (payload: any, done) => {
+  async (payload: Token, done) => {
     done(null, payload);
   }
 ));

@@ -3,6 +3,7 @@ import supertest from 'supertest';
 
 import { app } from 'app';
 import { DIContainer, loadServices } from 'inversify.config';
+import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
 import { User } from 'users/user.entity';
@@ -46,7 +47,7 @@ describe('/api (auth)', () => {
     });
 
     // Get tokens
-    token = await login('tests|api-auth-1', '1.2.3.4');
+    token = await login('tests|api-auth-1');
   });
 
   // Empty database
@@ -64,12 +65,12 @@ describe('/api (auth)', () => {
       .expect('Content-Type', /json/);
   });
 
-  // test('GET /api/users/:id (not connected)', async () => {
-  //   const rep = await request.get(`/api/users/${user.id}`)
-  //     .expect(401)
-  //     .expect('Content-Type', /json/);
-  //
-  //   expect(rep.body)
-  //     .toEqual(should.be.unauthorized());
-  // });
+  test('GET /api/users/:id (not connected)', async () => {
+    const rep = await request.get(`/api/users/${user.id}`)
+      .expect(401)
+      .expect('Content-Type', /json/);
+
+    expect(rep.body)
+      .toEqual(should.be.unauthorized());
+  });
 });

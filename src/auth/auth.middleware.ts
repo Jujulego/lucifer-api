@@ -3,10 +3,10 @@ import passport from 'passport';
 
 import { env } from 'env';
 import { HttpError } from 'utils/errors';
+import { Token } from './token.model'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 // Strategies
-import './auth0.strategy';
-import './jwt.strategy';
+import(`./${env.AUTH_STRATEGY}.strategy`);
 
 // Middleware
 export function auth(req: Request, res: Response, next: NextFunction): void {
@@ -16,7 +16,6 @@ export function auth(req: Request, res: Response, next: NextFunction): void {
       if (!token) return next(HttpError.Unauthorized());
 
       req.token = token;
-      // req.user = token.user;
       next();
     }
   )(req, res, next);
@@ -27,7 +26,7 @@ declare global {
   namespace Express { // eslint-disable-line @typescript-eslint/no-namespace
     // noinspection JSUnusedGlobalSymbols
     interface Request {
-      token: any;
+      token?: Token;
     }
   }
 }

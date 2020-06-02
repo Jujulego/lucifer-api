@@ -52,7 +52,7 @@ describe('/api/users', () => {
     });
 
     // Get tokens
-    token = await login('tests|api-users-1', '1.2.3.4');
+    token = await login('tests|api-users-1');
   });
 
   // Empty database
@@ -72,6 +72,7 @@ describe('/api/users', () => {
 
     expect(rep.body).toEqual({
       id: self.id,
+      daemons: []
     });
   });
 
@@ -87,14 +88,5 @@ describe('/api/users', () => {
       omit(self.toJSON(),  ['tokens']),
       omit(user.toJSON(),  ['tokens'])
     ]));
-  });
-
-  // - delete a user
-  test('DELETE /api/users/:id', async () => {
-    const rep = await request.delete(`/api/users/${self.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200);
-
-    expect(rep.body).toEqual({});
   });
 });
