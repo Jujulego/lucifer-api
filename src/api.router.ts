@@ -4,7 +4,6 @@ import { aroute, version } from 'utils';
 import { errorHandler, HttpError } from 'utils/errors';
 
 import { LoggerStream, LogLevel } from 'logger.service';
-import { router as auth } from 'auth/auth.router';
 import { router as daemons } from 'daemons/daemon.router';
 import { router as users } from 'users/user.router';
 
@@ -12,7 +11,6 @@ import { router as users } from 'users/user.router';
 export const router = Router();
 
 // Endpoints
-router.use(auth);
 router.use('/daemons', daemons);
 router.use('/users', users);
 

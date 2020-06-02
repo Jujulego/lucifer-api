@@ -44,7 +44,7 @@ describe('api/daemons', () => {
 
       // Create a user
       user = await usrRepo.save(
-        usrRepo.create({ email: 'user@api.daemons.com',  password: 'test' }),
+        usrRepo.create({ id: 'tests|api-daemons-1' }),
       );
 
       // Create a daemon
@@ -54,7 +54,7 @@ describe('api/daemons', () => {
     });
 
     // Get tokens
-    token = await login('user@api.daemons.com',  'test', '1.2.3.4');
+    token = await login('tests|api-daemons-1', '1.2.3.4');
   });
 
   // Empty database

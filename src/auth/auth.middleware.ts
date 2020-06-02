@@ -3,7 +3,6 @@ import passport from 'passport';
 
 import { env } from 'env';
 import { HttpError } from 'utils/errors';
-import { Token } from 'users/token.entity';
 
 // Strategies
 import './auth0.strategy';
@@ -28,7 +27,7 @@ declare global {
   namespace Express { // eslint-disable-line @typescript-eslint/no-namespace
     // noinspection JSUnusedGlobalSymbols
     interface Request {
-      token: Token;
+      token: any;
     }
   }
 }

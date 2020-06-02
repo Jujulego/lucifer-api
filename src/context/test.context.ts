@@ -1,12 +1,11 @@
 import { User } from 'users/user.entity';
-import { Token } from 'users/token.entity';
 
 import { Context } from './context.model';
 
 // Interfaces
 export interface TestRequest {
   user?: User;
-  token?: Token;
+  token?: any;
   clientIp?: string;
 }
 
@@ -14,7 +13,7 @@ export interface TestRequest {
 export class TestContext extends Context<TestRequest> {
   // Attributes
   readonly _user?: User;
-  readonly token?: Token;
+  readonly token?: any;
   readonly clientIp?: string;
 
   // Constructor

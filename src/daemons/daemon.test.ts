@@ -43,7 +43,7 @@ describe('users/user.service', () => {
 
       // Create a user
       user = await usrRepo.save(
-        usrRepo.create({ email: 'test@daemon.com', password: 'test' })
+        usrRepo.create({ id: 'tests|daemons-daemon-1' })
       );
 
       // Create some daemons

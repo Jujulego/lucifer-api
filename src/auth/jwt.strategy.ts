@@ -2,10 +2,6 @@ import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
 import { env } from 'env';
-import { DIContainer } from 'inversify.config';
-
-import { IToken } from 'users/token.entity';
-import { TokenService } from 'users/token.service';
 
 // Strategy
 passport.use('jwt', new JwtStrategy(
@@ -13,12 +9,12 @@ passport.use('jwt', new JwtStrategy(
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: env.JWT_KEY
   },
-  async (payload: IToken, done) => {
+  async (payload: any, done) => {
     try {
-      const tokens = DIContainer.get(TokenService);
-      const token = await tokens.verify(payload);
+      // const tokens = DIContainer.get(TokenService);
+      // const token = await tokens.verify(payload);
 
-      done(null, token);
+      done(null, payload);
     } catch (error) {
       done(error, null);
     }
