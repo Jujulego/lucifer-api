@@ -21,13 +21,6 @@ router.get('/', aroute(async (req, res) => {
   res.send(await users.list());
 }));
 
-router.get('/auth0', aroute(async (req, res) => {
-  const users = DIContainer.get(UserService);
-
-  // Get list
-  res.send(await users.alist());
-}));
-
 router.get('/:userId', aroute(async (req, res) => {
   const users = DIContainer.get(UserService);
 
@@ -36,14 +29,4 @@ router.get('/:userId', aroute(async (req, res) => {
 
   // Get user
   res.send(await users.get(userId));
-}));
-
-router.delete('/:userId', aroute(async (req, res) => {
-  const users = DIContainer.get(UserService);
-
-  // Parse request
-  const { userId } = req.params;
-
-  // Delete user
-  res.send(await users.delete(userId));
 }));

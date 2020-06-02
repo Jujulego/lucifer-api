@@ -1,5 +1,3 @@
-import validator from 'validator';
-
 import { DIContainer, loadServices } from 'inversify.config';
 import { HttpError } from 'utils/errors';
 
@@ -70,9 +68,6 @@ describe('users/user.service', () => {
   // - UserService.list
   test('UserService.list', async () => {
     const res = await service.list();
-    users.forEach(usr => {
-      delete usr.daemons;
-    });
 
     expect(res).toEqual(expect.arrayContaining(users));
   });
@@ -85,28 +80,8 @@ describe('users/user.service', () => {
     expect(res).toEqual(user);
   });
 
-  test('UserService.get: simple user', async () => {
-    const user = users[0];
-
-    const res = await service.get(user.id, { full: false });
-
-    delete user.daemons;
-    expect(res).toEqual(user);
-  });
-
   test('UserService.get: unknown user', async () => {
     await expect(service.get('00000000-0000-0000-0000-000000000000'))
       .rejects.toEqual(HttpError.NotFound('User 00000000-0000-0000-0000-000000000000 not found'));
-  });
-
-  // - UserService.delete
-  test('UserService.delete', async () => {
-    const user = users[0];
-    const usrRepo = database.connection.getRepository(User);
-
-    await service.delete(user.id);
-
-    expect(await usrRepo.findOne(user.id))
-      .toBeUndefined();
   });
 });

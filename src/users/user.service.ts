@@ -23,24 +23,16 @@ export class UserService {
     return await this.repository.find();
   }
 
-  async alist() {
-    return await this.auth0.mgmtClient.getUsers();
-  }
-
-  async get(id: string, opts = { full: true }): Promise<User> {
+  async get(id: string): Promise<User> {
     // Get user
     const user = await this.repository.findOne(id, {
-      relations: opts.full ? ['daemons'] : []
+      relations: ['daemons']
     });
 
     // Throw if not found
     if (!user) throw HttpError.NotFound(`User ${id} not found`);
 
     return user;
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
   }
 
   // Properties

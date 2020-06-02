@@ -1,8 +1,9 @@
-import { Connection, createConnection } from 'typeorm';
+import { Connection, createConnection, EntityManager } from 'typeorm';
 
-import { Service } from 'utils';
+import { Service, EntityService as _EntityService } from 'utils';
 
 import { LoggerService } from 'logger.service';
+import { injectable } from 'inversify';
 
 // Service
 @Service({ singleton: true })
@@ -47,5 +48,19 @@ export class DatabaseService {
     }
 
     return this._connection;
+  }
+}
+
+// Helper
+@injectable()
+export abstract class EntityService<E> extends _EntityService<E> {
+  // Constructor
+  protected constructor(
+    protected database: DatabaseService
+  ) { super() }
+
+  // Properties
+  get manager(): EntityManager {
+    return this.database.connection.manager;
   }
 }
