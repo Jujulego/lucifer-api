@@ -35,7 +35,7 @@ export class DaemonService {
       const daemon = repo.create();
 
       if (data.ownerId) {
-        // daemon.owner = await this.users.get(data.ownerId);
+        daemon.owner = await this.users.getLocal(data.ownerId);
       }
 
       return await repo.save(daemon);
@@ -83,7 +83,7 @@ export class DaemonService {
         if (!update.ownerId) {
           daemon.owner = undefined;
         } else {
-          // daemon.owner = await this.users.get(update.ownerId);
+          daemon.owner = await this.users.getLocal(update.ownerId);
         }
       }
 

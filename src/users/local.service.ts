@@ -34,6 +34,7 @@ export class LocalService extends EntityService<LocalUser> {
   async get(id: string): Promise<LocalUser | null> {
     // Get user
     const user = await this.repository.findOne({
+      relations: ['daemons'],
       where: { id }
     });
 

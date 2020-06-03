@@ -25,21 +25,24 @@ export class UserService {
     }
 
     // Merge
+    const json = local?.toJSON();
+
     return {
-      id:            user.user_id!,
-      email:         user.email!,
+      id:        user.user_id!,
+      email:     user.email!,
       emailVerified: user.email_verified || false,
-      username:      user.username,
-      name:          user.name,
-      nickname:      user.nickname,
-      givenName:     user.given_name,
-      familyName:    user.family_name,
-      createdAt:     user.created_at!,
-      updatedAt:     user.updated_at,
-      picture:       user.picture!,
-      lastIp:        user.last_ip,
-      lastLogin:     user.last_login,
-      blocked:       user.blocked,
+      username:  user.username,
+      name:      user.name!,
+      nickname:  user.nickname,
+      givenName: user.given_name,
+      familyName: user.family_name,
+      createdAt: user.created_at!,
+      updatedAt: user.updated_at,
+      picture:   user.picture!,
+      lastIp:    user.last_ip,
+      lastLogin: user.last_login,
+      blocked:   user.blocked,
+      daemons:   json?.daemons
     };
   }
 
@@ -98,5 +101,17 @@ export class UserService {
     if (!user) throw HttpError.NotFound(`User ${id} not found`);
 
     return this.merge(user, local);
+  }
+
+  async getLocal(id: string): Promise<LocalUser> {
+    const [local, user] = await Promise.all([
+      this.locals.getOrCreate(id),
+      this.auth0.mgmtClient.getUser({ id })
+    ]);
+
+    // Throw if not found
+    if (!user) throw HttpError.NotFound(`User ${id} not found`);
+
+    return local;
   }
 }
