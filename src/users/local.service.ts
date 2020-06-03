@@ -1,7 +1,4 @@
-import validator from 'validator';
-
 import { Service, transaction } from 'utils';
-import { HttpError } from 'utils/errors';
 
 import { DatabaseService, EntityService } from 'db.service';
 
@@ -19,43 +16,37 @@ export class LocalService extends EntityService<LocalUser> {
   ) { super(database) }
 
   // Methods
-  async create(auth0: string): Promise<LocalUser> {
+  async create(id: string): Promise<LocalUser> {
     // Create user
     const user = this.repository.create({
-      auth0
+      id
     });
 
     return await this.repository.save(user);
   }
 
   async list(): Promise<LocalUser[]> {
-    return await this.repository.find();
+    return await this.repository.find({
+      order: { id: 'ASC' }
+    });
   }
 
-  async get(id: string): Promise<LocalUser> {
-    // Checks
-    if (!validator.isUUID(id)) throw HttpError.NotFound(`User ${id} not found`);
-
+  async get(id: string): Promise<LocalUser | null> {
     // Get user
     const user = await this.repository.findOne({
       where: { id }
     });
 
-    // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
-
-    return user;
+    return user || null;
   }
 
   @transaction()
-  async getOrCreate(auth0: string): Promise<LocalUser> {
+  async getOrCreate(id: string): Promise<LocalUser> {
     // Get user
-    const user = await this.repository.findOne({
-      where: { auth0 }
-    });
+    const user = await this.get(id);
 
     // Create if not found
-    if (!user) return this.create(auth0);
+    if (!user) return this.create(id);
 
     return user;
   }

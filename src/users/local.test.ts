@@ -35,10 +35,10 @@ beforeEach(async () => {
     const repo = manager.getRepository(LocalUser);
 
     users = await repo.save([
-      repo.create({ auth0: 'tests|users-local-1' }),
-      repo.create({ auth0: 'tests|users-local-2' }),
-      repo.create({ auth0: 'tests|users-local-3' }),
-      repo.create({ auth0: 'tests|users-local-4' }),
+      repo.create({ id: 'tests|users-local-1' }),
+      repo.create({ id: 'tests|users-local-2' }),
+      repo.create({ id: 'tests|users-local-3' }),
+      repo.create({ id: 'tests|users-local-4' }),
     ]);
   });
 });
@@ -63,13 +63,8 @@ describe('LocalService.get', () => {
   });
 
   it('should throw not found error', async () => {
-    // Invalid uuid
-    await expect(service.get('uuid'))
-      .rejects.toEqual(HttpError.NotFound('User uuid not found'));
-
-    // Invalid uuid
-    await expect(service.get('00000000-0000-0000-0000-000000000000'))
-      .rejects.toEqual(HttpError.NotFound('User 00000000-0000-0000-0000-000000000000 not found'));
+    await expect(service.get('test'))
+      .rejects.toEqual(HttpError.NotFound('User test not found'));
   });
 });
 
@@ -92,7 +87,7 @@ describe('LocalService.create', () => {
   it('should fail to create existing user', async () => {
     const user = users[0];
 
-    await expect(service.create(user.auth0))
+    await expect(service.create(user.id))
       .rejects.toBeDefined();
   });
 });
@@ -115,7 +110,7 @@ describe('LocalService.getOrCreate', () => {
   it('should return existing user', async () => {
     const user = users[0];
 
-    await expect(service.getOrCreate(user.auth0))
+    await expect(service.getOrCreate(user.id))
       .resolves.toEqual(user);
   });
 });
