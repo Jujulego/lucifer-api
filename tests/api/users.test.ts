@@ -1,92 +1,99 @@
-import 'reflect-metadata';
-import { omit } from 'lodash';
 import supertest from 'supertest';
 
 import { app } from 'app';
 import { DIContainer, loadServices } from 'inversify.config';
+import { login } from 'tests/utils';
 
 import { DatabaseService } from 'db.service';
-import { User } from 'users/user.entity';
+import { LocalUser } from 'users/local.entity';
 
-import { login } from '../utils';
+import 'users/auth0.mock';
+import { MockAuth0UserService } from 'users/auth0.mock';
+import auth0Mock from 'mocks/auth0.mock.json';
+import { Auth0UserService } from 'users/auth0.service';
+
+// Server setup
+let database: DatabaseService;
+let request: ReturnType<typeof supertest>;
+
+beforeAll(async () => {
+  // Load services
+  loadServices();
+
+  database = DIContainer.get(DatabaseService);
+  await database.connect();
+
+  // Start server
+  request = supertest(app);
+});
+
+// Disconnect
+afterAll(async () => {
+  await database.disconnect();
+});
+
+// Fill database
+let users: LocalUser[];
+let token: string;
+
+beforeEach(async () => {
+  await database.connection.transaction(async manager => {
+    const usrRepo = manager.getRepository(LocalUser);
+
+    // Create some users
+    users = await usrRepo.save([
+      usrRepo.create({ id: 'tests|api-users-1', daemons: [] }),
+      usrRepo.create({ id: 'tests|api-users-2', daemons: [] })
+    ]);
+  });
+
+  // Get tokens
+  token = await login('tests|api-users-1');
+
+  // Set mock data
+  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+    .setMockData('tests|api-users', auth0Mock);
+});
+
+// Empty database
+afterEach(async () => {
+  const usrRepo = database.connection.getRepository(LocalUser);
+
+  await usrRepo.delete(users.map(usr => usr.id));
+});
 
 // Tests
-describe('/api/users', () => {
-  // Server setup
-  let database: DatabaseService;
-  let request: ReturnType<typeof supertest>;
+// - get a user
+test('GET /api/users/:id', async () => {
+  const ath = auth0Mock[0];
+  const lcl = users[0];
 
-  beforeAll(async () => {
-    // Load services
-    loadServices();
+  const rep = await request.get(`/api/users/${lcl.id}`)
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', /json/);
 
-    database = DIContainer.get(DatabaseService);
-    await database.connect();
-
-    // Start server
-    request = supertest(app);
+  expect(rep.body).toEqual({
+    id:         lcl.id,
+    email:      ath.email,
+    emailVerified: true,
+    name:       ath.name,
+    nickname:   ath.nickname,
+    givenName:  ath.givenName,
+    familyName: ath.familyName,
+    picture:    ath.picture,
+    daemons:    lcl.daemons
   });
+});
 
-  // Disconnect
-  afterAll(async () => {
-    await database.disconnect();
-  });
+// - get all users
+test('GET /api/users', async () => {
+  const rep = await request.get('/api/users')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', /json/);
 
-  // Fill database
-  let admin: User;
-  let self: User;
-  let user: User;
-
-  let token: string;
-
-  beforeEach(async () => {
-    await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
-
-      // Create some users
-      [admin, self, user] = await usrRepo.save([
-        usrRepo.create({ id: 'tests|api-users-1' }),
-        usrRepo.create({ id: 'tests|api-users-2' }),
-        usrRepo.create({ id: 'tests|api-users-3' }),
-      ]);
-    });
-
-    // Get tokens
-    token = await login('tests|api-users-1');
-  });
-
-  // Empty database
-  afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
-
-    await usrRepo.delete([admin.id, self.id, user.id]);
-  });
-
-  // Tests
-  // - get a user
-  test('GET /api/users/:id', async () => {
-    const rep = await request.get(`/api/users/${self.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({
-      id: self.id,
-      daemons: []
-    });
-  });
-
-  // - get all users
-  test('GET /api/users', async () => {
-    const rep = await request.get('/api/users')
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual(expect.arrayContaining([
-      omit(admin.toJSON(), ['tokens']),
-      omit(self.toJSON(),  ['tokens']),
-      omit(user.toJSON(),  ['tokens'])
-    ]));
-  });
+  expect(rep.body).toEqual(expect.arrayContaining(
+    users.map(usr => expect.objectContaining({ id: usr.id }))
+  ));
 });
