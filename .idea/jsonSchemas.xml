@@ -14,6 +14,9 @@
                   <Item>
                     <option name="path" value="tsconfig.prod.json" />
                   </Item>
+                  <Item>
+                    <option name="path" value="nest/tsconfig.build.json" />
+                  </Item>
                 </list>
               </option>
             </SchemaInfo>

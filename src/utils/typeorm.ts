@@ -43,8 +43,8 @@ function proxyHandler<E, S extends EntityService<E>>(manager: EntityManager, opt
 }
 
 // Decorator
-export function transaction<E, S extends EntityService<E>>(opts?: TransactionOptions): MethodDecorator<S, Function> {
-  return <T extends Function>(target: S, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>): void => {
+export function transaction<E, S extends EntityService<E>>(opts?: TransactionOptions): MethodDecorator<S, ((...args: any[]) => any)> {
+  return <T extends ((...args: any[]) => any)>(target: S, propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>): void => {
     const fn = descriptor.value;
 
     descriptor.value = (async function(this: S, ...args: unknown[]) {
