@@ -11,11 +11,7 @@
     "src/**/*.test.ts"
   ],
   "compilerOptions": {
-    "incremental": true,
-    "declarationMap": false,
     "sourceMap": false,
-    "outDir": "./build",
-    "removeComments": true,
-    "noEmit": false
+    "removeComments": true
   }
 }
