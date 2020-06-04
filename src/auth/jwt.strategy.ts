@@ -1,26 +1,19 @@
 import passport from 'passport';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 
-import { env } from 'env';
-import { DIContainer } from 'inversify.config';
+import { JWTService } from './jwt.service';
+import { Token } from './token.model';
 
-import { IToken } from 'users/token.entity';
-import { TokenService } from 'users/token.service';
+// Warn should be used only in test
+console.warn('Using jwt auth strategy');
 
 // Strategy
 passport.use('jwt', new JwtStrategy(
   {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-    secretOrKey: env.JWT_KEY
+    secretOrKey: JWTService.key
   },
-  async (payload: IToken, done) => {
-    try {
-      const tokens = DIContainer.get(TokenService);
-      const token = await tokens.verify(payload);
-
-      done(null, token);
-    } catch (error) {
-      done(error, null);
-    }
+  async (payload: Token, done) => {
+    done(null, payload);
   }
 ));

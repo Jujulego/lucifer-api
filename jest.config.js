@@ -18,7 +18,7 @@ module.exports = {
   // clearMocks: false,
 
   // Indicates whether the coverage information should be collected while executing the test
-  collectCoverage: true,
+  // collectCoverage: true,
 
   // An array of glob patterns indicating a set of files for which coverage information should be collected
   collectCoverageFrom: [
@@ -81,7 +81,10 @@ module.exports = {
   // ],
 
   // A map from regular expressions to module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  moduleNameMapper: {
+    '^mocks/(.*)$': ['<rootDir>/mocks/$1'],
+    '^tests/(.*)$': ['<rootDir>/tests/$1']
+  },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],

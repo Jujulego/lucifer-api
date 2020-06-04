@@ -1,13 +1,12 @@
 import { Request } from 'express';
-
-import { Token } from 'users/token.entity';
+import { Token } from 'auth/token.model';
 
 import { Context } from './context.model';
 
 // Class
 export class ExpressContext extends Context<Request> {
   // Properties
-  get token(): Token {
+  get token(): Token | undefined {
     return this.request.token;
   }
 

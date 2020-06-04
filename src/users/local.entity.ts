@@ -1,23 +1,20 @@
-import {
-  Entity,
-  OneToMany, PrimaryColumn
-} from 'typeorm';
+import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 import { json, toJSON } from 'utils';
 
 import { Daemon, IDaemon } from 'daemons/daemon.entity';
 
-// Interface
-export interface IUser {
+// Model
+export interface ILocalUser {
   id: string;
   daemons?: IDaemon[];
 }
 
-// Methods
+// Entity
 @Entity()
-export class User {
+export class LocalUser {
   // Columns
-  @PrimaryColumn('varchar', { length: 128 })
+  @PrimaryColumn()
   @json() id: string;
 
   // - relations
@@ -25,7 +22,7 @@ export class User {
   @json() daemons: Daemon[];
 
   // Methods
-  toJSON(): IUser {
-    return toJSON<IUser>(this);
+  toJSON(): ILocalUser {
+    return toJSON<ILocalUser>(this);
   }
 }

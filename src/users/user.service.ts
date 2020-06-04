@@ -1,128 +1,109 @@
-import bcrypt from 'bcryptjs';
-import { Repository } from 'typeorm';
-import validator from 'validator';
-
-import { Context } from 'context';
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
-import { DatabaseService } from 'db.service';
-import { LRN } from 'resources/lrn.model';
-
-import { User } from './user.entity';
-import { userCreate, UserCreate } from 'users/user.schema';
-import { userUpdate, UserUpdate } from 'users/user.schema';
-import { Token } from './token.entity';
-import { TokenService } from './token.service';
+import { Auth0User } from './auth0.model';
+import { LocalUser } from './local.entity';
+import { User } from './user.model';
+import { LocalUserService } from './local.service';
+import { Auth0UserService } from './auth0.service';
 
 // Service
 @Service()
 export class UserService {
   // Constructor
   constructor(
-    private database: DatabaseService,
-    private tokens: TokenService
+    private locals: LocalUserService,
+    private auth0: Auth0UserService
   ) {}
 
   // Methods
-  static lrn(id: string): LRN {
-    return new LRN('user', id);
+  private merge(user: Auth0User, local: LocalUser | null): User {
+    if (local && user.id !== local.id) {
+      throw HttpError.ServerError(`Trying to merge ${user.id} and ${local.id}`);
+    }
+
+    // Merge
+    const json = local?.toJSON();
+
+    return {
+      id:        user.id,
+      email:     user.email,
+      emailVerified: user.emailVerified || false,
+      username:  user.username,
+      name:      user.name,
+      nickname:  user.nickname,
+      givenName: user.givenName,
+      familyName: user.familyName,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      picture:   user.picture,
+      lastIp:    user.lastIp,
+      lastLogin: user.lastLogin,
+      blocked:   user.blocked,
+      daemons:   json?.daemons
+    };
   }
 
-  async create(data: UserCreate): Promise<User> {
-    const usrRepo = this.repository;
+  private join(users: Auth0User[], locals: LocalUser[]): User[] {
+    // Simple cases
+    if (users.length === 0) return [];
+    if (locals.length === 0) return users.map(usr => this.merge(usr, null));
 
-    // Validate data
-    const res = userCreate.validate(data);
-    if (res.error) throw HttpError.BadRequest(res.error.message);
+    // Join !
+    const result: User[] = [];
+    let li = 0;
 
-    data = res.value;
+    for (let i = 0; i < users.length; ++i) {
+      const usr = users[i];
+      let added = false;
 
-    // Create user
-    const user = usrRepo.create();
-    user.email = data.email.toLowerCase();
-    user.password = data.password;
-    user.daemons = [];
-    user.tokens = [];
+      while (li < locals.length) {
+        const lcl = locals[li];
 
-    return await usrRepo.save(user);
+        if (lcl.id > usr.id) break;
+        if (lcl.id === usr.id) {
+          added = true;
+          result.push(this.merge(usr, lcl));
+
+          break;
+        }
+
+        ++li;
+      }
+
+      if (!added) {
+        result.push(this.merge(usr, null));
+      }
+    }
+
+    return result;
   }
 
   async list(): Promise<User[]> {
     // Get user list
-    return await this.repository.find();
+    const [users, locals] = await Promise.all([
+      await this.auth0.list(),
+      await this.locals.list()
+    ]);
+
+    return this.join(users, locals);
   }
 
-  async get(id: string, opts = { full: true }): Promise<User> {
-    if (!validator.isUUID(id)) throw HttpError.NotFound();
+  async get(id: string): Promise<User> {
+    const [local, user] = await Promise.all([
+      this.locals.get(id),
+      this.auth0.get(id)
+    ]);
 
-    // Get user
-    const user = await this.repository.findOne(id, {
-      relations: opts.full ? ['tokens'] : []
-    });
-
-    // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
-
-    return user;
+    return this.merge(user!, local);
   }
 
-  async update(id: string, update: UserUpdate): Promise<User> {
-    // Get user
-    const user = await this.get(id);
+  async getLocal(id: string): Promise<LocalUser> {
+    const [local,] = await Promise.all([
+      this.locals.getOrCreate(id),
+      this.auth0.get(id)
+    ]);
 
-    // Validate
-    const res = userUpdate.validate(update);
-    if (res.error) throw HttpError.BadRequest(res.error.message);
-    update = res.value;
-
-    return await this.database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
-      const tknRepo = manager.getRepository(Token);
-
-      // Apply update
-      if (update.email) user.email = update.email;
-      if (update.password) {
-        user.password = update.password;
-
-        // Delete all tokens
-        await tknRepo.delete({ user });
-        user.tokens = [];
-      }
-
-      // Save
-      return await usrRepo.save(user);
-    });
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
-  }
-
-  async login(ctx: Context, email: string, password: string): Promise<string> {
-    // Get user and check credentials
-    const user = await this.repository.findOne({
-      where: { email }
-    });
-
-    if (!user) throw HttpError.Unauthorized();
-    if (!await bcrypt.compare(password, user.password)) {
-      throw HttpError.Unauthorized();
-    }
-
-    // Generate token
-    const token = await this.tokens.create(ctx, user);
-    return this.tokens.encrypt(token);
-  }
-
-  async logout(ctx: Context): Promise<void> {
-    if (ctx.token) {
-      await this.tokens.delete(ctx.token.user, ctx.token.id)
-    }
-  }
-
-  // Properties
-  get repository(): Repository<User> {
-    return this.database.connection.getRepository(User);
+    return local;
   }
 }
