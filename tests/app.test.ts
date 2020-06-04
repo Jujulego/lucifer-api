@@ -24,8 +24,14 @@ afterAll(async () => {
 });
 
 // Tests
-test('GET /', async () => {
-  await request.get('/')
+test('GET /api/version', async () => {
+  const rep = await request.get('/api/version')
     .expect(200)
+    .expect('Content-Type', /json/)
     .expect('Hello World!');
+
+  expect(rep).toEqual({
+    version: expect.any(String),
+    commit: expect.any(String)
+  });
 });
