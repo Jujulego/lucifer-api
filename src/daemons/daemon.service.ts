@@ -1,10 +1,9 @@
-import { Repository } from 'typeorm';
 import validator from 'validator';
 
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
-import { DatabaseService } from 'db.service';
+import { DatabaseService, EntityService } from 'db.service';
 import { UserService } from 'users/user.service';
 
 import { Daemon } from './daemon.entity';
@@ -13,17 +12,18 @@ import { daemonUpdate, DaemonUpdate } from './daemon.schema';
 
 // Service
 @Service()
-export class DaemonService {
+export class DaemonService extends EntityService<Daemon> {
+  // Attributes
+  entity = Daemon;
+
   // Constructor
   constructor(
-    private database: DatabaseService,
+    database: DatabaseService,
     private users: UserService
-  ) {}
+  ) { super(database) }
 
   // Methods
   async create(data: DaemonCreate): Promise<Daemon> {
-    const repo = this.repository;
-
     // Validate data
     const result = daemonCreate.validate(data);
     if (result.error) throw HttpError.BadRequest(result.error.message);
@@ -32,13 +32,13 @@ export class DaemonService {
 
     try {
       // Create daemon
-      const daemon = repo.create();
+      const daemon = this.repository.create();
 
       if (data.ownerId) {
         daemon.owner = await this.users.getLocal(data.ownerId);
       }
 
-      return await repo.save(daemon);
+      return await this.repository.save(daemon);
     } catch (error) {
       if (error instanceof HttpError) {
         if (error.status === 404) throw HttpError.BadRequest(error.message);
@@ -55,7 +55,7 @@ export class DaemonService {
   }
 
   async get(id: string): Promise<Daemon> {
-    if (!validator.isUUID(id)) throw HttpError.NotFound();
+    if (!validator.isUUID(id)) throw HttpError.NotFound(`Daemon ${id} not found`);
 
     // Get daemon
     const daemon = await this.repository.findOne(id, {
@@ -99,10 +99,5 @@ export class DaemonService {
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
-  }
-
-  // Properties
-  get repository(): Repository<Daemon> {
-    return this.database.connection.getRepository(Daemon);
   }
 }
