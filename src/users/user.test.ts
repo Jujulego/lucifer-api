@@ -11,70 +11,66 @@ import './auth0.mock';
 import { MockAuth0UserService } from './auth0.mock';
 import auth0Mock from 'mocks/auth0.mock.json';
 
-// Tests
-describe('users/user.service', () => {
+// Load services
+let database: DatabaseService;
+let service: UserService;
+
+beforeAll(async () => {
+  loadServices();
+
   // Load services
-  let database: DatabaseService;
-  let service: UserService;
+  database = DIContainer.get(DatabaseService);
+  service = DIContainer.get(UserService);
 
-  beforeAll(async () => {
-    loadServices();
+  // Connect to database
+  await database.connect();
+});
 
-    // Load services
-    database = DIContainer.get(DatabaseService);
-    service = DIContainer.get(UserService);
+afterAll(async () => {
+  // Disconnect from database
+  await database.disconnect();
+});
 
-    // Connect to database
-    await database.connect();
+// Fill database
+let users: LocalUser[];
+
+beforeEach(async () => {
+  await database.connection.transaction(async manager => {
+    const usrRepo = manager.getRepository(LocalUser);
+
+    // Create some users
+    users = await usrRepo.save([
+      usrRepo.create({ id: 'tests|users-user-1', daemons: [] }),
+      usrRepo.create({ id: 'tests|users-user-2', daemons: [] })
+    ]);
   });
 
-  afterAll(async () => {
-    // Disconnect from database
-    await database.disconnect();
-  });
+  // Set mock data
+  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+    .setMockData('tests|users-user', auth0Mock);
+});
 
-  // Fill database
-  let users: LocalUser[];
+// Empty database
+afterEach(async () => {
+  const usrRepo = database.connection.getRepository(LocalUser);
 
-  beforeEach(async () => {
-    await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(LocalUser);
+  // Delete created users
+  await usrRepo.delete(users.map(usr => usr.id));
+});
 
-      // Create some users
-      users = await usrRepo.save([
-        usrRepo.create({ id: 'tests|users-user-1', daemons: [] }),
-        usrRepo.create({ id: 'tests|users-user-2', daemons: [] })
-      ]);
-    });
-
-    // Set mock data
-    (DIContainer.get(Auth0UserService) as MockAuth0UserService)
-      .setMockData('tests|users-user', auth0Mock);
-  });
-
-  // Empty database
-  afterEach(async () => {
-    const usrRepo = database.connection.getRepository(LocalUser);
-
-    // Delete created users
-    await usrRepo.delete(users.map(usr => usr.id));
-  });
-
-  // Tests
-  // - UserService.list
-  test('UserService.list', async () => {
-    const res = await service.list();
-
-    expect(res).toEqual(
+// Tests
+test('UserService.list', async () => {
+  await expect(service.list())
+    .resolves.toEqual(
       users.map(usr => expect.objectContaining({
         id: usr.id,
         daemons: usr.daemons
       }))
     );
-  });
+});
 
-  // - UserService.get
-  test('UserService.get', async () => {
+describe('UserService.get', () => {
+  it('should return a user', async () => {
     const ath = auth0Mock[0];
     const lcl = users[0];
 
@@ -92,7 +88,7 @@ describe('users/user.service', () => {
     });
   });
 
-  test('UserService.get: unknown user', async () => {
+  it('should throw a not found http error', async () => {
     await expect(service.get('tests|000000000000'))
       .rejects.toEqual(HttpError.NotFound('User tests|000000000000 not found'));
   });

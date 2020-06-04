@@ -18,9 +18,8 @@ export class LocalUserService extends EntityService<LocalUser> {
   // Methods
   async create(id: string): Promise<LocalUser> {
     // Create user
-    const user = this.repository.create({
-      id
-    });
+    const user = this.repository.create({ id });
+    user.daemons = [];
 
     return await this.repository.save(user);
   }

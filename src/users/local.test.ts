@@ -1,13 +1,9 @@
-import validator from 'validator';
-
 import { DIContainer, loadServices } from 'inversify.config';
-import { should } from 'utils';
 
 import { DatabaseService } from 'db.service';
 
 import { LocalUser } from './local.entity';
 import { LocalUserService } from './local.service';
-import { HttpError } from 'utils/errors';
 
 // Load services
 let database: DatabaseService;
@@ -35,10 +31,9 @@ beforeEach(async () => {
     const repo = manager.getRepository(LocalUser);
 
     users = await repo.save([
-      repo.create({ id: 'tests|users-local-1' }),
-      repo.create({ id: 'tests|users-local-2' }),
-      repo.create({ id: 'tests|users-local-3' }),
-      repo.create({ id: 'tests|users-local-4' }),
+      repo.create({ id: 'tests|users-local-1', daemons: [] }),
+      repo.create({ id: 'tests|users-local-2', daemons: [] }),
+      repo.create({ id: 'tests|users-local-3', daemons: [] }),
     ]);
   });
 });
@@ -64,7 +59,7 @@ describe('LocalService.get', () => {
 
   it('should throw not found error', async () => {
     await expect(service.get('test'))
-      .rejects.toEqual(HttpError.NotFound('User test not found'));
+      .resolves.toBeNull();
   });
 });
 
@@ -73,22 +68,15 @@ describe('LocalService.create', () => {
     const user = await service.create('tests|users-local-10');
 
     try {
-      expect(user).toEqual(expect.objectContaining({
-        id: should.validate(validator.isUUID),
-        auth0: 'tests|users-local-10'
-      }));
+      expect(user).toEqual({
+        id: 'tests|users-local-10',
+        daemons: []
+      });
 
     } finally {
       const repo = database.connection.getRepository(LocalUser);
       await repo.delete(user.id);
     }
-  });
-
-  it('should fail to create existing user', async () => {
-    const user = users[0];
-
-    await expect(service.create(user.id))
-      .rejects.toBeDefined();
   });
 });
 
@@ -98,8 +86,8 @@ describe('LocalService.getOrCreate', () => {
 
     try {
       expect(user).toEqual(expect.objectContaining({
-        id: should.validate(validator.isUUID),
-        auth0: 'tests|users-local-10'
+        id: 'tests|users-local-10',
+        daemons: []
       }));
 
     } finally {
