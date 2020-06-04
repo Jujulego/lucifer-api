@@ -1,76 +1,62 @@
-import 'reflect-metadata';
 import supertest from 'supertest';
 
 import { app } from 'app';
 import { DIContainer, loadServices } from 'inversify.config';
 import { should } from 'utils';
+import { login } from 'tests/utils';
 
 import { DatabaseService } from 'db.service';
-import { User } from 'users/user.entity';
+import { Auth0UserService } from 'users/auth0.service';
 
-import { login } from '../utils';
+import 'users/auth0.mock';
+import { MockAuth0UserService } from 'users/auth0.mock';
+import auth0Mock from 'mocks/auth0.mock.json';
+
+// Server setup
+let database: DatabaseService;
+let request: ReturnType<typeof supertest>;
+
+beforeAll(async () => {
+  // Load services
+  loadServices();
+
+  database = DIContainer.get(DatabaseService);
+  await database.connect();
+
+  // Start server
+  request = supertest(app);
+});
+
+// Disconnect
+afterAll(async () => {
+  await database.disconnect();
+});
+
+// Fill database
+let token: string;
+
+beforeEach(async () => {
+  // Get tokens
+  token = await login('tests|api-auth-1');
+
+  // Set mock data
+  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+    .setMockData('tests|api-auth', auth0Mock);
+});
 
 // Tests
-describe('/api (auth)', () => {
-  // Server setup
-  let database: DatabaseService;
-  let request: ReturnType<typeof supertest>;
+it('should return 200', async () => {
+  await request.get('/api/users/tests|api-auth-1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', /json/);
+});
 
-  beforeAll(async () => {
-    // Load services
-    loadServices();
+it('should return 401', async () => {
+  const rep = await request.get('/api/users/tests|api-auth-1')
+    .expect(401)
+    .expect('Content-Type', /json/);
 
-    database = DIContainer.get(DatabaseService);
-    await database.connect();
-
-    // Start server
-    request = supertest(app);
-  });
-
-  // Disconnect
-  afterAll(async () => {
-    await database.disconnect();
-  });
-
-  // Fill database
-  let user: User;
-  let token: string;
-
-  beforeEach(async () => {
-    await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
-
-      // Create some users
-      [user] = await usrRepo.save([
-        usrRepo.create({ id: 'tests|api-auth-1' })
-      ]);
-    });
-
-    // Get tokens
-    token = await login('tests|api-auth-1');
-  });
-
-  // Empty database
-  afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
-    await usrRepo.delete([user.id]);
-  });
-
-  // Tests
-  // - connexion check
-  test('GET /api/users/:id (connected)', async () => {
-    await request.get(`/api/users/${user.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-  });
-
-  test('GET /api/users/:id (not connected)', async () => {
-    const rep = await request.get(`/api/users/${user.id}`)
-      .expect(401)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body)
-      .toEqual(should.be.unauthorized());
-  });
+  expect(rep.body)
+    .toEqual(should.be.unauthorized());
 });

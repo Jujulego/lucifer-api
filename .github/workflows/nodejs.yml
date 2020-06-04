@@ -67,6 +67,7 @@ jobs:
           AUTH0_DOMAIN: 'test'
           AUTH0_CLIENT_ID: 'test'
           AUTH0_CLIENT_SECRET: 'test'
+          AUTH_STRATEGY: 'jwt'
 
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
