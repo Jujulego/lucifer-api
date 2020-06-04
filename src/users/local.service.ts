@@ -6,7 +6,7 @@ import { LocalUser } from './local.entity';
 
 // Service
 @Service()
-export class LocalService extends EntityService<LocalUser> {
+export class LocalUserService extends EntityService<LocalUser> {
   // Attributes
   entity = LocalUser;
 
@@ -27,6 +27,7 @@ export class LocalService extends EntityService<LocalUser> {
 
   async list(): Promise<LocalUser[]> {
     return await this.repository.find({
+      relations: ['daemons'],
       order: { id: 'ASC' }
     });
   }

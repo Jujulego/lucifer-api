@@ -4,7 +4,10 @@
     "src/**/*"
   ],
   "exclude": [
+    "mocks",
     "tests",
+    "src/**/*.story.ts",
+    "src/**/*.mock.ts",
     "src/**/*.test.ts"
   ],
   "compilerOptions": {

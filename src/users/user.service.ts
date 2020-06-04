@@ -1,46 +1,44 @@
-import { User as Auth0User } from 'auth0';
-
 import { Service } from 'utils';
 import { HttpError } from 'utils/errors';
 
-import { Auth0Service } from 'auth0.service';
-
-import { User } from './user.model';
+import { Auth0User } from './auth0.model';
 import { LocalUser } from './local.entity';
-import { LocalService } from './local.service';
+import { User } from './user.model';
+import { LocalUserService } from './local.service';
+import { Auth0UserService } from './auth0.service';
 
 // Service
 @Service()
 export class UserService {
   // Constructor
   constructor(
-    private locals: LocalService,
-    private auth0: Auth0Service
+    private locals: LocalUserService,
+    private auth0: Auth0UserService
   ) {}
 
   // Methods
   private merge(user: Auth0User, local: LocalUser | null): User {
-    if (local && user.user_id !== local.id) {
-      throw HttpError.ServerError(`Trying to merge ${user.user_id} and ${local.id}`);
+    if (local && user.id !== local.id) {
+      throw HttpError.ServerError(`Trying to merge ${user.id} and ${local.id}`);
     }
 
     // Merge
     const json = local?.toJSON();
 
     return {
-      id:        user.user_id!,
-      email:     user.email!,
-      emailVerified: user.email_verified || false,
+      id:        user.id,
+      email:     user.email,
+      emailVerified: user.emailVerified || false,
       username:  user.username,
-      name:      user.name!,
+      name:      user.name,
       nickname:  user.nickname,
-      givenName: user.given_name,
-      familyName: user.family_name,
-      createdAt: user.created_at!,
-      updatedAt: user.updated_at,
-      picture:   user.picture!,
-      lastIp:    user.last_ip,
-      lastLogin: user.last_login,
+      givenName: user.givenName,
+      familyName: user.familyName,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+      picture:   user.picture,
+      lastIp:    user.lastIp,
+      lastLogin: user.lastLogin,
       blocked:   user.blocked,
       daemons:   json?.daemons
     };
@@ -62,8 +60,8 @@ export class UserService {
       while (li < locals.length) {
         const lcl = locals[li];
 
-        if (lcl.id > usr.user_id!) break;
-        if (lcl.id === usr.user_id) {
+        if (lcl.id > usr.id) break;
+        if (lcl.id === usr.id) {
           added = true;
           result.push(this.merge(usr, lcl));
 
@@ -84,7 +82,7 @@ export class UserService {
   async list(): Promise<User[]> {
     // Get user list
     const [users, locals] = await Promise.all([
-      await this.auth0.mgmtClient.getUsers({ sort: 'user_id:1' }),
+      await this.auth0.list(),
       await this.locals.list()
     ]);
 
@@ -94,23 +92,17 @@ export class UserService {
   async get(id: string): Promise<User> {
     const [local, user] = await Promise.all([
       this.locals.get(id),
-      this.auth0.mgmtClient.getUser({ id })
+      this.auth0.get(id)
     ]);
 
-    // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
-
-    return this.merge(user, local);
+    return this.merge(user!, local);
   }
 
   async getLocal(id: string): Promise<LocalUser> {
-    const [local, user] = await Promise.all([
+    const [local,] = await Promise.all([
       this.locals.getOrCreate(id),
-      this.auth0.mgmtClient.getUser({ id })
+      this.auth0.get(id)
     ]);
-
-    // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
 
     return local;
   }

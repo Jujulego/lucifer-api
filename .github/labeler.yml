@@ -2,9 +2,6 @@ dependencies:
   - package.json
   - yarn.lock
 
-docker:
+deployement:
   - Dockerfile
   - docker-compose.yml
-
-tests:
-  - src/**/*.test.ts

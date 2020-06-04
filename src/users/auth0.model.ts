@@ -1,7 +1,5 @@
-import { IDaemon } from 'daemons/daemon.entity';
-
 // Model
-export type User = {
+export interface Auth0User {
   id:         string;
   email:      string;
   emailVerified: boolean;
@@ -16,5 +14,4 @@ export type User = {
   lastIp?:    string;
   lastLogin?: string;
   blocked?:   boolean;
-  daemons?:   IDaemon[];
-};
+}

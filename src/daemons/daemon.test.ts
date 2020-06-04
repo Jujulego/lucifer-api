@@ -5,7 +5,7 @@ import { should } from 'utils';
 import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
-import { User } from 'users/user.entity';
+import { LocalUser } from 'users/local.entity';
 
 import { Daemon } from './daemon.entity';
 import { DaemonService } from './daemon.service';
@@ -33,12 +33,12 @@ describe('users/user.service', () => {
   });
 
   // Fill database
-  let user: User;
+  let user: LocalUser;
   let daemons: Daemon[];
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
+      const usrRepo = manager.getRepository(LocalUser);
       const dmnRepo = manager.getRepository(Daemon);
 
       // Create a user
@@ -58,7 +58,7 @@ describe('users/user.service', () => {
 
   // Empty database
   afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
+    const usrRepo = database.connection.getRepository(LocalUser);
     const dmnRepo = database.connection.getRepository(Daemon);
 
     // Delete created entities
@@ -67,15 +67,6 @@ describe('users/user.service', () => {
   });
 
   // Tests
-  // - Daemon.lrn
-  test('Daemon.lrn', () => {
-    const daemon = daemons[0];
-
-    expect(daemon.lrn.id).toEqual(daemon.id);
-    expect(daemon.lrn.resource).toEqual('daemon');
-    expect(daemon.lrn.parent).toBeUndefined();
-  });
-
   // - Daemon.toJSON
   test('Daemon.toJSON', () => {
     const daemon = daemons[0];
@@ -83,7 +74,6 @@ describe('users/user.service', () => {
     expect(daemon.toJSON())
       .toEqual({
         id: daemon.id,
-        lrn: daemon.lrn.toString(),
         owner: user.toJSON()
       });
   });

@@ -3,8 +3,13 @@ import { HttpError } from 'utils/errors';
 
 import { DatabaseService } from 'db.service';
 
-import { User } from './user.entity';
+import { LocalUser } from './local.entity';
 import { UserService } from './user.service';
+import { Auth0UserService } from './auth0.service';
+
+import './auth0.mock';
+import { MockAuth0UserService } from './auth0.mock';
+import auth0Mock from 'mocks/auth0.mock.json';
 
 // Tests
 describe('users/user.service', () => {
@@ -13,9 +18,9 @@ describe('users/user.service', () => {
   let service: UserService;
 
   beforeAll(async () => {
-    // Load services
     loadServices();
 
+    // Load services
     database = DIContainer.get(DatabaseService);
     service = DIContainer.get(UserService);
 
@@ -29,59 +34,66 @@ describe('users/user.service', () => {
   });
 
   // Fill database
-  let users: User[];
+  let users: LocalUser[];
 
   beforeEach(async () => {
     await database.connection.transaction(async manager => {
-      const usrRepo = manager.getRepository(User);
+      const usrRepo = manager.getRepository(LocalUser);
 
       // Create some users
       users = await usrRepo.save([
         usrRepo.create({ id: 'tests|users-user-1', daemons: [] }),
-        usrRepo.create({ id: 'tests|users-user-2', daemons: [] }),
-        usrRepo.create({ id: 'tests|users-user-3', daemons: [] }),
-        usrRepo.create({ id: 'tests|users-user-4', daemons: [] }),
+        usrRepo.create({ id: 'tests|users-user-2', daemons: [] })
       ]);
     });
+
+    // Set mock data
+    (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+      .setMockData('tests|users-user', auth0Mock);
   });
 
   // Empty database
   afterEach(async () => {
-    const usrRepo = database.connection.getRepository(User);
+    const usrRepo = database.connection.getRepository(LocalUser);
 
     // Delete created users
     await usrRepo.delete(users.map(usr => usr.id));
   });
 
   // Tests
-  // - User.toJSON
-  test('User.toJSON', () => {
-    const user = users[0];
-
-    expect(user.toJSON())
-      .toEqual({
-        id: user.id,
-        daemons: []
-      });
-  });
-
   // - UserService.list
   test('UserService.list', async () => {
     const res = await service.list();
 
-    expect(res).toEqual(expect.arrayContaining(users));
+    expect(res).toEqual(
+      users.map(usr => expect.objectContaining({
+        id: usr.id,
+        daemons: usr.daemons
+      }))
+    );
   });
 
   // - UserService.get
-  test('UserService.get: full user', async () => {
-    const user = users[0];
+  test('UserService.get', async () => {
+    const ath = auth0Mock[0];
+    const lcl = users[0];
 
-    const res = await service.get(user.id);
-    expect(res).toEqual(user);
+    const res = await service.get(lcl.id);
+    expect(res).toEqual({
+      id:         lcl.id,
+      email:      ath.email,
+      emailVerified: true,
+      name:       ath.name,
+      nickname:   ath.nickname,
+      givenName:  ath.givenName,
+      familyName: ath.familyName,
+      picture:    ath.picture,
+      daemons:    lcl.daemons
+    });
   });
 
   test('UserService.get: unknown user', async () => {
-    await expect(service.get('00000000-0000-0000-0000-000000000000'))
-      .rejects.toEqual(HttpError.NotFound('User 00000000-0000-0000-0000-000000000000 not found'));
+    await expect(service.get('tests|000000000000'))
+      .rejects.toEqual(HttpError.NotFound('User tests|000000000000 not found'));
   });
 });

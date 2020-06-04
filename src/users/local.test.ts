@@ -6,18 +6,18 @@ import { should } from 'utils';
 import { DatabaseService } from 'db.service';
 
 import { LocalUser } from './local.entity';
-import { LocalService } from './local.service';
+import { LocalUserService } from './local.service';
 import { HttpError } from 'utils/errors';
 
 // Load services
 let database: DatabaseService;
-let service: LocalService;
+let service: LocalUserService;
 
 beforeAll(async () => {
   loadServices();
 
   database = DIContainer.get(DatabaseService);
-  service = DIContainer.get(LocalService);
+  service = DIContainer.get(LocalUserService);
 
   // Connect to databse
   await database.connect();
