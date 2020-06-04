@@ -11,7 +11,9 @@
     "src/**/*.test.ts"
   ],
   "compilerOptions": {
+    "incremental": true,
     "sourceMap": false,
-    "removeComments": true
+    "removeComments": true,
+    "noEmit": false
   }
 }

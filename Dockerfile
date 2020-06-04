@@ -17,5 +17,5 @@ RUN yarn install --prod --pure-lockfile
 ADD build/src /app/src
 
 # Setup entrypoint
-ENTRYPOINT node src/server.js
+ENTRYPOINT node src/main.js
 EXPOSE 80
