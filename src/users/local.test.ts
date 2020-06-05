@@ -1,33 +1,34 @@
-import { DIContainer, loadServices } from 'inversify.config';
+import { Test, TestingModule } from '@nestjs/testing';
+import { Connection } from 'typeorm';
 
-import { DatabaseService } from 'db.service';
+import { AppModule } from 'app.module';
 
 import { LocalUser } from './local.entity';
 import { LocalUserService } from './local.service';
 
 // Load services
-let database: DatabaseService;
+let app: TestingModule;
+let database: Connection;
 let service: LocalUserService;
 
 beforeAll(async () => {
-  loadServices();
+  app = await Test.createTestingModule({
+    imports: [AppModule],
+  }).compile();
 
-  database = DIContainer.get(DatabaseService);
-  service = DIContainer.get(LocalUserService);
-
-  // Connect to databse
-  await database.connect();
+  database = app.get(Connection);
+  service = app.get(LocalUserService);
 });
 
 afterAll(async () => {
-  await database.disconnect();
+  await app.close();
 });
 
 // Add some data
 let users: LocalUser[];
 
 beforeEach(async () => {
-  await database.connection.transaction(async manager => {
+  await database.transaction(async manager => {
     const repo = manager.getRepository(LocalUser);
 
     users = await repo.save([
@@ -39,7 +40,7 @@ beforeEach(async () => {
 });
 
 afterEach(async () => {
-  const repo = database.connection.getRepository(LocalUser);
+  const repo = database.getRepository(LocalUser);
   await repo.delete(users.map(usr => usr.id));
 });
 
@@ -74,7 +75,7 @@ describe('LocalService.create', () => {
       });
 
     } finally {
-      const repo = database.connection.getRepository(LocalUser);
+      const repo = database.getRepository(LocalUser);
       await repo.delete(user.id);
     }
   });
@@ -91,7 +92,8 @@ describe('LocalService.getOrCreate', () => {
       }));
 
     } finally {
-      await service.repository.delete(user.id);
+      const repo = database.getRepository(LocalUser);
+      await repo.delete(user.id);
     }
   });
 

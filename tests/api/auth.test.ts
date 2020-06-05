@@ -3,11 +3,11 @@ import { INestApplication } from '@nestjs/common';
 import supertest from 'supertest';
 
 import { AppModule } from 'app.module';
+import { Auth0UserService } from 'users/auth0.service';
 import { factoryAuth0UserMock } from 'users/auth0.mock';
 
 import { should } from 'utils';
 import { login } from 'tests/utils';
-import { Auth0UserService } from 'users/auth0.service';
 
 // Server setup
 let app: INestApplication;

@@ -1,31 +1,34 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { Connection } from 'typeorm';
 import supertest from 'supertest';
 
-import { app } from 'app';
-import { DatabaseService } from 'db.service';
-import { DIContainer, loadServices } from 'inversify.config';
-import { login } from 'tests/utils';
-
+import { AppModule } from 'app.module';
 import { Daemon } from 'daemons/daemon.entity';
 import { LocalUser } from 'users/local.entity';
 
+import { login } from 'tests/utils';
+
 // Server setup
-let database: DatabaseService;
+let app: INestApplication;
+let database: Connection;
 let request: ReturnType<typeof supertest>;
 
 beforeAll(async () => {
-  // Load services
-  loadServices();
+  const module = await Test.createTestingModule({
+    imports: [AppModule]
+  }).compile();
 
-  database = DIContainer.get(DatabaseService);
-  await database.connect();
+  app = module.createNestApplication();
+  await app.init();
 
   // Start server
-  request = supertest(app);
+  request = supertest(app.getHttpServer());
+  database = app.get(Connection);
 });
 
-// Disconnect
 afterAll(async () => {
-  await database.disconnect();
+  await app?.close();
 });
 
 // Fill database
@@ -34,7 +37,7 @@ let daemon: Daemon;
 let token: string;
 
 beforeEach(async () => {
-  await database.connection.transaction(async manager => {
+  await database.transaction(async manager => {
     const usrRepo = manager.getRepository(LocalUser);
     const dmnRepo = manager.getRepository(Daemon);
 
@@ -50,12 +53,12 @@ beforeEach(async () => {
   });
 
   // Get tokens
-  token = await login('tests|api-daemons-1');
+  token = await login(app, 'tests|api-daemons-1');
 });
 
 // Empty database
 afterEach(async () => {
-  await database.connection.transaction(async manager => {
+  await database.transaction(async manager => {
     const usrRepo = manager.getRepository(LocalUser);
     const dmnRepo = manager.getRepository(Daemon);
 
