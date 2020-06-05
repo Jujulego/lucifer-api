@@ -8,7 +8,6 @@ import { AppModule } from 'app.module';
 let app: INestApplication;
 let request: ReturnType<typeof supertest>;
 
-// Load services
 beforeAll(async () => {
   const module = await Test.createTestingModule({
     imports: [AppModule]
@@ -21,7 +20,6 @@ beforeAll(async () => {
   request = supertest(app.getHttpServer());
 });
 
-// Disconnect
 afterAll(async () => {
   await app?.close();
 });

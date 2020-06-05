@@ -21,6 +21,7 @@ export const env = {
   LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
   PORT: process.env.PORT || 8000,
   PRODUCTION: process.env.NODE_ENV === 'production',
+  TESTS: process.env.NODE_ENV === 'test',
 
   AUTH0_DOMAIN: process.env.AUTH0_DOMAIN,
   AUTH0_AUDIENCE: process.env.AUTH0_AUDIENCE,

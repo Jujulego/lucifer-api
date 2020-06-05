@@ -8,7 +8,7 @@ import { UserService } from './user.service';
 import { Auth0UserService } from './auth0.service';
 
 import './auth0.mock';
-import { MockAuth0UserService } from './auth0.mock';
+import { Auth0UserMock } from './auth0.mock';
 import auth0Mock from 'mocks/auth0.mock.json';
 
 // Load services
@@ -46,7 +46,7 @@ beforeEach(async () => {
   });
 
   // Set mock data
-  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+  (DIContainer.get(Auth0UserService) as Auth0UserMock)
     .setMockData('tests|users-user', auth0Mock);
 });
 

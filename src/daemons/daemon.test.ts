@@ -12,7 +12,7 @@ import { Daemon } from './daemon.entity';
 import { DaemonService } from './daemon.service';
 
 import 'users/auth0.mock';
-import { MockAuth0UserService } from 'users/auth0.mock';
+import { Auth0UserMock } from 'users/auth0.mock';
 import auth0Mock from 'mocks/auth0.mock.json';
 
 // Load services
@@ -57,7 +57,7 @@ beforeEach(async () => {
   });
 
   // Set mock data
-  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+  (DIContainer.get(Auth0UserService) as Auth0UserMock)
     .setMockData('tests|daemons-daemon', auth0Mock);
 });
 

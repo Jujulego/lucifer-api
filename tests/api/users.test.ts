@@ -8,7 +8,7 @@ import { DatabaseService } from 'db.service';
 import { LocalUser } from 'users/local.entity';
 
 import 'users/auth0.mock';
-import { MockAuth0UserService } from 'users/auth0.mock';
+import { Auth0UserMock } from 'users/auth0.mock';
 import auth0Mock from 'mocks/auth0.mock.json';
 import { Auth0UserService } from 'users/auth0.service';
 
@@ -51,7 +51,7 @@ beforeEach(async () => {
   token = await login('tests|api-users-1');
 
   // Set mock data
-  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
+  (DIContainer.get(Auth0UserService) as Auth0UserMock)
     .setMockData('tests|api-users', auth0Mock);
 });
 
