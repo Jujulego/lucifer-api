@@ -10,11 +10,5 @@
     "src/**/*.story.ts",
     "src/**/*.mock.ts",
     "src/**/*.test.ts"
-  ],
-  "compilerOptions": {
-    "incremental": true,
-    "sourceMap": false,
-    "removeComments": true,
-    "noEmit": false
-  }
+  ]
 }

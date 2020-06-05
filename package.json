@@ -13,7 +13,6 @@
     "test": "jest",
     "lint": "eslint **/*.ts",
     "start": "nest start --watch",
-    "start:old": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
     "start:prod": "node dist/main",
     "wizard": "snyk wizard"
   },

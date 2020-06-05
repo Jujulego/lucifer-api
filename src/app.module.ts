@@ -1,11 +1,8 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { APP_INTERCEPTOR } from '@nestjs/core';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import cors from 'cors';
-import helmet from 'helmet';
+import { Module } from '@nestjs/common';
+import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { getConnectionOptions } from 'typeorm';
 
 import { ApiController } from 'api.controller';
-import { MorganInterceptor } from 'morgan.interceptor';
 import { DaemonsModule } from 'daemons/daemons.module';
 import { UsersModule } from 'users/users.module';
 
@@ -14,17 +11,16 @@ import { UsersModule } from 'users/users.module';
   imports: [
     DaemonsModule,
     UsersModule,
-    TypeOrmModule.forRoot()
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        const options: TypeOrmModuleOptions = await getConnectionOptions();
+        options.autoLoadEntities = true;
+
+        return options;
+      }
+    })
   ],
   controllers: [ApiController],
-  providers: [
-    { provide: APP_INTERCEPTOR, useClass: MorganInterceptor }
-  ]
+  providers: []
 })
-export class AppModule implements NestModule {
-  // Methods
-  configure(consumer: MiddlewareConsumer): void {
-    consumer
-      .apply(helmet(), cors()).forRoutes('/api/(.*)');
-  }
-}
+export class AppModule {}
