@@ -1,5 +1,5 @@
 // Constants
-export const HTTP_ERRORS = {
+export const HTTP_CODES = {
   100: 'Continue',
   101: 'Switching protocols',
   102: 'Processing',

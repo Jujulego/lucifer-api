@@ -1,7 +1,7 @@
+import { HttpStatus } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 
-import { HTTP_ERRORS, IHttpError } from './errors';
-import { HttpStatus } from '@nestjs/common';
+import { HTTP_CODES } from './http';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
@@ -110,7 +110,7 @@ export const should = {
     httpError(status: HttpStatus, message?: string): any {
       return {
         statusCode: status,
-        message: message || HTTP_ERRORS[status]
+        message: message || HTTP_CODES[status]
       }
     },
 
