@@ -1,9 +1,8 @@
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import validator from 'validator';
 
-import { Service } from 'utils';
-import { HttpError } from 'utils/errors';
-
-import { DatabaseService, EntityService } from 'db.service';
 import { UserService } from 'users/user.service';
 
 import { Daemon } from './daemon.entity';
@@ -11,22 +10,19 @@ import { daemonCreate, DaemonCreate } from './daemon.schema';
 import { daemonUpdate, DaemonUpdate } from './daemon.schema';
 
 // Service
-@Service()
-export class DaemonService extends EntityService<Daemon> {
-  // Attributes
-  entity = Daemon;
-
+@Injectable()
+export class DaemonService {
   // Constructor
   constructor(
-    database: DatabaseService,
-    private users: UserService
-  ) { super(database) }
+    private users: UserService,
+    @InjectRepository(Daemon) private repository: Repository<Daemon>
+  ) {}
 
   // Methods
   async create(data: DaemonCreate): Promise<Daemon> {
     // Validate data
     const result = daemonCreate.validate(data);
-    if (result.error) throw HttpError.BadRequest(result.error.message);
+    if (result.error) throw new BadRequestException(result.error.message);
 
     data = result.value;
 
@@ -40,8 +36,8 @@ export class DaemonService extends EntityService<Daemon> {
 
       return await this.repository.save(daemon);
     } catch (error) {
-      if (error instanceof HttpError) {
-        if (error.status === 404) throw HttpError.BadRequest(error.message);
+      if (error instanceof HttpException) {
+        if (error.getStatus() === 404) throw new BadRequestException(error.message);
       }
 
       throw error;
@@ -55,14 +51,14 @@ export class DaemonService extends EntityService<Daemon> {
   }
 
   async get(id: string): Promise<Daemon> {
-    if (!validator.isUUID(id)) throw HttpError.NotFound(`Daemon ${id} not found`);
+    if (!validator.isUUID(id)) throw new NotFoundException(`Daemon ${id} not found`);
 
     // Get daemon
     const daemon = await this.repository.findOne(id, {
       relations: ['owner']
     });
 
-    if (!daemon) throw HttpError.NotFound(`Daemon ${id} not found`);
+    if (!daemon) throw new NotFoundException(`Daemon ${id} not found`);
 
     return daemon;
   }
@@ -73,7 +69,7 @@ export class DaemonService extends EntityService<Daemon> {
 
     // Validate data
     const result = daemonUpdate.validate(update);
-    if (result.error) throw HttpError.BadRequest(result.error.message);
+    if (result.error) throw new BadRequestException(result.error.message);
 
     update = result.value;
 
@@ -89,8 +85,8 @@ export class DaemonService extends EntityService<Daemon> {
 
       return await this.repository.save(daemon);
     } catch (error) {
-      if (error instanceof HttpError) {
-        if (error.status === 404) throw HttpError.BadRequest(error.message);
+      if (error instanceof HttpException) {
+        if (error.getStatus() === 404) throw new BadRequestException(error.message);
       }
 
       throw error;

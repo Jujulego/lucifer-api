@@ -17,8 +17,8 @@ export class UserController {
     return await this.users.list();
   }
 
-  @Get('/:userId')
-  async getUser(@Param('userId') id: string): Promise<User> {
+  @Get('/:id')
+  async getUser(@Param('id') id: string): Promise<User> {
     return await this.users.get(id);
   }
 }
