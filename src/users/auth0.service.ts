@@ -1,18 +1,14 @@
-import { User } from 'auth0';
-
-import { Service } from 'utils';
-import { HttpError } from 'utils/errors';
-
-import { Auth0Service } from 'auth0.service';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { ManagementClient, User } from 'auth0';
 
 import { Auth0User } from './auth0.model';
 
 // Service
-@Service()
+@Injectable()
 export class Auth0UserService {
   // Constructor
   constructor(
-    private auth0: Auth0Service
+    private auth0: ManagementClient
   ) {}
 
   // Methods
@@ -41,16 +37,16 @@ export class Auth0UserService {
   }
 
   async get(id: string): Promise<Auth0User> {
-    const user = await this.auth0.mgmtClient.getUser({ id });
+    const user = await this.auth0.getUser({ id });
 
     // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
+    if (!user) throw new NotFoundException(`User ${id} not found`);
 
     return this.format(user);
   }
 
   async list(): Promise<Auth0User[]> {
-    const users = await this.auth0.mgmtClient.getUsers({ sort: 'user_id:1' });
+    const users = await this.auth0.getUsers({ sort: 'user_id:1' });
     return users.map(usr => this.format(usr));
   }
 }

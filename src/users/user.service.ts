@@ -1,5 +1,4 @@
-import { Service } from 'utils';
-import { HttpError } from 'utils/errors';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 import { Auth0User } from './auth0.model';
 import { LocalUser } from './local.entity';
@@ -8,7 +7,7 @@ import { LocalUserService } from './local.service';
 import { Auth0UserService } from './auth0.service';
 
 // Service
-@Service()
+@Injectable()
 export class UserService {
   // Constructor
   constructor(
@@ -19,7 +18,7 @@ export class UserService {
   // Methods
   private merge(user: Auth0User, local: LocalUser | null): User {
     if (local && user.id !== local.id) {
-      throw HttpError.ServerError(`Trying to merge ${user.id} and ${local.id}`);
+      throw new InternalServerErrorException(`Trying to merge ${user.id} and ${local.id}`);
     }
 
     // Merge

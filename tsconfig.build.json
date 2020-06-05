@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": [
+    "db/migrations/*",
     "src/**/*"
   ],
   "exclude": [

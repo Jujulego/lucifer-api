@@ -1,19 +1,19 @@
-import { Service, transaction } from 'utils';
-
-import { DatabaseService, EntityService } from 'db.service';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import { LocalUser } from './local.entity';
 
 // Service
-@Service()
-export class LocalUserService extends EntityService<LocalUser> {
+@Injectable()
+export class LocalUserService {
   // Attributes
   entity = LocalUser;
 
   // Constructor
   constructor(
-    database: DatabaseService
-  ) { super(database) }
+    @InjectRepository(LocalUser) private repository: Repository<LocalUser>
+  ) {}
 
   // Methods
   async create(id: string): Promise<LocalUser> {
@@ -41,7 +41,6 @@ export class LocalUserService extends EntityService<LocalUser> {
     return user || null;
   }
 
-  @transaction()
   async getOrCreate(id: string): Promise<LocalUser> {
     // Get user
     const user = await this.get(id);
