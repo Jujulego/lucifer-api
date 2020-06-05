@@ -19,7 +19,7 @@ import morgan from 'morgan';
   app.use(morgan('dev', {
     stream: {
       write(log: string) {
-        logger.log(log);
+        logger.log(log.trimRight());
       }
     }
   }));

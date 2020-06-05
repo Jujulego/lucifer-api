@@ -1,11 +1,14 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 
 import { Daemon } from './daemon.entity';
 import { DaemonCreate, DaemonUpdate } from './daemon.schema';
 import { DaemonService } from './daemon.service';
+import { env } from 'env';
 
 // Controller
 @Controller('/api/daemons')
+@UseGuards(AuthGuard(env.AUTH_STRATEGY))
 export class DaemonController {
   // Constructor
   constructor(
