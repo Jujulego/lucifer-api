@@ -27,7 +27,7 @@ jobs:
           --health-retries 5
 
     env:
-      AUTH0_DOMAIN: 'test'
+      AUTH0_DOMAIN: 'test.com'
       AUTH0_CLIENT_ID: 'test'
       AUTH0_CLIENT_SECRET: 'test'
       AUTH_STRATEGY: 'jwt'
