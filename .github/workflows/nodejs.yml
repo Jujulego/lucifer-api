@@ -28,6 +28,7 @@ jobs:
 
     env:
       AUTH0_DOMAIN: 'test.com'
+      AUTH0_AUDIENCE: 'test'
       AUTH0_CLIENT_ID: 'test'
       AUTH0_CLIENT_SECRET: 'test'
       AUTH_STRATEGY: 'jwt'

@@ -10,8 +10,13 @@ dotenv.config();
 const result = envSchema.validate(process.env, { allowUnknown: true });
 
 if (result.error) {
-  const logger = new Logger('Configuration')
-  logger.error(result.error.message);
+  if (process.env.NODE_ENV === 'test') {
+    console.error(result.error.message);
+  } else {
+    const logger = new Logger('Configuration')
+    logger.error(result.error.message);
+  }
+
   process.exit(1);
 }
 
