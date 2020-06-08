@@ -21,26 +21,34 @@ export class UserService {
       throw new InternalServerErrorException(`Trying to merge ${user.id} and ${local.id}`);
     }
 
-    // Merge
-    const json = local?.toJSON();
-
-    return {
+    // Mandatory fields
+    const res: User = {
       id:        user.id,
       email:     user.email,
       emailVerified: user.emailVerified || false,
-      username:  user.username,
       name:      user.name,
       nickname:  user.nickname,
-      givenName: user.givenName,
-      familyName: user.familyName,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
       picture:   user.picture,
-      lastIp:    user.lastIp,
-      lastLogin: user.lastLogin,
-      blocked:   user.blocked,
-      daemons:   json?.daemons
     };
+
+    // Optional fields
+    if ('username'   in user) res.username   = user.username;
+    if ('givenName'  in user) res.givenName  = user.givenName;
+    if ('familyName' in user) res.familyName = user.familyName;
+    if ('createdAt'  in user) res.createdAt  = user.createdAt;
+    if ('updatedAt'  in user) res.updatedAt  = user.updatedAt;
+    if ('lastIp'     in user) res.lastIp     = user.lastIp;
+    if ('lastLogin'  in user) res.lastLogin  = user.lastLogin;
+    if ('blocked'    in user) res.blocked    = user.blocked;
+
+    // Local fields
+    if (local) {
+      const json = local.toJSON();
+
+      if ('daemons' in json) res.daemons = json.daemons;
+    }
+
+    return res;
   }
 
   private join(users: Auth0User[], locals: LocalUser[]): User[] {
@@ -100,7 +108,7 @@ export class UserService {
   async getLocal(id: string): Promise<LocalUser> {
     const [local,] = await Promise.all([
       this.locals.getOrCreate(id),
-      this.auth0.get(id)
+      this.auth0.get(id) // Assert it exists !
     ]);
 
     return local;

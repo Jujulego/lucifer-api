@@ -88,6 +88,18 @@ describe('LocalService.create', () => {
 });
 
 describe('LocalService.getOrCreate', () => {
+  let createSpy: jest.SpyInstance<Promise<LocalUser>, [string]>;
+
+  // Mocks
+  beforeEach(() => {
+    createSpy = jest.spyOn(service, 'create');
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  // Tests
   it('should create new user', async () => {
     const user = await service.getOrCreate('tests|users-local-10');
 
@@ -96,6 +108,8 @@ describe('LocalService.getOrCreate', () => {
         id: 'tests|users-local-10',
         daemons: []
       }));
+
+      expect(createSpy).toHaveBeenCalledTimes(1);
 
     } finally {
       const repo = database.getRepository(LocalUser);
@@ -108,5 +122,7 @@ describe('LocalService.getOrCreate', () => {
 
     await expect(service.getOrCreate(user.id))
       .resolves.toEqual(user);
+
+    expect(createSpy).toHaveBeenCalledTimes(0);
   });
 });
