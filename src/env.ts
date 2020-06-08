@@ -7,14 +7,14 @@ import { envSchema } from 'env.schema';
 dotenv.config();
 
 // Validate env
-const result = envSchema.validate(process.env, { allowUnknown: true });
+const { error, value } = envSchema.validate(process.env, { allowUnknown: true });
 
-if (result.error) {
+if (error) {
   if (process.env.NODE_ENV === 'test') {
-    console.error(result.error.message);
+    console.error(error.message);
   } else {
     const logger = new Logger('Configuration')
-    logger.error(result.error.message);
+    logger.error(error.message);
   }
 
   process.exit(1);
@@ -22,15 +22,15 @@ if (result.error) {
 
 // Environment
 export const env = {
-  AUTH_STRATEGY: process.env.AUTH_STRATEGY,
-  LOG_LEVEL: process.env.LOG_LEVEL || 'debug',
-  PORT: process.env.PORT!,
-  PRODUCTION: process.env.NODE_ENV === 'production',
-  TESTS: process.env.NODE_ENV === 'test',
+  AUTH_STRATEGY: value.AUTH_STRATEGY,
+  LOG_LEVEL:     value.LOG_LEVEL || 'debug',
+  PORT:          value.PORT!,
+  PRODUCTION:    value.NODE_ENV === 'production',
+  TESTS:         value.NODE_ENV === 'test',
 
-  AUTH0_DOMAIN: process.env.AUTH0_DOMAIN!,
-  AUTH0_AUDIENCE: process.env.AUTH0_AUDIENCE!,
-  AUTH0_CLIENT_ID: process.env.AUTH0_CLIENT_ID!,
-  AUTH0_CLIENT_SECRET: process.env.AUTH0_CLIENT_SECRET!
+  AUTH0_DOMAIN:        value.AUTH0_DOMAIN!,
+  AUTH0_AUDIENCE:      value.AUTH0_AUDIENCE!,
+  AUTH0_CLIENT_ID:     value.AUTH0_CLIENT_ID!,
+  AUTH0_CLIENT_SECRET: value.AUTH0_CLIENT_SECRET!
 };
 

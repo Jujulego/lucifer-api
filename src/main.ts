@@ -2,10 +2,10 @@ import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import cors from 'cors';
 import helmet from 'helmet';
-
-import { AppModule } from 'app.module';
-import { env } from 'env';
 import morgan from 'morgan';
+
+import { env } from 'env';
+import { AppModule } from 'app.module';
 
 // Bootstrap
 (async function () {

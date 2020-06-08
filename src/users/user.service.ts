@@ -43,9 +43,7 @@ export class UserService {
 
     // Local fields
     if (local) {
-      const json = local.toJSON();
-
-      if ('daemons' in json) res.daemons = json.daemons;
+      if ('daemons' in local) res.daemons = local.daemons;
     }
 
     return res;

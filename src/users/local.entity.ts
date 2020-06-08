@@ -1,28 +1,15 @@
 import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
-import { json, toJSON } from 'utils';
-
-import { Daemon, IDaemon } from 'daemons/daemon.entity';
-
-// Model
-export interface ILocalUser {
-  id: string;
-  daemons?: IDaemon[];
-}
+import { Daemon } from 'daemons/daemon.entity';
 
 // Entity
 @Entity()
 export class LocalUser {
   // Columns
   @PrimaryColumn()
-  @json() id: string;
+  id: string;
 
   // - relations
   @OneToMany(type => Daemon, daemon => daemon.owner)
-  @json() daemons: Daemon[];
-
-  // Methods
-  toJSON(): ILocalUser {
-    return toJSON<ILocalUser>(this);
-  }
+  daemons: Daemon[];
 }

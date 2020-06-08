@@ -1,4 +1,4 @@
-import { IDaemon } from 'daemons/daemon.entity';
+import { Daemon } from 'daemons/daemon.entity';
 
 // Model
 export type User = {
@@ -16,5 +16,5 @@ export type User = {
   lastIp?:    string;
   lastLogin?: string;
   blocked?:   boolean;
-  daemons?:   IDaemon[];
+  daemons?:   Daemon[];
 };
