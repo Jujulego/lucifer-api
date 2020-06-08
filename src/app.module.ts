@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { getConnectionOptions } from 'typeorm';
 
 import { ApiController } from 'api.controller';
+import { DatabaseModule } from 'database.module';
 import { AuthModule } from 'auth/auth.module';
 import { DaemonsModule } from 'daemons/daemons.module';
 import { UsersModule } from 'users/users.module';
@@ -11,18 +10,10 @@ import { UsersModule } from 'users/users.module';
 @Module({
   imports: [
     AuthModule,
+    DatabaseModule,
     DaemonsModule,
-    UsersModule,
-    TypeOrmModule.forRootAsync({
-      useFactory: async () => {
-        const options: TypeOrmModuleOptions = await getConnectionOptions();
-        options.autoLoadEntities = true;
-
-        return options;
-      }
-    })
+    UsersModule
   ],
-  controllers: [ApiController],
-  providers: []
+  controllers: [ApiController]
 })
 export class AppModule {}

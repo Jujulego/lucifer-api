@@ -1,7 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 
-import { AppModule } from 'app.module';
+import { DatabaseModule } from 'database.module';
+import { Daemon } from 'daemons/daemon.entity';
 
 import { LocalUser } from './local.entity';
 import { LocalUserService } from './local.service';
@@ -13,7 +15,11 @@ let service: LocalUserService;
 
 beforeAll(async () => {
   app = await Test.createTestingModule({
-    imports: [AppModule],
+    imports: [
+      DatabaseModule,
+      TypeOrmModule.forFeature([Daemon, LocalUser])
+    ],
+    providers: [LocalUserService]
   }).compile();
 
   database = app.get(Connection);
