@@ -1,6 +1,7 @@
 import { Entity, OneToMany, PrimaryColumn } from 'typeorm';
 
 import { Daemon } from 'daemons/daemon.entity';
+import { Type } from 'class-transformer';
 
 // Entity
 @Entity()
@@ -10,6 +11,7 @@ export class LocalUser {
   id: string;
 
   // - relations
-  @OneToMany(type => Daemon, daemon => daemon.owner)
-  daemons: Daemon[];
+  @OneToMany(() => Daemon, daemon => daemon.owner)
+  @Type(() => Daemon)
+  daemons?: Daemon[];
 }

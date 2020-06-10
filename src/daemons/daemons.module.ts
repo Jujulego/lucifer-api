@@ -5,7 +5,8 @@ import { UsersModule } from 'users/users.module';
 
 import { Daemon } from './daemon.entity';
 import { DaemonService } from './daemon.service';
-import { DaemonController} from './daemon.controller';
+import { DaemonInterceptor } from './daemon.interceptor';
+import { DaemonController } from './daemon.controller';
 
 // Modules
 @Module({
@@ -14,7 +15,8 @@ import { DaemonController} from './daemon.controller';
     TypeOrmModule.forFeature([Daemon])
   ],
   providers: [
-    DaemonService
+    DaemonService,
+    DaemonInterceptor
   ],
   controllers: [
     DaemonController

@@ -8,7 +8,7 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Exclude } from 'class-transformer';
+import { Type } from 'class-transformer';
 
 import { LocalUser } from 'users/local.entity';
 
@@ -25,17 +25,15 @@ export class Daemon {
   name: string | null;
 
   // - relations
-  @OneToOne(type => DaemonConfig, config => config.daemon, { nullable: true })
-  config: DaemonConfig | null;
+  @OneToOne(() => DaemonConfig, config => config.daemon)
+  config?: DaemonConfig;
 
-  @ManyToOne(type => LocalUser, user => user.daemons, { onDelete: 'SET NULL' })
+  @ManyToOne(() => LocalUser, user => user.daemons, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'ownerId' })
-  @Exclude() owner?: LocalUser;
+  @Type(() => LocalUser)
+  owner?: LocalUser;
 
-  @Column({ name: 'ownerId', nullable: true })
-  ownerId?: string;
-
-  @ManyToMany(type => Daemon, daemon => daemon.dependents)
+  @ManyToMany(() => Daemon, daemon => daemon.dependents)
   @JoinTable({
     name: 'daemon_dependencies',
     joinColumn: { name: 'dependent' },
@@ -43,6 +41,6 @@ export class Daemon {
   })
   dependencies: Daemon[]
 
-  @ManyToMany(type => Daemon, daemon => daemon.dependencies)
+  @ManyToMany(() => Daemon, daemon => daemon.dependencies)
   dependents: Daemon[]
 }

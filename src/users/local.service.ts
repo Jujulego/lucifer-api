@@ -4,6 +4,11 @@ import { Repository } from 'typeorm';
 
 import { LocalUser } from './local.entity';
 
+// Type
+export interface GetLocalUserOptions {
+  full?: boolean
+}
+
 // Service
 @Injectable()
 export class LocalUserService {
@@ -31,10 +36,12 @@ export class LocalUserService {
     });
   }
 
-  async get(id: string): Promise<LocalUser | null> {
+  async get(id: string, opts: GetLocalUserOptions = {}): Promise<LocalUser | null> {
+    const { full = true } = opts;
+
     // Get user
     const user = await this.repository.findOne({
-      relations: ['daemons'],
+      relations: full ? ['daemons'] : [],
       where: { id }
     });
 

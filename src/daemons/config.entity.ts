@@ -7,7 +7,7 @@ import { Daemon } from './daemon.entity';
 @TableInheritance({ column: { type: 'varchar', name: 'type' }})
 export class DaemonConfig {
   // Columns
-  @OneToOne(type => Daemon, { onDelete: 'CASCADE', nullable: false })
+  @OneToOne(() => Daemon, { onDelete: 'CASCADE', nullable: false })
   @PrimaryColumn() @JoinColumn()
   daemon: string;
 }

@@ -3,7 +3,7 @@ import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Auth0User } from './auth0.model';
 import { LocalUser } from './local.entity';
 import { User } from './user.model';
-import { LocalUserService } from './local.service';
+import { LocalUserService, GetLocalUserOptions } from './local.service';
 import { Auth0UserService } from './auth0.service';
 
 // Service
@@ -28,7 +28,7 @@ export class UserService {
       emailVerified: user.emailVerified || false,
       name:      user.name,
       nickname:  user.nickname,
-      picture:   user.picture,
+      picture:   user.picture
     };
 
     // Optional fields
@@ -94,9 +94,9 @@ export class UserService {
     return this.join(users, locals);
   }
 
-  async get(id: string): Promise<User> {
+  async get(id: string, opts?: GetLocalUserOptions): Promise<User> {
     const [local, user] = await Promise.all([
-      this.locals.get(id),
+      this.locals.get(id, opts),
       this.auth0.get(id)
     ]);
 
