@@ -28,10 +28,12 @@ export class DaemonService {
 
     try {
       // Create daemon
-      const daemon = this.repository.create();
+      const daemon = this.repository.create({
+        name: data.name
+      });
 
       if (data.ownerId) {
-        daemon.owner = await this.users.getLocal(data.ownerId);
+        daemon.owner = await this.users.getLocal(data.ownerId, { full: false });
       }
 
       return await this.repository.save(daemon);
@@ -75,11 +77,13 @@ export class DaemonService {
 
     try {
       // Apply update
+      if ('name' in update) daemon.name = update.name || null;
+
       if ('ownerId' in update) {
         if (!update.ownerId) {
           daemon.owner = undefined;
         } else {
-          daemon.owner = await this.users.getLocal(update.ownerId);
+          daemon.owner = await this.users.getLocal(update.ownerId, { full: false });
         }
       }
 

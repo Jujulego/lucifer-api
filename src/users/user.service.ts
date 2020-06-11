@@ -104,9 +104,9 @@ export class UserService {
     return this.merge(user!, local);
   }
 
-  async getLocal(id: string): Promise<LocalUser> {
+  async getLocal(id: string, opts?: GetLocalUserOptions): Promise<LocalUser> {
     const user = await this.auth0.get(id);
 
-    return this.locals.getOrCreate(id, user);
+    return this.locals.getOrCreate(id, user, opts);
   }
 }

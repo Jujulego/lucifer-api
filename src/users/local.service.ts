@@ -54,12 +54,18 @@ export class LocalUserService {
     return user || null;
   }
 
-  async getOrCreate(id: string, data: RequiredFields): Promise<LocalUser> {
+  async getOrCreate(id: string, data: RequiredFields, opts: GetLocalUserOptions = {}): Promise<LocalUser> {
     // Get user
-    const user = await this.get(id);
+    let user = await this.get(id, opts);
 
     // Create if not found
-    if (!user) return this.create(data);
+    if (!user) {
+      user = await this.create(data);
+
+      if (opts.full === false) {
+        delete user.daemons;
+      }
+    }
 
     return user;
   }
