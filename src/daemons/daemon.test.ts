@@ -12,6 +12,7 @@ import { should } from 'utils';
 
 import { Daemon } from './daemon.entity';
 import { DaemonService } from './daemon.service';
+import exp from 'constants';
 
 // Load services
 let app: TestingModule;
@@ -44,7 +45,7 @@ beforeEach(async () => {
 
     // Create a user
     user = await usrRepo.save(
-      usrRepo.create({ id: 'tests|daemons-daemon-1' })
+      usrRepo.create({ id: 'tests|daemons-daemon-1', email: 'test1@daemon.daemons.com', name: 'Test 1' })
     );
 
     // Create some daemons
@@ -66,16 +67,6 @@ afterEach(async () => {
 });
 
 // Tests
-test('Daemon.toJSON', () => {
-  const daemon = daemons[0];
-
-  expect(daemon.toJSON())
-    .toEqual({
-      id: daemon.id,
-      ownerId: user.id
-    });
-});
-
 describe('DaemonService.create', () => {
   let daemon: Daemon;
 
@@ -88,10 +79,11 @@ describe('DaemonService.create', () => {
     daemon = await service.create({ ownerId: user.id });
 
     expect(daemon)
-      .toEqual(expect.objectContaining({
-        id: should.validate(validator.isUUID),
-        ownerId: user.id
-      }));
+      .toEqual({
+        id:    should.validate(validator.isUUID),
+        name:  null,
+        owner: expect.objectContaining({ id: user.id })
+      });
   });
 
   it('should fail to create a new daemon', async () => {
@@ -135,9 +127,9 @@ describe('DaemonService.update', () => {
 
     await expect(service.update(daemon.id, { ownerId: user.id }))
       .resolves.toEqual({
-        id:      daemon.id,
-        ownerId: user.id,
-        owner:   expect.objectContaining({ id: user.id })
+        id:    daemon.id,
+        name:  null,
+        owner: expect.objectContaining({ id: user.id })
       });
   });
 

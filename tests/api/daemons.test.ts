@@ -43,7 +43,7 @@ beforeEach(async () => {
 
     // Create a user
     user = await usrRepo.save(
-      usrRepo.create({ id: 'tests|api-daemons-1' }),
+      usrRepo.create({ id: 'tests|api-daemons-1', email: 'test1@daemons.api.com', name: 'Test 1' }),
     );
 
     // Create a daemon
@@ -77,6 +77,8 @@ test('GET /api/daemons', async () => {
     .expect('Content-Type', /json/);
 
   expect(rep.body).toEqual(expect.arrayContaining([
-    daemon.toJSON()
+    expect.objectContaining({
+      id: daemon.id
+    })
   ]));
 });

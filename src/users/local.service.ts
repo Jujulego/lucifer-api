@@ -5,6 +5,8 @@ import { Repository } from 'typeorm';
 import { LocalUser } from './local.entity';
 
 // Type
+export type RequiredFields = Pick<LocalUser, 'id' | 'email' | 'name'>;
+
 export interface GetLocalUserOptions {
   full?: boolean
 }
@@ -21,9 +23,13 @@ export class LocalUserService {
   ) {}
 
   // Methods
-  async create(id: string): Promise<LocalUser> {
+  async create(data: RequiredFields): Promise<LocalUser> {
     // Create user
-    const user = this.repository.create({ id });
+    const user = this.repository.create({
+      id:    data.id,
+      email: data.email,
+      name:  data.name
+    });
     user.daemons = [];
 
     return await this.repository.save(user);
@@ -48,12 +54,12 @@ export class LocalUserService {
     return user || null;
   }
 
-  async getOrCreate(id: string): Promise<LocalUser> {
+  async getOrCreate(id: string, data: RequiredFields): Promise<LocalUser> {
     // Get user
     const user = await this.get(id);
 
     // Create if not found
-    if (!user) return this.create(id);
+    if (!user) return this.create(data);
 
     return user;
   }

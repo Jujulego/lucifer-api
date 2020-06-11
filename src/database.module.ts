@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { getConnectionOptions } from 'typeorm';
 
+import { env } from 'env';
+
 // Utils
 function toWebpack(paths: any[] = []) {
   for (let i = 0; i < paths.length; ++i) {
@@ -19,10 +21,12 @@ function toWebpack(paths: any[] = []) {
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
         const options = await getConnectionOptions() as TypeOrmModuleOptions;
-
-        toWebpack(options.entities);
-        toWebpack(options.migrations);
         options.autoLoadEntities = true;
+
+        if (!env.TESTS) {
+          toWebpack(options.entities);
+          toWebpack(options.migrations);
+        }
 
         return options;
       }

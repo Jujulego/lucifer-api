@@ -8,8 +8,7 @@ import {
   Param,
   Post,
   Put,
-  UseGuards,
-  UseInterceptors,
+  UseGuards
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -18,7 +17,6 @@ import { env } from 'env';
 import { Daemon } from './daemon.entity';
 import { DaemonCreate, DaemonUpdate } from './daemon.schema';
 import { DaemonService } from './daemon.service';
-import { DaemonInterceptor } from './daemon.interceptor';
 
 // Controller
 @Controller('/api/daemons')
@@ -31,25 +29,21 @@ export class DaemonController {
 
   // Endpoints
   @Get('/')
-  @UseInterceptors(DaemonInterceptor)
   async getDaemons(): Promise<Daemon[]> {
     return await this.daemons.list();
   }
 
   @Post('/')
-  @UseInterceptors(DaemonInterceptor)
   async postDaemon(@Body() body: DaemonCreate): Promise<Daemon> {
     return await this.daemons.create(body);
   }
 
   @Get('/:id')
-  @UseInterceptors(DaemonInterceptor)
   async getDaemon(@Param('id') id: string): Promise<Daemon> {
     return await this.daemons.get(id);
   }
 
   @Put('/:id')
-  @UseInterceptors(DaemonInterceptor)
   async putDaemon(@Param('id') id: string, @Body() body: DaemonUpdate): Promise<Daemon> {
     return await this.daemons.update(id, body);
   }

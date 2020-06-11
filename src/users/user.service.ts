@@ -25,18 +25,19 @@ export class UserService {
     const res: User = {
       id:        user.id,
       email:     user.email,
-      emailVerified: user.emailVerified || false,
       name:      user.name,
-      nickname:  user.nickname,
-      picture:   user.picture
+      nickname:  user.nickname
     };
 
     // Optional fields
+    if ('emailVerified' in user) res.emailVerified = user.emailVerified;
+    if ('nickname'   in user) res.nickname   = user.nickname;
     if ('username'   in user) res.username   = user.username;
     if ('givenName'  in user) res.givenName  = user.givenName;
     if ('familyName' in user) res.familyName = user.familyName;
     if ('createdAt'  in user) res.createdAt  = user.createdAt;
     if ('updatedAt'  in user) res.updatedAt  = user.updatedAt;
+    if ('picture'    in user) res.picture    = user.picture;
     if ('lastIp'     in user) res.lastIp     = user.lastIp;
     if ('lastLogin'  in user) res.lastLogin  = user.lastLogin;
     if ('blocked'    in user) res.blocked    = user.blocked;
@@ -104,11 +105,8 @@ export class UserService {
   }
 
   async getLocal(id: string): Promise<LocalUser> {
-    const [local,] = await Promise.all([
-      this.locals.getOrCreate(id),
-      this.auth0.get(id) // Assert it exists !
-    ]);
+    const user = await this.auth0.get(id);
 
-    return local;
+    return this.locals.getOrCreate(id, user);
   }
 }

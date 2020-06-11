@@ -61,7 +61,6 @@ describe('Auth0UserService.get', () => {
       .resolves.toEqual({
         id:       user.user_id,
         email:    user.email,
-        emailVerified: user.emailVerified,
         name:     user.name,
         nickname: user.nickname,
         picture:  user.picture

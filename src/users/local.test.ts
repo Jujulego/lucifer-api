@@ -38,9 +38,9 @@ beforeEach(async () => {
     const repo = manager.getRepository(LocalUser);
 
     users = await repo.save([
-      repo.create({ id: 'tests|users-local-1', daemons: [] }),
-      repo.create({ id: 'tests|users-local-2', daemons: [] }),
-      repo.create({ id: 'tests|users-local-3', daemons: [] }),
+      repo.create({ id: 'tests|users-local-1', email: 'test1@local.users.com', name: 'Test 1', daemons: [] }),
+      repo.create({ id: 'tests|users-local-2', email: 'test2@local.users.com', name: 'Test 2', daemons: [] }),
+      repo.create({ id: 'tests|users-local-3', email: 'test3@local.users.com', name: 'Test 3', daemons: [] }),
     ]);
   });
 });
@@ -71,12 +71,20 @@ describe('LocalService.get', () => {
 });
 
 describe('LocalService.create', () => {
+  const data = {
+    id: 'tests|users-local-10',
+    email: 'test10@local.users.com',
+    name: 'Test 10'
+  };
+
   it('should create new user', async () => {
-    const user = await service.create('tests|users-local-10');
+    const user = await service.create(data);
 
     try {
       expect(user).toEqual({
-        id: 'tests|users-local-10',
+        id:    data.id,
+        email: data.email,
+        name:  data.name,
         daemons: []
       });
 
@@ -88,7 +96,12 @@ describe('LocalService.create', () => {
 });
 
 describe('LocalService.getOrCreate', () => {
-  let createSpy: jest.SpyInstance<Promise<LocalUser>, [string]>;
+  let createSpy: jest.SpyInstance<Promise<LocalUser>, [any]>;
+  const data = {
+    id: 'tests|users-local-20',
+    email: 'test20@local.users.com',
+    name: 'Test 20'
+  };
 
   // Mocks
   beforeEach(() => {
@@ -101,11 +114,13 @@ describe('LocalService.getOrCreate', () => {
 
   // Tests
   it('should create new user', async () => {
-    const user = await service.getOrCreate('tests|users-local-10');
+    const user = await service.getOrCreate(data.id, data);
 
     try {
       expect(user).toEqual(expect.objectContaining({
-        id: 'tests|users-local-10',
+        id:    data.id,
+        email: data.email,
+        name:  data.name,
         daemons: []
       }));
 
@@ -120,7 +135,7 @@ describe('LocalService.getOrCreate', () => {
   it('should return existing user', async () => {
     const user = users[0];
 
-    await expect(service.getOrCreate(user.id))
+    await expect(service.getOrCreate(user.id, user))
       .resolves.toEqual(user);
 
     expect(createSpy).toHaveBeenCalledTimes(0);

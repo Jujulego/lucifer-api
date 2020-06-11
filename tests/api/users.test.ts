@@ -47,8 +47,8 @@ beforeEach(async () => {
 
     // Create some users
     users = await usrRepo.save([
-      usrRepo.create({ id: 'tests|api-users-1', daemons: [] }),
-      usrRepo.create({ id: 'tests|api-users-2', daemons: [] })
+      usrRepo.create({ id: 'tests|api-users-1', email: 'test1@users.api.com', name: 'Test 1', daemons: [] }),
+      usrRepo.create({ id: 'tests|api-users-2', email: 'test2@users.api.com', name: 'Test 2', daemons: [] })
     ]);
   });
 

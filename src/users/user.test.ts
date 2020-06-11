@@ -49,7 +49,7 @@ beforeEach(async () => {
 
     // Create some users
     users = await usrRepo.save([
-      usrRepo.create({ id: 'tests|users-user-1', daemons: [] }),
+      usrRepo.create({ id: 'tests|users-user-1', email: 'test1@user.users.com', name: 'Test 1', daemons: [] }),
     ]);
   });
 });
@@ -85,8 +85,8 @@ describe('UserService.get', () => {
     expect(res).toEqual({
       id:         lcl.id,
       email:      ath.email,
-      emailVerified: true,
       name:       ath.name,
+      emailVerified: true,
       nickname:   ath.nickname,
       givenName:  ath.givenName,
       familyName: ath.familyName,
@@ -104,7 +104,7 @@ describe('UserService.get', () => {
     // Setup fake local user
     const lus = app.get(LocalUserService);
     const lcl = database.getRepository(LocalUser)
-      .create({ id: 'tests|users-user-20' });
+      .create({ id: 'tests|users-user-20', email: 'test20@user.users.com', name: 'Test 20' });
 
     jest.spyOn(lus, 'get')
       .mockImplementation(async () => lcl);
