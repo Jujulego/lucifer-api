@@ -8,11 +8,10 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Type } from 'class-transformer';
 
 import { LocalUser } from 'users/local.entity';
 
-import { DaemonConfig } from './config.entity';
+import { ConfigRegistry } from './configs/registry.entity';
 
 // Entity
 @Entity()
@@ -25,12 +24,11 @@ export class Daemon {
   name: string | null;
 
   // - relations
-  @OneToOne(() => DaemonConfig, config => config.daemon)
-  config?: DaemonConfig;
+  @OneToOne(() => ConfigRegistry, reg => reg.daemon)
+  registry?: ConfigRegistry;
 
   @ManyToOne(() => LocalUser, user => user.daemons, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'ownerId' })
-  @Type(() => LocalUser)
   owner?: LocalUser;
 
   @ManyToMany(() => Daemon, daemon => daemon.dependents)
