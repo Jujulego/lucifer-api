@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import 'axios-debug-log';
 
 import { env } from 'env';
 import { AppModule } from 'app.module';
