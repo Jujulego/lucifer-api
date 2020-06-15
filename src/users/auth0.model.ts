@@ -15,3 +15,8 @@ export interface Auth0User {
   lastLogin?: string;
   blocked?:   boolean;
 }
+
+export interface UpdateAuth0User {
+  email?: string;
+  name?:  string;
+}

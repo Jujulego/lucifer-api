@@ -2,11 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
-import { LocalUser } from './local.entity';
+import { LocalUser, RequiredFields } from './local.entity';
 
-// Type
-export type RequiredFields = Pick<LocalUser, 'id' | 'email' | 'name'>;
-
+// Type;
 export interface GetLocalUserOptions {
   full?: boolean
 }
@@ -65,6 +63,25 @@ export class LocalUserService {
       if (opts.full === false) {
         delete user.daemons;
       }
+    }
+
+    return user;
+  }
+
+  async updateOrCreate(id: string, data: RequiredFields): Promise<LocalUser> {
+    // Get user
+    let user = await this.get(id);
+
+    if (!user) {
+      // Create if not found
+      user = await this.create(data);
+
+    } else {
+      // Update
+      user.name  = data.name;
+      user.email = data.email;
+
+      await this.repository.save(user);
     }
 
     return user;

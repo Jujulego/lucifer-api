@@ -1,7 +1,7 @@
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { ManagementClient, User } from 'auth0';
 
-import { Auth0User } from './auth0.model';
+import { Auth0User, UpdateAuth0User } from './auth0.model';
 
 // Service
 @Injectable()
@@ -65,5 +65,16 @@ export class Auth0UserService {
     );
 
     return users.map(usr => Auth0UserService.format(usr));
+  }
+
+  async update(id: string, update: UpdateAuth0User): Promise<Auth0User> {
+    const user = await Auth0UserService.catch(() =>
+      this.auth0.updateUser({ id }, { name: update.name, email: update.email })
+    );
+
+    // Throw if not found
+    if (!user) throw new NotFoundException(`User ${id} not found`);
+
+    return Auth0UserService.format(user);
   }
 }

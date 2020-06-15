@@ -21,3 +21,6 @@ export class LocalUser {
   @Type(() => Daemon)
   daemons?: Daemon[];
 }
+
+// Types
+export type RequiredFields = Pick<LocalUser, 'id' | 'email' | 'name'>

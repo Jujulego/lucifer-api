@@ -1,10 +1,11 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 
 import { Auth0User } from './auth0.model';
-import { LocalUser } from './local.entity';
-import { User } from './user.model';
-import { LocalUserService, GetLocalUserOptions } from './local.service';
 import { Auth0UserService } from './auth0.service';
+import { LocalUser } from './local.entity';
+import { LocalUserService, GetLocalUserOptions } from './local.service';
+import { User } from './user.model';
+import { UpdateUser, updateSchema } from 'users/user.schema';
 
 // Service
 @Injectable()
@@ -108,5 +109,24 @@ export class UserService {
     const user = await this.auth0.get(id);
 
     return this.locals.getOrCreate(id, user, opts);
+  }
+
+  async update(id: string, update: UpdateUser): Promise<User> {
+    // Validate update
+    const { error, value } = updateSchema.validate(update);
+    if (error) throw new BadRequestException(error.message);
+
+    update = value;
+
+    // Update Auth0
+    const user = await this.auth0.update(id, {
+      name: update.name,
+      email: update.email
+    });
+
+    // Update local according Auth0's result
+    const local = await this.locals.updateOrCreate(id, user);
+
+    return this.merge(user, local);
   }
 }
