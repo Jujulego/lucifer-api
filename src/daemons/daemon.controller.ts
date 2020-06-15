@@ -7,8 +7,8 @@ import {
   HttpStatus,
   Param,
   Post,
-  Put,
-  UseGuards
+  Put, Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -52,5 +52,11 @@ export class DaemonController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteDaemon(@Param('id') id: string): Promise<void> {
     await this.daemons.delete(id);
+  }
+
+  @Delete('/')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteDaemons(@Query('ids') ids: string[]): Promise<void> {
+    await this.daemons.delete(...ids);
   }
 }

@@ -97,7 +97,7 @@ export class DaemonService {
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
+  async delete(...ids: string[]): Promise<void> {
+    await this.repository.delete(ids);
   }
 }
