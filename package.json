@@ -13,7 +13,7 @@
     "test": "jest",
     "lint": "eslint \"{src,tests}/**/*.ts\"",
     "start": "nest start --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "wizard": "snyk wizard"
   },
   "dependencies": {
