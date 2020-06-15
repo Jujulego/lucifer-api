@@ -57,7 +57,7 @@ export class DaemonService {
 
     // Get daemon
     const daemon = await this.repository.findOne(id, {
-      relations: ['owner']
+      relations: ['owner', 'dependencies', 'dependents']
     });
 
     if (!daemon) throw new NotFoundException(`Daemon ${id} not found`);
@@ -65,12 +65,27 @@ export class DaemonService {
     return daemon;
   }
 
+  async getAll(ids: string[]): Promise<Daemon[]> {
+    const daemons = await this.repository.findByIds(ids);
+
+    // Search for missings
+    if (daemons.length !== ids.length) {
+      const missing = ids.filter(id => !daemons.find(dmn => dmn.id === id));
+
+      if (missing.length > 0) {
+        throw new BadRequestException(`Daemons not found: ${ids.join(', ')}`);
+      }
+    }
+
+    return daemons;
+  }
+
   async update(id: string, update: DaemonUpdate): Promise<Daemon> {
     // Get daemon
     const daemon = await this.get(id);
 
     // Validate data
-    const result = daemonUpdate.validate(update);
+    const result = daemonUpdate.validate(update, { context: { id }});
     if (result.error) throw new BadRequestException(result.error.message);
 
     update = result.value;
@@ -85,6 +100,10 @@ export class DaemonService {
         } else {
           daemon.owner = await this.users.getLocal(update.ownerId, { full: false });
         }
+      }
+
+      if (update.dependencies) {
+        daemon.dependencies = await this.getAll(update.dependencies);
       }
 
       return await this.repository.save(daemon);
