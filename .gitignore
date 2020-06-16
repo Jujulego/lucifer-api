@@ -7,4 +7,5 @@
 # Files
 *.log
 /ormconfig.*
+/gcloud-*
 /.env
