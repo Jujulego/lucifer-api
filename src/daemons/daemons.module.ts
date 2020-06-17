@@ -4,22 +4,32 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from 'users/users.module';
 
 import { Daemon } from './daemon.entity';
+import { ConfigRegistry } from './configs/registry.entity';
+import { DockerConfig } from './configs/docker.entity';
 import { DaemonService } from './daemon.service';
+import { RegistryService } from './configs/registry.service';
+import { DockerService } from './configs/docker.service';
 import { DaemonController } from './daemon.controller';
-import { DaemonConfigModule } from 'daemons/configs/config.module';
+import { ConfigController } from './configs/config.controller';
 
 // Modules
 @Module({
   imports: [
-    DaemonConfigModule,
     UsersModule,
-    TypeOrmModule.forFeature([Daemon])
+    TypeOrmModule.forFeature([
+      Daemon,
+      ConfigRegistry,
+      DockerConfig
+    ])
   ],
   providers: [
-    DaemonService
+    DaemonService,
+    RegistryService,
+    DockerService
   ],
   controllers: [
-    DaemonController
+    DaemonController,
+    ConfigController
   ]
 })
 export class DaemonsModule {}

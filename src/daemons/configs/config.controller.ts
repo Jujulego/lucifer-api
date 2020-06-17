@@ -1,9 +1,10 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { env } from 'env';
 
 import { DaemonConfig, DaemonConfigType } from './config.entity';
+import { CreateConfig } from './config.schema';
 import { RegistryService } from './registry.service';
 
 // Controller
@@ -19,6 +20,14 @@ export class ConfigController {
   @Get('/types')
   getTypes(): DaemonConfigType[] {
     return this.registry.allowedTypes();
+  }
+
+  @Post('/')
+  async createConfig(
+    @Param('daemonId') daemonId: string,
+    @Body() data: CreateConfig
+  ): Promise<DaemonConfig> {
+    return await this.registry.createConfig(daemonId, data);
   }
 
   @Get('/')

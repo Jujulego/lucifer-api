@@ -1,4 +1,5 @@
 import { Column, Entity, OneToOne } from 'typeorm';
+import { Exclude } from 'class-transformer';
 
 import { Daemon } from '../daemon.entity';
 import { DaemonConfig } from './config.entity';
@@ -11,17 +12,18 @@ export class DockerConfig extends DaemonConfig {
   readonly type = 'docker';
 
   // Columns
-  @Column()
+  @Column({ nullable: true })
   image: string;
 
-  @Column('json')
+  @Column('json', { default: {} })
   env: Record<string, string>;
 
   // - relations
   @OneToOne(() => ConfigRegistry, reg => reg.docker)
-  registry: ConfigRegistry;
+  @Exclude() registry: ConfigRegistry;
 
   // Properties
+  @Exclude()
   get daemon(): Daemon {
     return this.registry?.daemon;
   }
