@@ -2,8 +2,9 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ConfigRegistry } from './registry.entity';
+import { RegistryService } from './registry.service';
 import { DockerConfig } from './docker.entity';
-import { ConfigService } from './config.service';
+import { DockerService } from './docker.service';
 import { ConfigController } from './config.controller';
 
 // Module
@@ -14,7 +15,10 @@ import { ConfigController } from './config.controller';
       DockerConfig
     ])
   ],
-  providers: [ConfigService],
+  providers: [
+    RegistryService,
+    DockerService
+  ],
   controllers: [ConfigController]
 })
 export class DaemonConfigModule {}

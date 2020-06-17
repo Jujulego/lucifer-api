@@ -1,4 +1,4 @@
-import { Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Exclude } from 'class-transformer';
 
 import { Daemon } from '../daemon.entity';
@@ -18,4 +18,7 @@ export class ConfigRegistry {
   @OneToOne(() => DockerConfig, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn()
   docker?: DockerConfig;
+
+  @Column('uuid', { nullable: true })
+  dockerId?: string;
 }
