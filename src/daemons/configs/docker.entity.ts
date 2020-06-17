@@ -7,6 +7,9 @@ import { ConfigRegistry } from './registry.entity';
 // Entity
 @Entity()
 export class DockerConfig extends DaemonConfig {
+  // Attribute
+  readonly type = 'docker';
+
   // Columns
   @Column()
   image: string;

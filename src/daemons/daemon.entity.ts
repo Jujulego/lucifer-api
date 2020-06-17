@@ -37,8 +37,8 @@ export class Daemon {
     joinColumn: { name: 'dependent' },
     inverseJoinColumn: { name: 'dependency' }
   })
-  dependencies: Daemon[]
+  dependencies: Daemon[];
 
   @ManyToMany(() => Daemon, daemon => daemon.dependencies)
-  dependents: Daemon[]
+  dependents: Daemon[];
 }
