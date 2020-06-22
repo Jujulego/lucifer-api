@@ -1,5 +1,0 @@
-service: lucifer-api
-
-runtime: nodejs12
-instance_class: F4
-entrypoint: 'yarn run start:prod'

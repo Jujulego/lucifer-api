@@ -14,7 +14,7 @@ ADD yarn.lock /app/
 RUN yarn install --prod --pure-lockfile
 
 # Copy builded files
-ADD build/src /app/src
+ADD dist/src /app/src
 
 # Setup entrypoint
 ENTRYPOINT node src/main.js
