@@ -32,6 +32,8 @@ function toWebpack(paths: any[] = []) {
           toWebpack(options.migrations);
         }
 
+        console.log(options);
+
         return options;
       }
     })
