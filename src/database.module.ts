@@ -20,7 +20,7 @@ function toWebpack(paths: any[] = []) {
   imports: [
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
-        let options: TypeOrmModuleOptions;
+        let options: TypeOrmModuleOptions = {};
         options.autoLoadEntities = true;
 
         if (env.DATABASE_URL) {
