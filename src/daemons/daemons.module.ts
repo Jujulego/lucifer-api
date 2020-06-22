@@ -10,7 +10,7 @@ import { DaemonService } from './daemon.service';
 import { RegistryService } from './configs/registry.service';
 import { DockerService } from './configs/docker.service';
 import { DaemonController } from './daemon.controller';
-import { ConfigController } from './configs/config.controller';
+import { RegistryController } from 'daemons/configs/registry.controller';
 
 // Modules
 @Module({
@@ -29,7 +29,7 @@ import { ConfigController } from './configs/config.controller';
   ],
   controllers: [
     DaemonController,
-    ConfigController
+    RegistryController
   ]
 })
 export class DaemonsModule {}

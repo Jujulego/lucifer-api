@@ -1,10 +1,13 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { plainToClass } from 'class-transformer';
+import { validate } from 'class-validator';
 import { Repository } from 'typeorm';
 
 import { DaemonConfig, DaemonConfigType } from './config.entity';
 import { ConfigRegistry } from './registry.entity';
 import { DockerService } from './docker.service';
+import { DockerSchema } from './docker.schema';
 import { CreateConfig } from './config.schema';
 import { DaemonService } from 'daemons/daemon.service';
 
@@ -60,5 +63,30 @@ export class RegistryService {
     }
 
     return null;
+  }
+
+  async updateConfig(daemonId: string, data: any): Promise<DaemonConfig> {
+    const entry = await this.registry.findOne({
+      daemon: { id: daemonId }
+    });
+
+    // No config
+    if (!entry) {
+      throw new NotFoundException(`Daemon ${daemonId} has no configuration yet`);
+    }
+
+    // Update config
+    if (entry.dockerId) {
+      const update = plainToClass(DockerSchema, data);
+      const errors = await validate(update);
+
+      if (errors.length > 0) {
+        throw new BadRequestException(errors);
+      }
+
+      return await this.docker.update(entry.dockerId, update);
+    }
+
+    throw new NotFoundException(`Daemon ${daemonId} has no configuration yet`);
   }
 }

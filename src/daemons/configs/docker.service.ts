@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { DockerConfig } from './docker.entity';
+import { DockerSchema } from './docker.schema';
 
 // Service
 @Injectable()
@@ -26,5 +27,19 @@ export class DockerService {
     }
 
     return config;
+  }
+
+  async update(id: string, update: DockerSchema): Promise<DockerConfig> {
+    const config = await this.get(id);
+
+    if (!config.env) {
+      config.env = {};
+    }
+
+    // Apply update
+    if (update.image) config.image = update.image;
+    if (update.env) config.env = Object.assign(config.env, update.env);
+
+    return await this.repository.save(config);
   }
 }

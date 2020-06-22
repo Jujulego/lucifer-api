@@ -1,6 +1,9 @@
-import { DaemonConfigType } from 'daemons/configs/config.entity';
+import { IsIn } from 'class-validator';
+
+import { DaemonConfigType } from './config.entity';
 
 // Types
-export interface CreateConfig {
+export class CreateConfig {
+  @IsIn(['docker'])
   type: DaemonConfigType;
 }

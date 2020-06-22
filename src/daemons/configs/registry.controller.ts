@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Put, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { env } from 'env';
@@ -10,7 +10,7 @@ import { RegistryService } from './registry.service';
 // Controller
 @Controller('/api/daemons/:daemonId/config')
 @UseGuards(AuthGuard(env.AUTH_STRATEGY))
-export class ConfigController {
+export class RegistryController {
   // Constructor
   constructor(
     private registry: RegistryService
@@ -24,14 +24,22 @@ export class ConfigController {
 
   @Post('/')
   async createConfig(
-    @Param('daemonId') daemonId: string,
-    @Body() data: CreateConfig
+    @Param('daemonId', ParseUUIDPipe) daemonId: string,
+    @Body(ValidationPipe) data: CreateConfig
   ): Promise<DaemonConfig> {
     return await this.registry.createConfig(daemonId, data);
   }
 
   @Get('/')
-  async getConfig(@Param('daemonId') daemonId: string): Promise<DaemonConfig | null> {
+  async getConfig(@Param('daemonId', ParseUUIDPipe) daemonId: string): Promise<DaemonConfig | null> {
     return await this.registry.getConfig(daemonId);
+  }
+
+  @Put('/')
+  async updateConfig(
+    @Param('daemonId', ParseUUIDPipe) daemonId: string,
+    @Body() data: any
+  ): Promise<DaemonConfig> {
+    return await this.registry.updateConfig(daemonId, data);
   }
 }
