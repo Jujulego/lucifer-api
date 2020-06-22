@@ -20,11 +20,13 @@ function toWebpack(paths: any[] = []) {
   imports: [
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
-        const options = await getConnectionOptions() as TypeOrmModuleOptions;
+        let options: TypeOrmModuleOptions;
         options.autoLoadEntities = true;
 
         if (env.DATABASE_URL) {
           Object.assign(options, { url: env.DATABASE_URL });
+        } else {
+          options = await getConnectionOptions();
         }
 
         if (!env.TESTS) {
