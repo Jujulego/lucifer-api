@@ -1,35 +1,26 @@
-import { MockService } from 'utils';
-import { HttpError } from 'utils/errors';
-
-import { Auth0Service } from 'auth0.service';
+import { OverrideByFactoryOptions } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
+import { ManagementClient } from 'auth0';
 
 import { Auth0User } from './auth0.model';
 import { Auth0UserService } from './auth0.service';
 
-// Types
-export type MockAuth0User = Omit<Auth0User, 'id'>
+import auth0Mock from 'mocks/auth0.mock.json';
 
-// Service
-@MockService(Auth0UserService, { singleton: true })
-export class MockAuth0UserService extends Auth0UserService {
-  // Attributes
-  private data: Auth0User[] = [];
-
+// Mock
+export class Auth0UserMock extends Auth0UserService {
   // Constructor
   constructor(
-    auth0: Auth0Service
+    auth0: ManagementClient,
+    private data: Auth0User[]
   ) { super(auth0); }
 
   // Methods
-  setMockData(id: string, data: MockAuth0User[]): void {
-    this.data = data.map((usr, i) => ({ ...usr, id: `${id}-${i+1}`}));
-  }
-
   async get(id: string): Promise<Auth0User> {
     const user = this.data.find(usr => usr.id === id);
 
     // Throw if not found
-    if (!user) throw HttpError.NotFound(`User ${id} not found`);
+    if (!user) throw new NotFoundException(`User ${id} not found`);
 
     return user;
   }
@@ -38,3 +29,8 @@ export class MockAuth0UserService extends Auth0UserService {
     return this.data;
   }
 }
+
+// Factory
+export const factoryAuth0UserMock = (pattern: string): OverrideByFactoryOptions => ({
+  factory: (auth0: ManagementClient) => new Auth0UserMock(auth0, auth0Mock.map((usr, i) => ({ ...usr, id: `${pattern}-${i+1}`})))
+});

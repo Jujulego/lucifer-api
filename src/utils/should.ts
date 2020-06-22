@@ -1,6 +1,7 @@
+import { HttpStatus } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 
-import { HTTP_ERRORS, IHttpError } from './errors';
+import { HTTP_CODES } from './http';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
@@ -106,19 +107,18 @@ export const should = {
 
   // Schemas
   be: {
-    httpError(status: keyof typeof HTTP_ERRORS, message: string): IHttpError {
+    httpError(status: HttpStatus, message?: string): any {
       return {
-        status,
-        error: HTTP_ERRORS[status],
-        message: message
+        statusCode: status,
+        message: message || HTTP_CODES[status]
       }
     },
 
-    badRequest(  message?: string): IHttpError { return this.httpError(400, message || HTTP_ERRORS[400])},
-    unauthorized(message?: string): IHttpError { return this.httpError(401, message || HTTP_ERRORS[401])},
-    forbidden(   message?: string): IHttpError { return this.httpError(403, message || HTTP_ERRORS[403])},
-    notFound(    message?: string): IHttpError { return this.httpError(404, message || HTTP_ERRORS[404])},
-    serverError( message?: string): IHttpError { return this.httpError(500, message || HTTP_ERRORS[500])}
+    badRequest(  message?: string): any { return this.httpError(400, message)},
+    unauthorized(message?: string): any { return this.httpError(401, message)},
+    forbidden(   message?: string): any { return this.httpError(403, message)},
+    notFound(    message?: string): any { return this.httpError(404, message)},
+    serverError( message?: string): any { return this.httpError(500, message)}
   },
 
   // Inverted

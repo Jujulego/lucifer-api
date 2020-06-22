@@ -1,30 +1,44 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
-
-import { json, toJSON } from 'utils';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { LocalUser } from 'users/local.entity';
 
-// Interface
-export interface IDaemon {
-  id: string;
-  ownerId?: string;
-}
+import { ConfigRegistry } from './configs/registry.entity';
 
 // Entity
 @Entity()
 export class Daemon {
   // Columns
   @PrimaryGeneratedColumn('uuid')
-  @json() id: string;
+  id: string;
+
+  @Column('varchar', { length: 100, nullable: true })
+  name: string | null;
 
   // - relations
-  @ManyToOne(type => LocalUser, user => user.daemons, { onDelete: 'SET NULL' })
+  @OneToOne(() => ConfigRegistry, reg => reg.daemon)
+  registry?: ConfigRegistry;
+
+  @ManyToOne(() => LocalUser, user => user.daemons, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'ownerId' })
   owner?: LocalUser;
 
-  @Column({ name: 'ownerId', nullable: true })
-  @json() ownerId?: string;
+  @ManyToMany(() => Daemon, daemon => daemon.dependents)
+  @JoinTable({
+    name: 'daemon_dependencies',
+    joinColumn: { name: 'dependent' },
+    inverseJoinColumn: { name: 'dependency' }
+  })
+  dependencies: Daemon[];
 
-  // Methods
-  toJSON(): IDaemon { return toJSON<IDaemon>(this) }
+  @ManyToMany(() => Daemon, daemon => daemon.dependencies)
+  dependents: Daemon[];
 }

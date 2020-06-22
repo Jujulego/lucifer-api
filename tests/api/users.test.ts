@@ -1,35 +1,40 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import { Connection } from 'typeorm';
 import supertest from 'supertest';
 
-import { app } from 'app';
-import { DIContainer, loadServices } from 'inversify.config';
-import { login } from 'tests/utils';
-
-import { DatabaseService } from 'db.service';
+import { AppModule } from 'app.module';
+import { Auth0UserService } from 'users/auth0.service';
+import { factoryAuth0UserMock } from 'users/auth0.mock';
 import { LocalUser } from 'users/local.entity';
 
-import 'users/auth0.mock';
-import { MockAuth0UserService } from 'users/auth0.mock';
+import { login } from 'tests/utils';
+
 import auth0Mock from 'mocks/auth0.mock.json';
-import { Auth0UserService } from 'users/auth0.service';
 
 // Server setup
-let database: DatabaseService;
+let app: INestApplication;
+let database: Connection;
 let request: ReturnType<typeof supertest>;
 
 beforeAll(async () => {
-  // Load services
-  loadServices();
+  const module = await Test.createTestingModule({
+    imports: [AppModule]
+  })
+    .overrideProvider(Auth0UserService).useFactory(factoryAuth0UserMock('tests|api-users'))
+    .compile();
 
-  database = DIContainer.get(DatabaseService);
-  await database.connect();
+  app = module.createNestApplication();
+  await app.init();
 
   // Start server
-  request = supertest(app);
+  request = supertest(app.getHttpServer());
+  database = app.get(Connection);
 });
 
 // Disconnect
 afterAll(async () => {
-  await database.disconnect();
+  await app?.close();
 });
 
 // Fill database
@@ -37,27 +42,23 @@ let users: LocalUser[];
 let token: string;
 
 beforeEach(async () => {
-  await database.connection.transaction(async manager => {
+  await database.transaction(async manager => {
     const usrRepo = manager.getRepository(LocalUser);
 
     // Create some users
     users = await usrRepo.save([
-      usrRepo.create({ id: 'tests|api-users-1', daemons: [] }),
-      usrRepo.create({ id: 'tests|api-users-2', daemons: [] })
+      usrRepo.create({ id: 'tests|api-users-1', email: 'test1@users.api.com', name: 'Test 1', daemons: [] }),
+      usrRepo.create({ id: 'tests|api-users-2', email: 'test2@users.api.com', name: 'Test 2', daemons: [] })
     ]);
   });
 
   // Get tokens
-  token = await login('tests|api-users-1');
-
-  // Set mock data
-  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
-    .setMockData('tests|api-users', auth0Mock);
+  token = await login(app, 'tests|api-users-1');
 });
 
 // Empty database
 afterEach(async () => {
-  const usrRepo = database.connection.getRepository(LocalUser);
+  const usrRepo = database.getRepository(LocalUser);
 
   await usrRepo.delete(users.map(usr => usr.id));
 });

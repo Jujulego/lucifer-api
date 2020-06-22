@@ -1,14 +1,14 @@
-import { Service } from 'utils';
-import { HttpError } from 'utils/errors';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 import { Auth0User } from './auth0.model';
-import { LocalUser } from './local.entity';
-import { User } from './user.model';
-import { LocalUserService } from './local.service';
 import { Auth0UserService } from './auth0.service';
+import { LocalUser } from './local.entity';
+import { LocalUserService, GetLocalUserOptions } from './local.service';
+import { User } from './user.model';
+import { UpdateUser } from './user.schema';
 
 // Service
-@Service()
+@Injectable()
 export class UserService {
   // Constructor
   constructor(
@@ -19,29 +19,36 @@ export class UserService {
   // Methods
   private merge(user: Auth0User, local: LocalUser | null): User {
     if (local && user.id !== local.id) {
-      throw HttpError.ServerError(`Trying to merge ${user.id} and ${local.id}`);
+      throw new InternalServerErrorException(`Trying to merge ${user.id} and ${local.id}`);
     }
 
-    // Merge
-    const json = local?.toJSON();
-
-    return {
+    // Mandatory fields
+    const res: User = {
       id:        user.id,
       email:     user.email,
-      emailVerified: user.emailVerified || false,
-      username:  user.username,
       name:      user.name,
-      nickname:  user.nickname,
-      givenName: user.givenName,
-      familyName: user.familyName,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-      picture:   user.picture,
-      lastIp:    user.lastIp,
-      lastLogin: user.lastLogin,
-      blocked:   user.blocked,
-      daemons:   json?.daemons
+      nickname:  user.nickname
     };
+
+    // Optional fields
+    if ('emailVerified' in user) res.emailVerified = user.emailVerified;
+    if ('nickname'   in user) res.nickname   = user.nickname;
+    if ('username'   in user) res.username   = user.username;
+    if ('givenName'  in user) res.givenName  = user.givenName;
+    if ('familyName' in user) res.familyName = user.familyName;
+    if ('createdAt'  in user) res.createdAt  = user.createdAt;
+    if ('updatedAt'  in user) res.updatedAt  = user.updatedAt;
+    if ('picture'    in user) res.picture    = user.picture;
+    if ('lastIp'     in user) res.lastIp     = user.lastIp;
+    if ('lastLogin'  in user) res.lastLogin  = user.lastLogin;
+    if ('blocked'    in user) res.blocked    = user.blocked;
+
+    // Local fields
+    if (local) {
+      if ('daemons' in local) res.daemons = local.daemons;
+    }
+
+    return res;
   }
 
   private join(users: Auth0User[], locals: LocalUser[]): User[] {
@@ -89,21 +96,31 @@ export class UserService {
     return this.join(users, locals);
   }
 
-  async get(id: string): Promise<User> {
+  async get(id: string, opts?: GetLocalUserOptions): Promise<User> {
     const [local, user] = await Promise.all([
-      this.locals.get(id),
+      this.locals.get(id, opts),
       this.auth0.get(id)
     ]);
 
     return this.merge(user!, local);
   }
 
-  async getLocal(id: string): Promise<LocalUser> {
-    const [local,] = await Promise.all([
-      this.locals.getOrCreate(id),
-      this.auth0.get(id)
-    ]);
+  async getLocal(id: string, opts?: GetLocalUserOptions): Promise<LocalUser> {
+    const user = await this.auth0.get(id);
 
-    return local;
+    return this.locals.getOrCreate(id, user, opts);
+  }
+
+  async update(id: string, update: UpdateUser): Promise<User> {
+    // Update Auth0
+    const user = await this.auth0.update(id, {
+      name: update.name,
+      email: update.email
+    });
+
+    // Update local according Auth0's result
+    const local = await this.locals.updateOrCreate(id, user);
+
+    return this.merge(user, local);
   }
 }

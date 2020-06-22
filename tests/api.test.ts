@@ -1,27 +1,27 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import supertest from 'supertest';
 
-import { app } from 'app';
-import { DatabaseService } from 'db.service';
-import { DIContainer, loadServices } from 'inversify.config';
+import { AppModule } from 'app.module';
 
 // Server setup
-let database: DatabaseService;
+let app: INestApplication;
 let request: ReturnType<typeof supertest>;
 
-// Load services
 beforeAll(async () => {
-  loadServices();
+  const module = await Test.createTestingModule({
+    imports: [AppModule]
+  }).compile();
 
-  database = DIContainer.get(DatabaseService);
-  await database.connect();
+  app = module.createNestApplication();
+  await app.init();
 
   // Start server
-  request = supertest(app);
+  request = supertest(app.getHttpServer());
 });
 
-// Disconnect
 afterAll(async () => {
-  await database.disconnect();
+  await app?.close();
 });
 
 // Tests

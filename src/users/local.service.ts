@@ -1,24 +1,33 @@
-import { Service, transaction } from 'utils';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
-import { DatabaseService, EntityService } from 'db.service';
+import { LocalUser, RequiredFields } from './local.entity';
 
-import { LocalUser } from './local.entity';
+// Type;
+export interface GetLocalUserOptions {
+  full?: boolean
+}
 
 // Service
-@Service()
-export class LocalUserService extends EntityService<LocalUser> {
+@Injectable()
+export class LocalUserService {
   // Attributes
   entity = LocalUser;
 
   // Constructor
   constructor(
-    database: DatabaseService
-  ) { super(database) }
+    @InjectRepository(LocalUser) private repository: Repository<LocalUser>
+  ) {}
 
   // Methods
-  async create(id: string): Promise<LocalUser> {
+  async create(data: RequiredFields): Promise<LocalUser> {
     // Create user
-    const user = this.repository.create({ id });
+    const user = this.repository.create({
+      id:    data.id,
+      email: data.email,
+      name:  data.name
+    });
     user.daemons = [];
 
     return await this.repository.save(user);
@@ -31,23 +40,49 @@ export class LocalUserService extends EntityService<LocalUser> {
     });
   }
 
-  async get(id: string): Promise<LocalUser | null> {
+  async get(id: string, opts: GetLocalUserOptions = {}): Promise<LocalUser | null> {
+    const { full = true } = opts;
+
     // Get user
     const user = await this.repository.findOne({
-      relations: ['daemons'],
+      relations: full ? ['daemons'] : [],
       where: { id }
     });
 
     return user || null;
   }
 
-  @transaction()
-  async getOrCreate(id: string): Promise<LocalUser> {
+  async getOrCreate(id: string, data: RequiredFields, opts: GetLocalUserOptions = {}): Promise<LocalUser> {
     // Get user
-    const user = await this.get(id);
+    let user = await this.get(id, opts);
 
     // Create if not found
-    if (!user) return this.create(id);
+    if (!user) {
+      user = await this.create(data);
+
+      if (opts.full === false) {
+        delete user.daemons;
+      }
+    }
+
+    return user;
+  }
+
+  async updateOrCreate(id: string, data: RequiredFields): Promise<LocalUser> {
+    // Get user
+    let user = await this.get(id);
+
+    if (!user) {
+      // Create if not found
+      user = await this.create(data);
+
+    } else {
+      // Update
+      user.name  = data.name;
+      user.email = data.email;
+
+      await this.repository.save(user);
+    }
 
     return user;
   }

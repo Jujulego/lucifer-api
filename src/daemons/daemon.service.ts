@@ -1,47 +1,38 @@
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import validator from 'validator';
 
-import { Service } from 'utils';
-import { HttpError } from 'utils/errors';
-
-import { DatabaseService, EntityService } from 'db.service';
 import { UserService } from 'users/user.service';
 
 import { Daemon } from './daemon.entity';
-import { daemonCreate, DaemonCreate } from './daemon.schema';
-import { daemonUpdate, DaemonUpdate } from './daemon.schema';
+import { DaemonCreate, DaemonUpdate } from './daemon.schema';
 
 // Service
-@Service()
-export class DaemonService extends EntityService<Daemon> {
-  // Attributes
-  entity = Daemon;
-
+@Injectable()
+export class DaemonService {
   // Constructor
   constructor(
-    database: DatabaseService,
-    private users: UserService
-  ) { super(database) }
+    private users: UserService,
+    @InjectRepository(Daemon) private repository: Repository<Daemon>
+  ) {}
 
   // Methods
   async create(data: DaemonCreate): Promise<Daemon> {
-    // Validate data
-    const result = daemonCreate.validate(data);
-    if (result.error) throw HttpError.BadRequest(result.error.message);
-
-    data = result.value;
-
     try {
       // Create daemon
-      const daemon = this.repository.create();
+      const daemon = this.repository.create({
+        name: data.name
+      });
 
       if (data.ownerId) {
-        daemon.owner = await this.users.getLocal(data.ownerId);
+        daemon.owner = await this.users.getLocal(data.ownerId, { full: false });
       }
 
       return await this.repository.save(daemon);
     } catch (error) {
-      if (error instanceof HttpError) {
-        if (error.status === 404) throw HttpError.BadRequest(error.message);
+      if (error instanceof HttpException) {
+        if (error.getStatus() === 404) throw new BadRequestException(error.message);
       }
 
       throw error;
@@ -55,16 +46,31 @@ export class DaemonService extends EntityService<Daemon> {
   }
 
   async get(id: string): Promise<Daemon> {
-    if (!validator.isUUID(id)) throw HttpError.NotFound(`Daemon ${id} not found`);
+    if (!validator.isUUID(id)) throw new NotFoundException(`Daemon ${id} not found`);
 
     // Get daemon
     const daemon = await this.repository.findOne(id, {
-      relations: ['owner']
+      relations: ['owner', 'dependencies', 'dependents']
     });
 
-    if (!daemon) throw HttpError.NotFound(`Daemon ${id} not found`);
+    if (!daemon) throw new NotFoundException(`Daemon ${id} not found`);
 
     return daemon;
+  }
+
+  async getAll(ids: string[]): Promise<Daemon[]> {
+    const daemons = await this.repository.findByIds(ids);
+
+    // Search for missings
+    if (daemons.length !== ids.length) {
+      const missing = ids.filter(id => !daemons.find(dmn => dmn.id === id));
+
+      if (missing.length > 0) {
+        throw new BadRequestException(`Daemons not found: ${ids.join(', ')}`);
+      }
+    }
+
+    return daemons;
   }
 
   async update(id: string, update: DaemonUpdate): Promise<Daemon> {
@@ -72,32 +78,37 @@ export class DaemonService extends EntityService<Daemon> {
     const daemon = await this.get(id);
 
     // Validate data
-    const result = daemonUpdate.validate(update);
-    if (result.error) throw HttpError.BadRequest(result.error.message);
-
-    update = result.value;
+    if (update.dependencies?.includes(id)) {
+      throw new BadRequestException('A daemon cannot depend on itself');
+    }
 
     try {
       // Apply update
+      if ('name' in update) daemon.name = update.name || null;
+
       if ('ownerId' in update) {
         if (!update.ownerId) {
           daemon.owner = undefined;
         } else {
-          daemon.owner = await this.users.getLocal(update.ownerId);
+          daemon.owner = await this.users.getLocal(update.ownerId, { full: false });
         }
+      }
+
+      if (update.dependencies) {
+        daemon.dependencies = await this.getAll(update.dependencies);
       }
 
       return await this.repository.save(daemon);
     } catch (error) {
-      if (error instanceof HttpError) {
-        if (error.status === 404) throw HttpError.BadRequest(error.message);
+      if (error instanceof HttpException) {
+        if (error.getStatus() === 404) throw new BadRequestException(error.message);
       }
 
       throw error;
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
+  async delete(...ids: string[]): Promise<void> {
+    await this.repository.delete(ids);
   }
 }

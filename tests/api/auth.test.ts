@@ -1,47 +1,42 @@
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import supertest from 'supertest';
 
-import { app } from 'app';
-import { DIContainer, loadServices } from 'inversify.config';
+import { AppModule } from 'app.module';
+import { Auth0UserService } from 'users/auth0.service';
+import { factoryAuth0UserMock } from 'users/auth0.mock';
+
 import { should } from 'utils';
 import { login } from 'tests/utils';
 
-import { DatabaseService } from 'db.service';
-import { Auth0UserService } from 'users/auth0.service';
-
-import 'users/auth0.mock';
-import { MockAuth0UserService } from 'users/auth0.mock';
-import auth0Mock from 'mocks/auth0.mock.json';
-
 // Server setup
-let database: DatabaseService;
+let app: INestApplication;
 let request: ReturnType<typeof supertest>;
 
 beforeAll(async () => {
-  // Load services
-  loadServices();
+  const module = await Test.createTestingModule({
+    imports: [AppModule]
+  })
+    .overrideProvider(Auth0UserService).useFactory(factoryAuth0UserMock('tests|api-auth'))
+    .compile();
 
-  database = DIContainer.get(DatabaseService);
-  await database.connect();
+  app = module.createNestApplication();
+  await app.init();
 
   // Start server
-  request = supertest(app);
+  request = supertest(app.getHttpServer());
 });
 
-// Disconnect
 afterAll(async () => {
-  await database.disconnect();
+  await app?.close();
 });
 
 // Fill database
 let token: string;
 
 beforeEach(async () => {
-  // Get tokens
-  token = await login('tests|api-auth-1');
-
-  // Set mock data
-  (DIContainer.get(Auth0UserService) as MockAuth0UserService)
-    .setMockData('tests|api-auth', auth0Mock);
+  // Get token
+  token = await login(app, 'tests|api-auth-1');
 });
 
 // Tests

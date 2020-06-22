@@ -1,9 +1,11 @@
 # Directories
 /build/
+/dist/
 /coverage/
 /node_modules/
 
 # Files
 *.log
 /ormconfig.*
+/gcloud-*
 /.env
