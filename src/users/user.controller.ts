@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Put, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
 import { env } from 'env';
@@ -28,7 +28,7 @@ export class UserController {
   }
 
   @Put('/:id')
-  async putUser(@Param('id') id: string, @Body() update: UpdateUser): Promise<User> {
+  async putUser(@Param('id') id: string, @Body(ValidationPipe) update: UpdateUser): Promise<User> {
     return this.users.update(id, update);
   }
 }

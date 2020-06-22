@@ -1,11 +1,11 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 
 import { Auth0User } from './auth0.model';
 import { Auth0UserService } from './auth0.service';
 import { LocalUser } from './local.entity';
 import { LocalUserService, GetLocalUserOptions } from './local.service';
 import { User } from './user.model';
-import { UpdateUser, updateSchema } from 'users/user.schema';
+import { UpdateUser } from './user.schema';
 
 // Service
 @Injectable()
@@ -112,12 +112,6 @@ export class UserService {
   }
 
   async update(id: string, update: UpdateUser): Promise<User> {
-    // Validate update
-    const { error, value } = updateSchema.validate(update);
-    if (error) throw new BadRequestException(error.message);
-
-    update = value;
-
     // Update Auth0
     const user = await this.auth0.update(id, {
       name: update.name,

@@ -1,28 +1,21 @@
-import joi from '@hapi/joi';
-
-// Types
-export type DaemonCreate = {
-  name?: string,
-  ownerId?: string
-};
-
-export type DaemonUpdate = {
-  name?: string,
-  ownerId?: string,
-  dependencies?: string[]
-};
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 // Schemas
-export const daemonCreate = joi.object({
-  name: joi.string().allow('', null),
-  ownerId: joi.string().allow('', null)
-});
+export class DaemonCreate {
+  @IsString() @IsOptional()
+  name?: string;
 
-export const daemonUpdate = joi.object({
-  name: joi.string().allow('', null),
-  ownerId: joi.string().allow('', null),
-  dependencies: joi.array().items(
-    joi.string().uuid()
-      .not(joi.ref('$id'))
-  )
-});
+  @IsString() @IsOptional()
+  ownerId?: string;
+}
+
+export class DaemonUpdate {
+  @IsString() @IsOptional()
+  name?: string;
+
+  @IsString() @IsOptional()
+  ownerId?: string;
+
+  @IsUUID('all', { each: true }) @IsOptional()
+  dependencies?: string[];
+}

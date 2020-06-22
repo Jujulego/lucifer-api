@@ -6,8 +6,7 @@ import validator from 'validator';
 import { UserService } from 'users/user.service';
 
 import { Daemon } from './daemon.entity';
-import { daemonCreate, DaemonCreate } from './daemon.schema';
-import { daemonUpdate, DaemonUpdate } from './daemon.schema';
+import { DaemonCreate, DaemonUpdate } from './daemon.schema';
 
 // Service
 @Injectable()
@@ -20,12 +19,6 @@ export class DaemonService {
 
   // Methods
   async create(data: DaemonCreate): Promise<Daemon> {
-    // Validate data
-    const result = daemonCreate.validate(data);
-    if (result.error) throw new BadRequestException(result.error.message);
-
-    data = result.value;
-
     try {
       // Create daemon
       const daemon = this.repository.create({
@@ -85,10 +78,9 @@ export class DaemonService {
     const daemon = await this.get(id);
 
     // Validate data
-    const result = daemonUpdate.validate(update, { context: { id }});
-    if (result.error) throw new BadRequestException(result.error.message);
-
-    update = result.value;
+    if (update.dependencies?.includes(id)) {
+      throw new BadRequestException('A daemon cannot depend on itself');
+    }
 
     try {
       // Apply update

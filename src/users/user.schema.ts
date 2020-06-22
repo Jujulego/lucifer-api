@@ -1,13 +1,10 @@
-import joi from '@hapi/joi';
-
-// Types
-export interface UpdateUser {
-  name?:  string;
-  email?: string;
-}
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 // Schema
-export const updateSchema = joi.object({
-  name: joi.string(),
-  email: joi.string().email()
-});
+export class UpdateUser {
+  @IsString() @IsOptional()
+  name?: string;
+
+  @IsEmail() @IsOptional()
+  email?: string;
+}

@@ -5,10 +5,10 @@ import {
   Get,
   HttpCode,
   HttpStatus,
-  Param,
+  Param, ParseUUIDPipe,
   Post,
   Put, Query,
-  UseGuards,
+  UseGuards, ValidationPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -34,23 +34,23 @@ export class DaemonController {
   }
 
   @Post('/')
-  async postDaemon(@Body() body: DaemonCreate): Promise<Daemon> {
+  async postDaemon(@Body(ValidationPipe) body: DaemonCreate): Promise<Daemon> {
     return await this.daemons.create(body);
   }
 
   @Get('/:id')
-  async getDaemon(@Param('id') id: string): Promise<Daemon> {
+  async getDaemon(@Param('id', ParseUUIDPipe) id: string): Promise<Daemon> {
     return await this.daemons.get(id);
   }
 
   @Put('/:id')
-  async putDaemon(@Param('id') id: string, @Body() body: DaemonUpdate): Promise<Daemon> {
+  async putDaemon(@Param('id', ParseUUIDPipe) id: string, @Body(ValidationPipe) body: DaemonUpdate): Promise<Daemon> {
     return await this.daemons.update(id, body);
   }
 
   @Delete('/:id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteDaemon(@Param('id') id: string): Promise<void> {
+  async deleteDaemon(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     await this.daemons.delete(id);
   }
 
