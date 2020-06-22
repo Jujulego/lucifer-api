@@ -129,7 +129,9 @@ describe('DaemonService.update', () => {
       .resolves.toEqual({
         id:    daemon.id,
         name:  null,
-        owner: expect.objectContaining({ id: user.id })
+        owner: expect.objectContaining({ id: user.id }),
+        dependencies: [],
+        dependents: []
       });
   });
 
