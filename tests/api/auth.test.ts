@@ -1,113 +1,57 @@
-import mongoose from 'mongoose';
+import { Test } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
 import supertest from 'supertest';
-import 'reflect-metadata';
 
-import app from 'app';
-import * as db from 'db';
-import { loadServices } from 'inversify.config';
+import { AppModule } from 'app.module';
+import { Auth0UserService } from 'users/auth0.service';
+import { factoryAuth0UserMock } from 'users/auth0.mock';
 
-import UserModel from 'data/user/user.model';
-import { User } from 'data/user/user';
+import { should } from 'utils';
+import { login } from 'tests/utils';
 
-import { userLogin } from '../utils';
-import { should } from '../../src/utils';
-import validator from 'validator';
+// Server setup
+let app: INestApplication;
+let request: ReturnType<typeof supertest>;
+
+beforeAll(async () => {
+  const module = await Test.createTestingModule({
+    imports: [AppModule]
+  })
+    .overrideProvider(Auth0UserService).useFactory(factoryAuth0UserMock('tests|api-auth'))
+    .compile();
+
+  app = module.createNestApplication();
+  await app.init();
+
+  // Start server
+  request = supertest(app.getHttpServer());
+});
+
+afterAll(async () => {
+  await app?.close();
+});
+
+// Fill database
+let token: string;
+
+beforeEach(async () => {
+  // Get token
+  token = await login(app, 'tests|api-auth-1');
+});
 
 // Tests
-describe('api/auth', () => {
-  // Server setup
-  let request: ReturnType<typeof supertest>;
+it('should return 200', async () => {
+  await request.get('/api/users/tests|api-auth-1')
+    .set('Authorization', `Bearer ${token}`)
+    .expect(200)
+    .expect('Content-Type', /json/);
+});
 
-  beforeAll(async () => {
-    loadServices();
-    await db.connect();
+it('should return 401', async () => {
+  const rep = await request.get('/api/users/tests|api-auth-1')
+    .expect(401)
+    .expect('Content-Type', /json/);
 
-    request = supertest(app);
-  });
-
-  // Fill database
-  let admin: User;
-  let token: string;
-
-  beforeEach(async () => {
-    // Create some users
-    [admin] = await Promise.all([
-      new UserModel({
-        email: 'admin@api.auth.com', password: 'test',
-        admin: true,
-      }).save(),
-    ]);
-
-    // Get tokens
-    token = (await userLogin({ email: 'admin@api.auth.com', password: 'test' }, '1.2.3.4')).token;
-  });
-
-  // Empty database
-  afterEach(async () => {
-    await Promise.all([
-      admin.remove(),
-    ])
-  });
-
-  // Disconnect
-  afterAll(async () => {
-    await mongoose.disconnect();
-  });
-
-  // Tests
-  // - user login
-  test('POST /api/users/login', async () => {
-    const rep = await request.post('/api/users/login')
-      .send({ email: 'admin@api.auth.com', password: 'test', tags: ['Tests'] })
-      .expect(200)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({
-      _id: should.objectId(),
-      token: should.validate(validator.isJWT),
-      user: admin.id.toString()
-    });
-  });
-
-  test('POST /api/users/login (wrong credentials)', async () => {
-    const rep = await request.post('/api/users/login')
-      .send({ email: 'wrong@api.auth.com', password: 'test', tags: ['Tests'] })
-      .expect(401)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
-  });
-
-  test('POST /api/users/login (invalid email)', async () => {
-    const rep = await request.post('/api/users/login')
-      .send({ email: 'wrong', password: 'test', tags: ['Tests'] })
-      .expect(400)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
-  });
-
-  test('POST /api/users/login (missing credentials)', async () => {
-    const rep = await request.post('/api/users/login')
-      .expect(400)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({ code: 400, error: expect.any(String) });
-  });
-
-  // - connexion check
-  test('GET /api/users/:id (connected)', async () => {
-    await request.get(`/api/users/${admin.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .expect(200)
-      .expect('Content-Type', /json/);
-  });
-
-  test('GET /api/users/:id (not connected)', async () => {
-    const rep = await request.get(`/api/users/${admin.id}`)
-      .expect(401)
-      .expect('Content-Type', /json/);
-
-    expect(rep.body).toEqual({ code: 401, error: expect.any(String) });
-  });
+  expect(rep.body)
+    .toEqual(should.be.unauthorized());
 });

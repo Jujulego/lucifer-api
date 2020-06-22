@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "db/migrations/*",
+    "src/**/*"
+  ],
+  "exclude": [
+    "mocks",
+    "tests",
+    "src/**/*.story.ts",
+    "src/**/*.mock.ts",
+    "src/**/*.test.ts"
+  ]
+}

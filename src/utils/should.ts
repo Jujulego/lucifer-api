@@ -1,23 +1,7 @@
+import { HttpStatus } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
-import { Types } from 'mongoose';
-import validator from 'validator';
 
-import { HttpError } from 'middlewares/errors';
-import { PLvl, PName } from '../data/permission/permission.enums';
-import { isLRN } from './lrn';
-
-// Utils
-export async function shouldNotBeFound<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toRespect(HttpError.NotFound(expect.any(String)));
-}
-
-export async function shouldNotBeAllowed<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toEqual(HttpError.Forbidden('Not allowed'));
-}
-
-export async function shouldBeUnauthorized<T>(prom: Promise<T>) {
-  await expect(prom).rejects.toRespect(HttpError.Unauthorized(expect.any(String)));
-}
+import { HTTP_CODES } from './http';
 
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
@@ -91,12 +75,12 @@ class HaveLength implements jest.AsymmetricMatcher {
   ) {}
 
   // Methods
-  asymmetricMatch(other: Array<any> | string): boolean {
+  asymmetricMatch(other: Array<unknown> | string): boolean {
     return this.not != (other.length === this.length);
   }
 }
 
-class Validator<T = any> implements jest.AsymmetricMatcher {
+class Validator<T> implements jest.AsymmetricMatcher {
   // Constructor
   constructor(
     private validator: (value: T) => boolean,
@@ -109,98 +93,40 @@ class Validator<T = any> implements jest.AsymmetricMatcher {
   }
 }
 
-class IsObjectId implements jest.AsymmetricMatcher {
-  // Constructor
-  constructor(
-    private not: boolean = false
-  ) {}
-
-  // Methods
-  asymmetricMatch(other?: Types.ObjectId | string): boolean {
-    return this.not != (!!other && validator.isMongoId(other.toString()));
-  }
-}
-
-// Should interface
-interface Should {
-  objectId: () => IsObjectId,
-  validate: <T = any> (validator: (value: T) => boolean) => Validator<T>
-}
-
-// Composed matchers
-export const shouldPermission = (should: Should, name: PName, level: PLvl) => ({
-  _id: should.objectId(),
-  name, level
-});
-
-export const shouldToken = (should: Should, tags: string[]) => ({
-  _id: should.objectId(),
-  from: should.validate(validator.isIP),
-  createdAt: should.validate(validator.isISO8601),
-  tags
-});
-
-export const shouldSimpleUser = (should: Should, others: object) => ({
-  id: should.objectId(),
-  _id: should.objectId(),
-  __v: expect.any(Number),
-  lrn: should.validate(isLRN),
-  email: should.validate(validator.isEmail),
-
-  admin: expect.any(Boolean),
-  lastConnexion: should.validate(validator.isISO8601),
-
-  ...others
-});
-
-export const shouldUser = (should: Should, others: object) => shouldSimpleUser(should, {
-  permissions: expect.arrayContaining([]),
-  tokens: expect.arrayContaining([]),
-
-  ...others
-});
-
 // Namespace
-const should = {
-  // Utils
-  beUnauthorized: shouldBeUnauthorized,
-
+export const should = {
   // Logic
-  all: (...matchers: jest.AsymmetricMatcher[]) => new All(matchers),
-  any: (...matchers: jest.AsymmetricMatcher[]) => new Any(matchers),
+  all: (...matchers: jest.AsymmetricMatcher[]): All => new All(matchers),
+  any: (...matchers: jest.AsymmetricMatcher[]): Any => new Any(matchers),
 
   // Matchers
-  hashOf: (value: string) => new HashOf(value),
-  hashTo: (hash: string) => new HashTo(hash),
-  haveLength: (length: number) => new HaveLength(length),
-  objectId: () => new IsObjectId(),
-  validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator),
+  hashOf: (value: string): HashOf => new HashOf(value),
+  hashTo: (hash: string): HashTo => new HashTo(hash),
+  haveLength: (length: number): HaveLength => new HaveLength(length),
+  validate: <T> (validator: (value: T) => boolean): Validator<T> => new Validator(validator),
 
-  permission(name: PName, level: PLvl) { return shouldPermission(this, name, level); },
-  token(tags: string[] = []) { return shouldToken(this, tags); },
+  // Schemas
+  be: {
+    httpError(status: HttpStatus, message?: string): any {
+      return {
+        statusCode: status,
+        message: message || HTTP_CODES[status]
+      }
+    },
 
-  simpleUser(others: object = {}) { return shouldSimpleUser(this, others); },
-  user(others: object = {}) { return shouldUser(this, others); },
+    badRequest(  message?: string): any { return this.httpError(400, message)},
+    unauthorized(message?: string): any { return this.httpError(401, message)},
+    forbidden(   message?: string): any { return this.httpError(403, message)},
+    notFound(    message?: string): any { return this.httpError(404, message)},
+    serverError( message?: string): any { return this.httpError(500, message)}
+  },
 
   // Inverted
   not: {
-    // Utils
-    beAllowed: shouldNotBeAllowed,
-    beFound: shouldNotBeFound,
-
     // Matchers
-    hashOf: (hash: string) => new HashOf(hash, true),
-    hashTo: (hash: string) => new HashTo(hash, true),
-    haveLength: (length: number) => new HaveLength(length, true),
-    objectId: () => new IsObjectId(true),
-    validate: <T = any> (validator: (value: T) => boolean) => new Validator(validator, true),
-
-    permission(name: PName, level: PLvl) { return shouldPermission(this, name, level); },
-    token(tags: string[] = []) { return shouldToken(this, tags); },
-
-    simpleUser(others: object) { return shouldSimpleUser(this, others); },
-    user(others: object) { return shouldUser(this, others); },
+    hashOf: (hash: string): HashOf => new HashOf(hash, true),
+    hashTo: (hash: string): HashTo => new HashTo(hash, true),
+    haveLength: (length: number): HaveLength => new HaveLength(length, true),
+    validate: <T> (validator: (value: T) => boolean): Validator<T> => new Validator(validator, true),
   }
 };
-
-export default should;

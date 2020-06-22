@@ -1,4 +1,4 @@
-FROM node:12-alpine
+FROM node:14-alpine
 
 # Create workdir
 RUN mkdir /app
@@ -14,8 +14,8 @@ ADD yarn.lock /app/
 RUN yarn install --prod --pure-lockfile
 
 # Copy builded files
-ADD build/src /app/src
+ADD dist/src /app/src
 
 # Setup entrypoint
-ENTRYPOINT node src/server.js
+ENTRYPOINT node src/main.js
 EXPOSE 80

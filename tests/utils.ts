@@ -1,14 +1,8 @@
-import DIContainer from 'inversify.config';
-
-import { Credentials } from 'data/user/user';
-
-import UsersService, { LoginToken } from 'services/users.service';
-import { TestContext } from 'bases/context';
+import { INestApplication } from '@nestjs/common';
+import { JwtService } from 'auth/jwt.service';
 
 // Utils
-export async function userLogin(cred: Credentials, from: string): Promise<LoginToken> {
-  const users = DIContainer.get(UsersService);
-  const ctx = TestContext.notConnected(from);
-
-  return await users.login(ctx, cred, ['Tests']);
+export async function login(app: INestApplication, user: string): Promise<string> {
+  const auth = app.get(JwtService);
+  return auth.generate(user)
 }
