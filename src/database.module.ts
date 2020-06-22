@@ -23,6 +23,10 @@ function toWebpack(paths: any[] = []) {
         const options = await getConnectionOptions() as TypeOrmModuleOptions;
         options.autoLoadEntities = true;
 
+        if (env.DATABASE_URL) {
+          Object.assign(options, { url: env.DATABASE_URL });
+        }
+
         if (!env.TESTS) {
           toWebpack(options.entities);
           toWebpack(options.migrations);
