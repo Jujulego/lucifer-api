@@ -25,7 +25,6 @@ function toWebpack(paths: any[] = []) {
           url: env.DATABASE_URL,
           entities: ["src/**/*.entity.ts"],
           migrations: ["db/migrations/*.ts"],
-          autoLoadEntities: true,
         };
 
         if (!env.DATABASE_URL) {
@@ -36,6 +35,8 @@ function toWebpack(paths: any[] = []) {
           toWebpack(options.entities);
           toWebpack(options.migrations);
         }
+
+        options.autoLoadEntities = true;
 
         return options;
       }
