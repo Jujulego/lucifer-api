@@ -23,6 +23,7 @@ if (error) {
 // Environment
 export const env = {
   AUTH_STRATEGY: value.AUTH_STRATEGY,
+  DATABASE_URL:  value.DATABASE_URL,
   LOG_LEVEL:     value.LOG_LEVEL || 'debug',
   PORT:          value.PORT!,
   PRODUCTION:    value.NODE_ENV === 'production',
