@@ -21,14 +21,14 @@ function toWebpack(paths: any[] = []) {
     TypeOrmModule.forRootAsync({
       useFactory: async () => {
         let options: TypeOrmModuleOptions = {
-          autoLoadEntities: true,
+          type: 'postgres',
+          url: env.DATABASE_URL,
           entities: ["src/**/*.entity.ts"],
           migrations: ["db/migrations/*.ts"],
+          autoLoadEntities: true,
         };
 
-        if (env.DATABASE_URL) {
-          Object.assign(options, { url: env.DATABASE_URL });
-        } else {
+        if (!env.DATABASE_URL) {
           options = await getConnectionOptions();
         }
 
@@ -36,8 +36,6 @@ function toWebpack(paths: any[] = []) {
           toWebpack(options.entities);
           toWebpack(options.migrations);
         }
-
-        console.log(options);
 
         return options;
       }
