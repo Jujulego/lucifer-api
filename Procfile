@@ -1,2 +1,2 @@
-release: yarn run migration:run
+release: ./scripts/migrate.sh
 web: node dist/src/main
