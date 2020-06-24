@@ -2,10 +2,10 @@ name: Test & Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
 
   pull_request:
-    branches: [ master ]
+    branches: [ master, dev ]
 
 jobs:
   tests:
@@ -72,51 +72,3 @@ jobs:
 
       - name: Codecov
         uses: codecov/codecov-action@v1.0.6
-
-  build:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: [ tests ]
-
-    env:
-      IMAGE_NAME: docker.pkg.github.com/jujulego/lucifer-api/lucifer-api
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js 12.x
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-
-      - name: Setup
-        id: setup
-        run: echo "::set-output name=yarn-cache::$(yarn cache dir)"
-
-      - uses: actions/cache@v1
-        with:
-          path: ${{ steps.setup.outputs.yarn-cache }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-yarn-
-
-      - name: Install dependencies
-        run: yarn install --pure-lockfile
-
-      - name: Build
-        run: yarn run build
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v1.0.0
-        with:
-          name: lucifer-api
-          path: dist
-
-#      - name: Build Docker image
-#        run: docker build . --tag lucifer-api
-#
-#      - name: Push Docker image
-#        run: |
-#          docker login docker.pkg.github.com -u jujulego -p ${{ secrets.GITHUB_TOKEN }}
-#
-#          docker tag lucifer-api $IMAGE_NAME:${GITHUB_REF##*/}
-#          docker push $IMAGE_NAME:${GITHUB_REF##*/}
