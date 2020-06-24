@@ -22,7 +22,7 @@ export class ScopeGuard implements CanActivate {
     // Get token
     const request = ctx.switchToHttp().getRequest();
     const token = request.user as Token;
-    if (!token) return false;
+    if (!token || !token.permissions) return false;
 
     // Match
     return scopes.every(scope => token.permissions.includes(scope));
