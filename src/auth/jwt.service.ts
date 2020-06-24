@@ -9,6 +9,12 @@ export class JwtService {
 
   // Methods
   generate(user: string): string {
-    return jwt.sign({ sub: user }, JwtService.key);
+    return jwt.sign({
+      sub: user,
+      permissions: [
+        'read:users',
+        'update:users'
+      ]
+    }, JwtService.key);
   }
 }
