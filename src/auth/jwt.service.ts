@@ -8,13 +8,10 @@ export class JwtService {
   static readonly key: string = 'a25tp71kchu2m8h3qcrm8hishfv7vpw77mds';
 
   // Methods
-  generate(user: string): string {
+  generate(user: string, permissions: string[] = []): string {
     return jwt.sign({
       sub: user,
-      permissions: [
-        'read:users',
-        'update:users'
-      ]
+      permissions
     }, JwtService.key);
   }
 }

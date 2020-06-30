@@ -53,7 +53,7 @@ beforeEach(async () => {
   });
 
   // Get tokens
-  token = await login(app, 'tests|api-users-1');
+  token = await login(app, 'tests|api-users-1', ['read:users']);
 });
 
 // Empty database
@@ -64,37 +64,68 @@ afterEach(async () => {
 });
 
 // Tests
-// - get a user
-test('GET /api/users/:id', async () => {
-  const ath = auth0Mock[0];
-  const lcl = users[0];
+describe('GET /api/users/:id', () => {
+  it('should return user\'s details', async () => {
+    const ath = auth0Mock[0];
+    const lcl = users[0];
 
-  const rep = await request.get(`/api/users/${lcl.id}`)
-    .set('Authorization', `Bearer ${token}`)
-    .expect(200)
-    .expect('Content-Type', /json/);
+    const rep = await request.get(`/api/users/${lcl.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
 
-  expect(rep.body).toEqual({
-    id:         lcl.id,
-    email:      ath.email,
-    emailVerified: true,
-    name:       ath.name,
-    nickname:   ath.nickname,
-    givenName:  ath.givenName,
-    familyName: ath.familyName,
-    picture:    ath.picture,
-    daemons:    lcl.daemons
+    expect(rep.body).toEqual({
+      id:         lcl.id,
+      email:      ath.email,
+      emailVerified: true,
+      name:       ath.name,
+      nickname:   ath.nickname,
+      givenName:  ath.givenName,
+      familyName: ath.familyName,
+      picture:    ath.picture,
+      daemons:    lcl.daemons
+    });
+  });
+
+  it('should be forbidden (missing scope)', async () => {
+    const lcl = users[0];
+    token = await login(app, users[1].id, []);
+
+    await request.get(`/api/users/${lcl.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403)
+      .expect('Content-Type', /json/);
+  });
+
+  it('should be allowed (access own data)', async () => {
+    const lcl = users[0];
+    token = await login(app, lcl.id, []);
+
+    await request.get(`/api/users/${lcl.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
   });
 });
 
-// - get all users
-test('GET /api/users', async () => {
-  const rep = await request.get('/api/users')
-    .set('Authorization', `Bearer ${token}`)
-    .expect(200)
-    .expect('Content-Type', /json/);
+describe('GET /api/users', () => {
+  it('should return all users', async () => {
+    const rep = await request.get('/api/users')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200)
+      .expect('Content-Type', /json/);
 
-  expect(rep.body).toEqual(expect.arrayContaining(
-    users.map(usr => expect.objectContaining({ id: usr.id }))
-  ));
+    expect(rep.body).toEqual(expect.arrayContaining(
+      users.map(usr => expect.objectContaining({ id: usr.id }))
+    ));
+  });
+
+  it('should be forbidden (missing scope)', async () => {
+    token = await login(app, 'tests|api-users-1', []);
+
+    await request.get('/api/users')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(403)
+      .expect('Content-Type', /json/);
+  });
 });
