@@ -1,10 +1,10 @@
 import { CanActivate, CustomDecorator, ExecutionContext, Injectable, SetMetadata } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
-import { Token } from './token.model';
+import { User } from 'auth/user.model';
 
 // Types
-export type AllowIfCallback<R> = (req: R, token: Token) => boolean;
+export type AllowIfCallback<R> = (req: R, user: User) => boolean;
 
 // Symbols
 const METADATA_KEYS = {
@@ -38,7 +38,7 @@ export class ScopeGuard implements CanActivate {
 
     // Get token
     const request = ctx.switchToHttp().getRequest();
-    const token = request.user as Token;
+    const token = request.user as User;
     if (!token || !token.permissions) return false;
 
     // Match

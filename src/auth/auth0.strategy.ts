@@ -5,7 +5,7 @@ import jwks from 'jwks-rsa';
 
 import { env } from 'env';
 
-import { Token } from './token.model';
+import { User } from 'auth/user.model';
 
 // Strategy
 @Injectable()
@@ -27,7 +27,8 @@ export class Auth0Strategy extends PassportStrategy(Strategy, 'auth0') {
   }
 
   // Methods
-  validate(payload: Token): Token {
+  // noinspection JSUnusedGlobalSymbols
+  validate(payload: User): User {
     return payload;
   }
 }

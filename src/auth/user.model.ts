@@ -1,15 +1,15 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 // Model
-export interface Token {
+export interface User {
   sub: string;
   permissions: string[];
 }
 
 // Decorator
-export const TokenContent = createParamDecorator(
+export const ConnectedUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req = ctx.switchToHttp().getRequest();
-    return req.user as Token;
+    return req.user as User;
   }
 );

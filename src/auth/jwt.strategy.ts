@@ -5,7 +5,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { env } from 'env';
 
 import { JwtService } from './jwt.service';
-import { Token } from './token.model';
+import { User } from 'auth/user.model';
 
 // Strategy
 @Injectable()
@@ -27,7 +27,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   }
 
   // Methods
-  validate(payload: Token): Token {
+  // noinspection JSUnusedGlobalSymbols
+  validate(payload: User): User {
     return payload;
   }
 }
