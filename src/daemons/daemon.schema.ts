@@ -15,7 +15,4 @@ export class DaemonUpdate {
 
   @IsString() @IsOptional()
   ownerId?: string;
-
-  @IsUUID('all', { each: true }) @IsOptional()
-  dependencies?: string[];
 }

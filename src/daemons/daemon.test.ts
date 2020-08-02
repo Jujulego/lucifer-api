@@ -12,7 +12,6 @@ import { should } from 'utils';
 
 import { Daemon } from './daemon.entity';
 import { DaemonService } from './daemon.service';
-import exp from 'constants';
 
 // Load services
 let app: TestingModule;
@@ -129,9 +128,7 @@ describe('DaemonService.update', () => {
       .resolves.toEqual({
         id:    daemon.id,
         name:  null,
-        owner: expect.objectContaining({ id: user.id }),
-        dependencies: [],
-        dependents: []
+        owner: expect.objectContaining({ id: user.id })
       });
   });
 
