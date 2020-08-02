@@ -3,7 +3,7 @@ import { AuthGuard } from '@nestjs/passport';
 
 import { env } from 'env';
 
-import { Token, UseToken } from './token.model';
+import { Token, TokenContent } from './token.model';
 
 // Controller
 @Controller('/api/auth')
@@ -11,7 +11,7 @@ import { Token, UseToken } from './token.model';
 export class AuthController {
   // Routes
   @Get('/permissions')
-  getPermissions(@UseToken() token: Token): string[] {
+  getPermissions(@TokenContent() token: Token): string[] {
     return token.permissions;
   }
 }

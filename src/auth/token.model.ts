@@ -7,7 +7,7 @@ export interface Token {
 }
 
 // Decorator
-export const UseToken = createParamDecorator(
+export const TokenContent = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req = ctx.switchToHttp().getRequest();
     return req.user as Token;
