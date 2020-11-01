@@ -3,6 +3,7 @@
 /dist/
 /coverage/
 /node_modules/
+/db/data/
 
 # Files
 *.log
