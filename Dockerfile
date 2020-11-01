@@ -7,6 +7,7 @@ WORKDIR /app
 # Environment
 ENV NODE_ENV=production
 ENV NODE_PATH=src
+ENV PORT=80
 
 # Install dependencies
 ADD package.json /app/
