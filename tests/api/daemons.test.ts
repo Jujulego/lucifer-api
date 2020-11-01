@@ -53,7 +53,7 @@ beforeEach(async () => {
   });
 
   // Get tokens
-  token = await login(app, 'tests|api-daemons-1');
+  token = await login('tests|api-daemons-1');
 });
 
 // Empty database

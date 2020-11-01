@@ -36,7 +36,7 @@ let token: string;
 
 beforeEach(async () => {
   // Get token
-  token = await login(app, 'tests|api-auth-1');
+  token = await login('tests|api-auth-1', ['read:users']);
 });
 
 // Tests

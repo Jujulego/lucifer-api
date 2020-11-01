@@ -53,7 +53,7 @@ beforeEach(async () => {
   });
 
   // Get tokens
-  token = await login(app, 'tests|api-users-1', ['read:users']);
+  token = await login('tests|api-users-1', ['read:users']);
 });
 
 // Empty database
@@ -89,7 +89,7 @@ describe('GET /api/users/:id', () => {
 
   it('should be forbidden (missing scope)', async () => {
     const lcl = users[0];
-    token = await login(app, users[1].id, []);
+    token = await login(users[1].id, []);
 
     await request.get(`/api/users/${lcl.id}`)
       .set('Authorization', `Bearer ${token}`)
@@ -99,7 +99,7 @@ describe('GET /api/users/:id', () => {
 
   it('should be allowed (access own data)', async () => {
     const lcl = users[0];
-    token = await login(app, lcl.id, []);
+    token = await login(lcl.id, []);
 
     await request.get(`/api/users/${lcl.id}`)
       .set('Authorization', `Bearer ${token}`)
@@ -121,7 +121,7 @@ describe('GET /api/users', () => {
   });
 
   it('should be forbidden (missing scope)', async () => {
-    token = await login(app, 'tests|api-users-1', []);
+    token = await login('tests|api-users-1', []);
 
     await request.get('/api/users')
       .set('Authorization', `Bearer ${token}`)

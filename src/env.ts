@@ -22,7 +22,6 @@ if (error) {
 
 // Environment
 export const env = {
-  AUTH_STRATEGY: value.AUTH_STRATEGY,
   DATABASE_URL:  value.DATABASE_URL,
   LOG_LEVEL:     value.LOG_LEVEL || 'debug',
   PORT:          value.PORT!,
@@ -34,4 +33,3 @@ export const env = {
   AUTH0_CLIENT_ID:     value.AUTH0_CLIENT_ID!,
   AUTH0_CLIENT_SECRET: value.AUTH0_CLIENT_SECRET!
 };
-

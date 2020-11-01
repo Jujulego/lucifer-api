@@ -2,7 +2,6 @@ import { Body, Controller, Get, Param, Put, UseGuards, ValidationPipe } from '@n
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 
-import { env } from 'env';
 import { AllowIf, ScopeGuard, Scopes } from 'auth/scope.guard';
 
 import { User } from './user.model';
@@ -11,7 +10,7 @@ import { UpdateUser } from './user.schema';
 
 // Controller
 @Controller('/api/users')
-@UseGuards(AuthGuard(env.AUTH_STRATEGY), ScopeGuard)
+@UseGuards(AuthGuard('auth0'), ScopeGuard)
 export class UserController {
   // Constructor
   constructor(

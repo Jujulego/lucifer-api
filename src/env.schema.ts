@@ -2,9 +2,6 @@ import joi from '@hapi/joi';
 
 // Schema
 export const envSchema = joi.object({
-  AUTH_STRATEGY: joi.allow('auth0', 'jwt')
-    .default('auth0'),
-
   DATABASE_URL: joi.string()
     .optional(),
 

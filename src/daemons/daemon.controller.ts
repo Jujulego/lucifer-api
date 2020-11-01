@@ -12,15 +12,13 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 
-import { env } from 'env';
-
 import { Daemon } from './daemon.entity';
 import { DaemonCreate, DaemonUpdate } from './daemon.schema';
 import { DaemonService } from './daemon.service';
 
 // Controller
 @Controller('/api/daemons')
-@UseGuards(AuthGuard(env.AUTH_STRATEGY))
+@UseGuards(AuthGuard('auth0'))
 export class DaemonController {
   // Constructor
   constructor(
