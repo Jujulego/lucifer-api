@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="main.js" type="NodeJSConfigurationType" path-to-js-file="src/main.js" working-dir="$PROJECT_DIR$/dist">
+    <envs>
+      <env name="NODE_PATH" value="src" />
+      <env name="NODE_ENV" value="production" />
+    </envs>
+    <method v="2" />
+  </configuration>
+</component>

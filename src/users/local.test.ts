@@ -5,7 +5,7 @@ import { Connection } from 'typeorm';
 import { DatabaseModule } from 'database.module';
 import { Daemon } from 'daemons/daemon.entity';
 
-import { LocalUser } from './local.entity';
+import { LocalUser, RequiredFields } from './local.entity';
 import { LocalUserService } from './local.service';
 
 // Load services
@@ -96,7 +96,7 @@ describe('LocalService.create', () => {
 });
 
 describe('LocalService.getOrCreate', () => {
-  let createSpy: jest.SpyInstance<Promise<LocalUser>, [any]>;
+  let createSpy: jest.SpyInstance<Promise<LocalUser>, [RequiredFields]>;
   const data = {
     id: 'tests|users-local-20',
     email: 'test20@local.users.com',

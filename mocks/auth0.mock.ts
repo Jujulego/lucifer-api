@@ -2,10 +2,10 @@ import { OverrideByFactoryOptions } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ManagementClient } from 'auth0';
 
-import { Auth0User } from './auth0.model';
-import { Auth0UserService } from './auth0.service';
+import { Auth0User } from 'users/auth0.model';
+import { Auth0UserService } from 'users/auth0.service';
 
-import auth0Mock from 'mocks/auth0.mock.json';
+import auth0Mock from './auth0.mock.json';
 
 // Mock
 export class Auth0UserMock extends Auth0UserService {

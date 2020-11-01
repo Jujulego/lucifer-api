@@ -11,7 +11,7 @@ import { LocalUser } from './local.entity';
 import { LocalUserService } from './local.service';
 import { UserService } from './user.service';
 import { Auth0UserService } from './auth0.service';
-import { factoryAuth0UserMock } from './auth0.mock';
+import { factoryAuth0UserMock } from 'mocks/auth0.mock';
 
 import auth0Mock from 'mocks/auth0.mock.json';
 

@@ -6,7 +6,7 @@ import validator from 'validator';
 import { AppModule } from 'app.module';
 import { LocalUser } from 'users/local.entity';
 import { Auth0UserService } from 'users/auth0.service';
-import { factoryAuth0UserMock } from 'users/auth0.mock';
+import { factoryAuth0UserMock } from 'mocks/auth0.mock';
 
 import { should } from 'utils';
 

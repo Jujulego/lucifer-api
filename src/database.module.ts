@@ -5,7 +5,7 @@ import { getConnectionOptions } from 'typeorm';
 import { env } from 'env';
 
 // Utils
-function toWebpack(paths: any[] = []) {
+function toWebpack(paths: unknown[] = []) {
   for (let i = 0; i < paths.length; ++i) {
     const p = paths[i];
 

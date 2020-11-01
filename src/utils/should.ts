@@ -3,6 +3,12 @@ import bcrypt from 'bcryptjs';
 
 import { HTTP_CODES } from './http';
 
+// Types
+interface HttpError {
+  statusCode: HttpStatus,
+  message: string
+}
+
 // Matchers logic
 class All implements jest.AsymmetricMatcher {
   // Constructor
@@ -107,18 +113,18 @@ export const should = {
 
   // Schemas
   be: {
-    httpError(status: HttpStatus, message?: string): any {
+    httpError(status: HttpStatus, message?: string): HttpError {
       return {
         statusCode: status,
         message: message || HTTP_CODES[status]
       }
     },
 
-    badRequest(  message?: string): any { return this.httpError(400, message)},
-    unauthorized(message?: string): any { return this.httpError(401, message)},
-    forbidden(   message?: string): any { return this.httpError(403, message)},
-    notFound(    message?: string): any { return this.httpError(404, message)},
-    serverError( message?: string): any { return this.httpError(500, message)}
+    badRequest(  message?: string): HttpError { return this.httpError(400, message)},
+    unauthorized(message?: string): HttpError { return this.httpError(401, message)},
+    forbidden(   message?: string): HttpError { return this.httpError(403, message)},
+    notFound(    message?: string): HttpError { return this.httpError(404, message)},
+    serverError( message?: string): HttpError { return this.httpError(500, message)}
   },
 
   // Inverted
